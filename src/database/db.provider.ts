@@ -8,12 +8,12 @@ export const DB_PROVIDER = 'DB_PROVIDER';
 
 export const InjectDb = () => Inject(DB_PROVIDER);
 
-export type DrizzleDB = ReturnType<typeof drizzle<typeof schema>>;
+export type DB = ReturnType<typeof drizzle<typeof schema>>;
 
 export const dbProvider: FactoryProvider = {
   provide: DB_PROVIDER,
   inject: [ConfigService],
-  useFactory: async (configService: ConfigService): Promise<DrizzleDB> => {
+  useFactory: async (configService: ConfigService): Promise<DB> => {
     const logger = new Logger('Database');
 
     const connectionString = configService.get<string>('DATABASE_URL');
