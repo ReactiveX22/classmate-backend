@@ -1,0 +1,27 @@
+import { HttpException, HttpStatus } from '@nestjs/common';
+import { ApplicationErrorCode } from './error.types';
+
+/**
+ * Base application-wide exception class.
+ * Ensures all API errors adhere to a standardized format {message, errorCode}.
+ */
+export class ApplicationException extends HttpException {
+  public readonly errorCode: ApplicationErrorCode;
+
+  constructor(status: HttpStatus, message: string, errorCode: string) {
+    super({ message, errorCode }, status);
+    this.errorCode = errorCode;
+  }
+}
+
+export class ApplicationNotFoundException extends ApplicationException {
+  constructor(message: string, errorCode: string) {
+    super(HttpStatus.NOT_FOUND, message, errorCode);
+  }
+}
+
+export class ApplicationBadRequestException extends ApplicationException {
+  constructor(message: string, errorCode: string) {
+    super(HttpStatus.BAD_REQUEST, message, errorCode);
+  }
+}
