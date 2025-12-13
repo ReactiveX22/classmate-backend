@@ -6,6 +6,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { ConfigModule } from 'src/config/config.module';
 import { DatabaseModule } from 'src/database/database.module';
 import { DB, DB_PROVIDER } from 'src/database/db.provider';
+import { SignupValidationHook } from './hooks/signup-validation.hook';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { DB, DB_PROVIDER } from 'src/database/db.provider';
           trustedOrigins: [
             configService.get('CLIENT_URL', 'http://localhost:3001'),
           ],
+          hooks: {},
         }),
         middleware: (req, _res, next) => {
           req.url = req.originalUrl;
@@ -38,5 +40,6 @@ import { DB, DB_PROVIDER } from 'src/database/db.provider';
       }),
     }),
   ],
+  providers: [SignupValidationHook],
 })
 export class AuthModule {}
