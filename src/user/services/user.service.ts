@@ -3,9 +3,17 @@ import { type DB, InjectDb } from 'src/database/db.provider';
 import { user, userProfile } from 'src/database/schema';
 import { eq } from 'drizzle-orm';
 import { TeacherRepository } from '../repositories/teacher.repository';
-import { StudentRepository } from '../repositories/student.repository';
+import {
+  StudentRepository,
+  StudentWithProfile,
+} from '../repositories/student.repository';
 import { UserProfileRepository } from '../repositories/user-profile.repository';
 import { UserRepository } from '../repositories/user.repository';
+import {
+  PaginatedResponse,
+  PaginationQueryDto,
+} from 'src/common/dto/pagination.dto';
+import { createPaginatedResponse } from 'src/common/helpers/pagination.helper';
 
 @Injectable()
 export class UserService {
@@ -100,6 +108,22 @@ export class UserService {
 
   async createStudent(data: { userProfileId: string; studentId?: string }) {
     return this.studentRepository.create(data);
+  }
+
+  /**
+   * Get paginated students for an organization.
+   * Used by admins to view all students in their organization.
+   */
+  async getStudentsByOrganization(
+    organizationId: string,
+    query: PaginationQueryDto,
+  ): Promise<PaginatedResponse<StudentWithProfile>> {
+    const { students, total } = await this.studentRepository.findByOrganization(
+      organizationId,
+      query,
+    );
+
+    return createPaginatedResponse(students, query, total);
   }
 
   /**

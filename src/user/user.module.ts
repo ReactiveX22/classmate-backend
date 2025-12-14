@@ -5,9 +5,11 @@ import { StudentRepository } from './repositories/student.repository';
 import { UserProfileRepository } from './repositories/user-profile.repository';
 import { UserRepository } from './repositories/user.repository';
 import { UserService } from './services/user.service';
+import { StudentController } from './controllers/student.controller';
 
 @Module({
   imports: [DatabaseModule],
+  controllers: [StudentController],
   providers: [
     UserService,
     UserRepository,
