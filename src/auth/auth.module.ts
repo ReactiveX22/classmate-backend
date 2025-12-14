@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { AuthModule as BetterAuthModule } from '@thallesp/nestjs-better-auth';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { admin } from 'better-auth/plugins';
 import { ConfigModule } from 'src/config/config.module';
 import { DatabaseModule } from 'src/database/database.module';
 import { DB, DB_PROVIDER } from 'src/database/db.provider';
@@ -31,6 +32,7 @@ import { SignupValidationHook } from './hooks/signup-validation.hook';
             configService.get('CLIENT_URL', 'http://localhost:3001'),
           ],
           hooks: {},
+          plugins: [admin()],
         }),
         middleware: (req, _res, next) => {
           req.url = req.originalUrl;

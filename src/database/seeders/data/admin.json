@@ -1,0 +1,12 @@
+{
+  "email": "admin@classmate.local",
+  "password": "admin123",
+  "name": "Admin User",
+  "role": "admin",
+  "profile": {
+    "firstName": "Admin",
+    "lastName": "User",
+    "displayName": "Administrator"
+  }
+}
+

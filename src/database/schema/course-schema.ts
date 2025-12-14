@@ -6,32 +6,22 @@ import {
   text,
   timestamp,
   unique,
+  uuid,
 } from 'drizzle-orm/pg-core';
 import { teacher } from './teacher-schema';
-
-export const semesterEnum = pgEnum('semester', [
-  'Fall 25',
-  'Spring 25',
-  'Summer 25',
-  'Winter 25',
-  'Fall 26',
-  'Spring 26',
-  'Summer 26',
-  'Winter 26',
-]);
 
 export const course = pgTable(
   'course',
   {
-    id: text('id').primaryKey(),
-    teacherId: text('teacher_id').references(() => teacher.id, {
+    id: uuid('id').primaryKey().defaultRandom(),
+    teacherId: uuid('teacher_id').references(() => teacher.id, {
       onDelete: 'set null',
     }),
     code: text('code').notNull(),
     title: text('title').notNull(),
     description: text('description'),
     credits: integer('credits').default(3).notNull(),
-    semester: semesterEnum('semester').notNull(),
+    semester: text('semester').notNull(),
     maxStudents: integer('max_students').default(50).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')

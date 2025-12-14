@@ -1,0 +1,54 @@
+[
+  {
+    "email": "prof.smith@university.edu",
+    "password": "teacher123",
+    "name": "Professor Smith",
+    "role": "instructor",
+    "profile": {
+      "firstName": "John",
+      "lastName": "Smith",
+      "displayName": "Prof. Smith",
+      "phone": "+1234567890",
+      "bio": "Mathematics Professor with 15 years of experience"
+    },
+    "teacher": {
+      "title": "Professor",
+      "joinDate": "2020-01-15"
+    }
+  },
+  {
+    "email": "dr.jones@university.edu",
+    "password": "teacher123",
+    "name": "Dr. Jones",
+    "role": "instructor",
+    "profile": {
+      "firstName": "Sarah",
+      "lastName": "Jones",
+      "displayName": "Dr. Jones",
+      "phone": "+1234567891",
+      "bio": "Computer Science Professor specializing in AI and Machine Learning"
+    },
+    "teacher": {
+      "title": "Associate Professor",
+      "joinDate": "2021-08-20"
+    }
+  },
+  {
+    "email": "lecturer.brown@university.edu",
+    "password": "teacher123",
+    "name": "Lecturer Brown",
+    "role": "instructor",
+    "profile": {
+      "firstName": "Michael",
+      "lastName": "Brown",
+      "displayName": "Mr. Brown",
+      "phone": "+1234567892",
+      "bio": "Physics Lecturer"
+    },
+    "teacher": {
+      "title": "Lecturer",
+      "joinDate": "2022-09-01"
+    }
+  }
+]
+

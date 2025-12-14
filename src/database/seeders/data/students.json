@@ -1,0 +1,99 @@
+[
+  {
+    "email": "alice.johnson@university.edu",
+    "password": "student123",
+    "name": "Alice Johnson",
+    "role": "student",
+    "profile": {
+      "firstName": "Alice",
+      "lastName": "Johnson",
+      "displayName": "Alice J.",
+      "phone": "+1234567900"
+    }
+  },
+  {
+    "email": "bob.williams@university.edu",
+    "password": "student123",
+    "name": "Bob Williams",
+    "role": "student",
+    "profile": {
+      "firstName": "Bob",
+      "lastName": "Williams",
+      "displayName": "Bob W.",
+      "phone": "+1234567901"
+    }
+  },
+  {
+    "email": "charlie.davis@university.edu",
+    "password": "student123",
+    "name": "Charlie Davis",
+    "role": "student",
+    "profile": {
+      "firstName": "Charlie",
+      "lastName": "Davis",
+      "displayName": "Charlie D.",
+      "phone": "+1234567902"
+    }
+  },
+  {
+    "email": "diana.miller@university.edu",
+    "password": "student123",
+    "name": "Diana Miller",
+    "role": "student",
+    "profile": {
+      "firstName": "Diana",
+      "lastName": "Miller",
+      "displayName": "Diana M.",
+      "phone": "+1234567903"
+    }
+  },
+  {
+    "email": "edward.wilson@university.edu",
+    "password": "student123",
+    "name": "Edward Wilson",
+    "role": "student",
+    "profile": {
+      "firstName": "Edward",
+      "lastName": "Wilson",
+      "displayName": "Edward W.",
+      "phone": "+1234567904"
+    }
+  },
+  {
+    "email": "fiona.moore@university.edu",
+    "password": "student123",
+    "name": "Fiona Moore",
+    "role": "student",
+    "profile": {
+      "firstName": "Fiona",
+      "lastName": "Moore",
+      "displayName": "Fiona M.",
+      "phone": "+1234567905"
+    }
+  },
+  {
+    "email": "george.taylor@university.edu",
+    "password": "student123",
+    "name": "George Taylor",
+    "role": "student",
+    "profile": {
+      "firstName": "George",
+      "lastName": "Taylor",
+      "displayName": "George T.",
+      "phone": "+1234567906"
+    }
+  },
+  {
+    "email": "hannah.anderson@university.edu",
+    "password": "student123",
+    "name": "Hannah Anderson",
+    "role": "student",
+    "profile": {
+      "firstName": "Hannah",
+      "lastName": "Anderson",
+      "displayName": "Hannah A.",
+      "phone": "+1234567907"
+    }
+  }
+]
+

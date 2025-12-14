@@ -1,5 +1,13 @@
 import { relations } from 'drizzle-orm';
-import { date, index, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+  date,
+  index,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { userProfile } from './user-profile-schema';
 import { course } from './course-schema';
 
@@ -14,8 +22,8 @@ export const teacherTitleEnum = pgEnum('teacher_title', [
 export const teacher = pgTable(
   'teacher',
   {
-    id: text('id').primaryKey(),
-    userProfileId: text('user_profile_id')
+    id: uuid('id').primaryKey().defaultRandom(),
+    userProfileId: uuid('user_profile_id')
       .notNull()
       .unique()
       .references(() => userProfile.id, { onDelete: 'cascade' }),
@@ -37,4 +45,3 @@ export const teacherRelations = relations(teacher, ({ one, many }) => ({
   }),
   courses: many(course),
 }));
-

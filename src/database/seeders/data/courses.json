@@ -1,0 +1,48 @@
+[
+  {
+    "code": "CS101",
+    "title": "Introduction to Computer Science",
+    "description": "Fundamentals of programming and computer science concepts",
+    "credits": 3,
+    "semester": "Fall 25",
+    "maxStudents": 50,
+    "teacherEmail": "prof.smith@university.edu"
+  },
+  {
+    "code": "MATH201",
+    "title": "Calculus I",
+    "description": "Differential and integral calculus",
+    "credits": 4,
+    "semester": "Fall 25",
+    "maxStudents": 40,
+    "teacherEmail": "prof.smith@university.edu"
+  },
+  {
+    "code": "CS301",
+    "title": "Data Structures and Algorithms",
+    "description": "Advanced data structures and algorithm design",
+    "credits": 3,
+    "semester": "Fall 25",
+    "maxStudents": 35,
+    "teacherEmail": "dr.jones@university.edu"
+  },
+  {
+    "code": "PHYS101",
+    "title": "Introduction to Physics",
+    "description": "Basic principles of mechanics and thermodynamics",
+    "credits": 3,
+    "semester": "Spring 25",
+    "maxStudents": 45,
+    "teacherEmail": "lecturer.brown@university.edu"
+  },
+  {
+    "code": "CS401",
+    "title": "Machine Learning",
+    "description": "Introduction to machine learning algorithms and applications",
+    "credits": 3,
+    "semester": "Spring 25",
+    "maxStudents": 30,
+    "teacherEmail": "dr.jones@university.edu"
+  }
+]
+
