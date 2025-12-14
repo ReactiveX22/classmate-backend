@@ -4,12 +4,14 @@ import { AppRole } from 'src/common/enums/role.enum';
 import { UserService } from 'src/user/services/user.service';
 import { BaseSeeder } from './base.seeder';
 import adminData from './data/admin.json';
+import { OrganizationService } from 'src/organization/services/organization.service';
 
 @Injectable()
 export class AdminSeeder extends BaseSeeder {
   constructor(
     private readonly userService: UserService,
     private readonly authService: AuthService<any>,
+    private readonly organizationService: OrganizationService,
   ) {
     super('Admin');
   }
@@ -47,12 +49,25 @@ export class AdminSeeder extends BaseSeeder {
       // Update user role to admin
       await this.userService.updateUserRole(userId, AppRole.Admin);
 
+      // Get organization
+      const organizations =
+        await this.organizationService.findAllOrganizations();
+      const organizationId = organizations[0]?.id;
+
+      if (!organizationId) {
+        this.warn(
+          'No organization found. Admin user will not be linked to any organization.',
+        );
+      }
+
       // Create user profile
       const profile = await this.userService.createUserWithProfile({
         userId,
         name: adminData.name,
         email: adminData.email,
         role: AppRole.Admin,
+        organizationId,
+        status: 'active',
         profile: {
           firstName: adminData.profile.firstName,
           lastName: adminData.profile.lastName,

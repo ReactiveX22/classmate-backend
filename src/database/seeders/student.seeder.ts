@@ -4,12 +4,14 @@ import { AppRole } from 'src/common/enums/role.enum';
 import { UserService } from 'src/user/services/user.service';
 import { BaseSeeder } from './base.seeder';
 import studentsData from './data/students.json';
+import { OrganizationService } from 'src/organization/services/organization.service';
 
 @Injectable()
 export class StudentSeeder extends BaseSeeder {
   constructor(
     private readonly userService: UserService,
     private readonly authService: AuthService<any>,
+    private readonly organizationService: OrganizationService,
   ) {
     super('Student');
   }
@@ -52,12 +54,19 @@ export class StudentSeeder extends BaseSeeder {
         // Update user role
         await this.userService.updateUserRole(userId, AppRole.Student);
 
+        // Get organization
+        const organizations =
+          await this.organizationService.findAllOrganizations();
+        const organizationId = organizations[0]?.id;
+
         // Create user profile
         await this.userService.createUserWithProfile({
           userId,
           name: studentData.name,
           email: studentData.email,
           role: AppRole.Student,
+          organizationId,
+          status: 'active',
           profile: {
             firstName: studentData.profile.firstName,
             lastName: studentData.profile.lastName,

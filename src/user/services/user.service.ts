@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { type DB, InjectDb } from 'src/database/db.provider';
-import { userProfile } from 'src/database/schema';
+import { user, userProfile } from 'src/database/schema';
+import { eq } from 'drizzle-orm';
 import { TeacherRepository } from '../repositories/teacher.repository';
 import { StudentRepository } from '../repositories/student.repository';
 import { UserProfileRepository } from '../repositories/user-profile.repository';
@@ -33,6 +34,8 @@ export class UserService {
     name: string;
     email: string;
     role?: string;
+    organizationId?: string;
+    status?: 'active' | 'pending' | 'suspended';
     profile: {
       firstName: string;
       lastName: string;
@@ -43,6 +46,17 @@ export class UserService {
   }) {
     // Use transaction to ensure atomicity
     return this.db.transaction(async (tx) => {
+      // If organizationId or status is provided, update the user record
+      if (data.organizationId || data.status) {
+        await tx
+          .update(user) // user imported from schema
+          .set({
+            organizationId: data.organizationId,
+            status: data.status,
+          })
+          .where(eq(user.id, data.userId));
+      }
+
       const profile = await tx
         .insert(userProfile)
         .values({

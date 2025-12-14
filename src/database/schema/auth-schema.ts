@@ -1,6 +1,21 @@
 import { relations } from 'drizzle-orm';
-import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  index,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { userProfile } from './user-profile-schema';
+import { organization } from './organization-schema';
+
+export const userStatusEnum = pgEnum('user_status', [
+  'pending',
+  'active',
+  'suspended',
+]);
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
@@ -14,6 +29,10 @@ export const user = pgTable('user', {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
   role: text('role'),
+  status: userStatusEnum('status').default('pending').notNull(),
+  organizationId: uuid('organization_id').references(() => organization.id, {
+    onDelete: 'set null',
+  }),
   banned: boolean('banned').default(false),
   banReason: text('ban_reason'),
   banExpires: timestamp('ban_expires'),
@@ -85,6 +104,10 @@ export const userRelations = relations(user, ({ many, one }) => ({
   userProfile: one(userProfile, {
     fields: [user.id],
     references: [userProfile.userId],
+  }),
+  organization: one(organization, {
+    fields: [user.organizationId],
+    references: [organization.id],
   }),
 }));
 

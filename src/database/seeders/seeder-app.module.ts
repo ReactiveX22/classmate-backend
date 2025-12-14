@@ -7,6 +7,8 @@ import { AdminSeeder } from './admin.seeder';
 import { CourseSeeder } from './course.seeder';
 import { StudentSeeder } from './student.seeder';
 import { TeacherSeeder } from './teacher.seeder';
+import { OrganizationSeeder } from './organization.seeder';
+import { OrganizationModule } from 'src/organization/organization.module';
 
 /**
  * Standalone module for database seeding.
@@ -14,8 +16,26 @@ import { TeacherSeeder } from './teacher.seeder';
  * It imports only the necessary modules for seeding operations.
  */
 @Module({
-  imports: [DatabaseModule, AuthModule, UserModule, CourseModule],
-  providers: [AdminSeeder, TeacherSeeder, StudentSeeder, CourseSeeder],
-  exports: [AdminSeeder, TeacherSeeder, StudentSeeder, CourseSeeder],
+  imports: [
+    DatabaseModule,
+    AuthModule,
+    UserModule,
+    CourseModule,
+    OrganizationModule,
+  ],
+  providers: [
+    AdminSeeder,
+    TeacherSeeder,
+    StudentSeeder,
+    CourseSeeder,
+    OrganizationSeeder,
+  ],
+  exports: [
+    AdminSeeder,
+    TeacherSeeder,
+    StudentSeeder,
+    CourseSeeder,
+    OrganizationSeeder,
+  ],
 })
 export class SeederAppModule {}

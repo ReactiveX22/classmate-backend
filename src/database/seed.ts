@@ -5,6 +5,7 @@ import { CourseSeeder } from './seeders/course.seeder';
 import { SeedRunner } from './seeders/seed.runner';
 import { StudentSeeder } from './seeders/student.seeder';
 import { TeacherSeeder } from './seeders/teacher.seeder';
+import { OrganizationSeeder } from './seeders/organization.seeder';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(SeederAppModule, {
@@ -17,12 +18,14 @@ async function bootstrap() {
     const teacherSeeder = app.get(TeacherSeeder);
     const studentSeeder = app.get(StudentSeeder);
     const courseSeeder = app.get(CourseSeeder);
+    const orgSeeder = app.get(OrganizationSeeder);
 
     const seedRunner = new SeedRunner(
       adminSeeder,
       teacherSeeder,
       studentSeeder,
       courseSeeder,
+      orgSeeder,
     );
 
     await seedRunner.run();

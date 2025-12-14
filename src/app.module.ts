@@ -4,9 +4,16 @@ import { AuthModule } from './auth/auth.module';
 import { CourseModule } from './course/course.module';
 import { DatabaseModule } from './database/database.module';
 import { UserModule } from './user/user.module';
+import { OrganizationModule } from './organization/organization.module';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UserModule, CourseModule],
+  imports: [
+    DatabaseModule,
+    AuthModule,
+    UserModule,
+    CourseModule,
+    OrganizationModule,
+  ],
   controllers: [],
   providers: [AppService],
 })

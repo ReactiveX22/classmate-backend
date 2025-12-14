@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { createAuthMiddleware } from 'better-auth/api';
 import { instanceToPlain, plainToInstance } from 'class-transformer';
+import { ERROR_CODES } from 'src/common/constants/error.codes';
+import { UserStatus } from 'src/common/enums/user-status.enum';
 import { UserService } from 'src/user/services/user.service';
 import { AuthResponseDto } from '../dto/auth-response.dto';
-import { ApplicationForbiddenException } from 'src/common/exceptions/application.exception';
-import { ERROR_CODES } from 'src/common/constants/error.codes';
-import { AppRole } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class AuthResponseHook {
@@ -25,22 +24,9 @@ export class AuthResponseHook {
         }
 
         const userId = originalResponse.user.id;
-        const userRole = originalResponse.user.role;
+        const userStatus = originalResponse.user.status;
 
-        if (!userRole) {
-          return new Response(
-            JSON.stringify({
-              message: 'Role not assigned',
-              errorCode: ERROR_CODES.AUTH.ROLE_NOT_ASSIGNED,
-            }),
-            {
-              status: 403,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          );
-        }
-
-        if (userRole === AppRole.Pending) {
+        if (userStatus === UserStatus.Pending) {
           return new Response(
             JSON.stringify({
               message: 'Role pending approval',
@@ -55,7 +41,7 @@ export class AuthResponseHook {
 
         const userWithProfile = await this.userService.getUserWithProfile(
           userId,
-          userRole,
+          userStatus,
         );
         let mergedProfile = {};
 

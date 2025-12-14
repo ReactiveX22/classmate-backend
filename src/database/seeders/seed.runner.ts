@@ -3,6 +3,7 @@ import { AdminSeeder } from './admin.seeder';
 import { CourseSeeder } from './course.seeder';
 import { StudentSeeder } from './student.seeder';
 import { TeacherSeeder } from './teacher.seeder';
+import { OrganizationSeeder } from './organization.seeder';
 
 @Injectable()
 export class SeedRunner {
@@ -13,6 +14,7 @@ export class SeedRunner {
     private readonly teacherSeeder: TeacherSeeder,
     private readonly studentSeeder: StudentSeeder,
     private readonly courseSeeder: CourseSeeder,
+    private readonly organizationSeeder: OrganizationSeeder,
   ) {}
 
   async run(): Promise<void> {
@@ -23,6 +25,9 @@ export class SeedRunner {
 
     try {
       // Run seeders in order (respecting dependencies)
+      await this.organizationSeeder.seed();
+      this.logger.log('');
+
       await this.adminSeeder.seed();
       this.logger.log('');
 
