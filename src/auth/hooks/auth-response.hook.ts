@@ -23,6 +23,8 @@ export class AuthResponseHook {
           return;
         }
 
+        console.log(originalResponse);
+
         const userId = originalResponse.user.id;
         const userStatus = originalResponse.user.status;
 

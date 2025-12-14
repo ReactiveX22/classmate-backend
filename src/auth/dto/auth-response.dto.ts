@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+import { UserStatus } from 'src/common/enums/user-status.enum';
 
 export class ProfileDto {
   @Expose()
@@ -61,6 +62,12 @@ export class UserResponseDto {
 
   @Expose()
   updatedAt: Date;
+
+  @Expose()
+  status: UserStatus;
+
+  @Expose()
+  organizationId: string;
 
   @Expose()
   @Type(() => ProfileDto)

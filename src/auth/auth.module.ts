@@ -11,6 +11,7 @@ import { UserModule } from 'src/user/user.module';
 import { AuthHooksModule } from './auth-hooks.module';
 import { AuthResponseHook } from './hooks/auth-response.hook';
 import { SignupValidationHook } from './hooks/signup-validation.hook';
+import { UserStatus } from 'src/common/enums/user-status.enum';
 
 @Module({
   imports: [
@@ -43,6 +44,20 @@ import { SignupValidationHook } from './hooks/signup-validation.hook';
             after: authResponseHook.createHook(),
           },
           plugins: [admin()],
+          user: {
+            additionalFields: {
+              status: {
+                type: 'string',
+                defaultValue: UserStatus.Pending,
+                input: false,
+              },
+              organizationId: {
+                type: 'string',
+                input: false,
+                defaultValue: null,
+              },
+            },
+          },
         }),
         middleware: (req, _res, next) => {
           req.url = req.originalUrl;
