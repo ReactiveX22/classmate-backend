@@ -7,16 +7,24 @@ import { admin } from 'better-auth/plugins';
 import { ConfigModule } from 'src/config/config.module';
 import { DatabaseModule } from 'src/database/database.module';
 import { DB, DB_PROVIDER } from 'src/database/db.provider';
+import { UserModule } from 'src/user/user.module';
+import { AuthHooksModule } from './auth-hooks.module';
+import { AuthResponseHook } from './hooks/auth-response.hook';
 import { SignupValidationHook } from './hooks/signup-validation.hook';
 
 @Module({
   imports: [
     ConfigModule,
     DatabaseModule,
+    UserModule,
     BetterAuthModule.forRootAsync({
-      imports: [ConfigModule, DatabaseModule],
-      inject: [ConfigService, DB_PROVIDER],
-      useFactory: (configService: ConfigService, db: DB) => ({
+      imports: [ConfigModule, DatabaseModule, UserModule, AuthHooksModule],
+      inject: [ConfigService, DB_PROVIDER, AuthResponseHook],
+      useFactory: (
+        configService: ConfigService,
+        db: DB,
+        authResponseHook: AuthResponseHook,
+      ) => ({
         auth: betterAuth({
           basePath: '/api/v1/auth',
           baseURL: configService.get(
@@ -31,7 +39,9 @@ import { SignupValidationHook } from './hooks/signup-validation.hook';
           trustedOrigins: [
             configService.get('CLIENT_URL', 'http://localhost:3001'),
           ],
-          hooks: {},
+          hooks: {
+            after: authResponseHook.createHook(),
+          },
           plugins: [admin()],
         }),
         middleware: (req, _res, next) => {
