@@ -67,7 +67,40 @@ export class UserResponseDto {
   profile?: ProfileDto;
 }
 
+export class SessionDto {
+  @Expose()
+  id: string;
+
+  @Expose()
+  createdAt: Date;
+
+  @Expose()
+  updatedAt: Date;
+
+  @Expose()
+  userId: string;
+
+  @Expose()
+  expiresAt: Date;
+
+  @Expose()
+  ipAddress?: string;
+
+  @Expose()
+  userAgent?: string;
+
+  @Expose()
+  token: string;
+
+  @Expose()
+  impersonatedBy?: string;
+}
+
 export class AuthResponseDto {
+  @Expose()
+  @Type(() => SessionDto)
+  session: SessionDto;
+
   @Expose()
   token: string;
 

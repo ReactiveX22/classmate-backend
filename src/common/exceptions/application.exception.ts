@@ -25,3 +25,9 @@ export class ApplicationBadRequestException extends ApplicationException {
     super(HttpStatus.BAD_REQUEST, message, errorCode);
   }
 }
+
+export class ApplicationForbiddenException extends ApplicationException {
+  constructor(message: string, errorCode: string) {
+    super(HttpStatus.FORBIDDEN, message, errorCode);
+  }
+}

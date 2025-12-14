@@ -53,7 +53,14 @@ export class CourseService {
     return this.courseRepository.findBySemester(semester);
   }
 
-  async updateCourse(id: string, data: Partial<Parameters<typeof this.courseRepository.update>[1]>) {
+  async findAllCourses() {
+    return this.courseRepository.findAll();
+  }
+
+  async updateCourse(
+    id: string,
+    data: Partial<Parameters<typeof this.courseRepository.update>[1]>,
+  ) {
     const course = await this.courseRepository.findById(id);
     if (!course) {
       throw new Error(`Course with id ${id} not found`);
@@ -62,4 +69,3 @@ export class CourseService {
     return this.courseRepository.update(id, data);
   }
 }
-

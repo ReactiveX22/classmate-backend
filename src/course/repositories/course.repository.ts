@@ -45,6 +45,10 @@ export class CourseRepository {
       .where(eq(course.semester, semester as any));
   }
 
+  async findAll() {
+    return this.db.select().from(course);
+  }
+
   async create(data: {
     teacherId?: string;
     code: string;
