@@ -2,6 +2,7 @@ import { relations } from 'drizzle-orm';
 import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
 import { teacher } from './teacher-schema';
+import { student } from './student-schema';
 
 export const userProfile = pgTable(
   'user_profile',
@@ -34,5 +35,9 @@ export const userProfileRelations = relations(userProfile, ({ one }) => ({
   teacher: one(teacher, {
     fields: [userProfile.id],
     references: [teacher.userProfileId],
+  }),
+  student: one(student, {
+    fields: [userProfile.id],
+    references: [student.userProfileId],
   }),
 }));

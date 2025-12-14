@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import { userProfile } from 'src/database/schema';
 import { TeacherRepository } from '../repositories/teacher.repository';
+import { StudentRepository } from '../repositories/student.repository';
 import { UserProfileRepository } from '../repositories/user-profile.repository';
 import { UserRepository } from '../repositories/user.repository';
 
@@ -11,6 +12,7 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly userProfileRepository: UserProfileRepository,
     private readonly teacherRepository: TeacherRepository,
+    private readonly studentRepository: StudentRepository,
     @InjectDb() private readonly db: DB,
   ) {}
 
@@ -76,5 +78,66 @@ export class UserService {
 
   async findTeacherByUserProfileId(userProfileId: string) {
     return this.teacherRepository.findByUserProfileId(userProfileId);
+  }
+
+  async findStudentByUserProfileId(userProfileId: string) {
+    return this.studentRepository.findByUserProfileId(userProfileId);
+  }
+
+  async createStudent(data: { userProfileId: string; studentId?: string }) {
+    return this.studentRepository.create(data);
+  }
+
+  /**
+   * Fetches user with profile and role-specific data (teacher info for instructors)
+   * @param userId - The user ID
+   * @param role - Optional user role. If provided, skips user lookup for role check
+   * @returns Object containing profile and teacher data (if instructor)
+   */
+  async getUserWithProfile(
+    userId: string,
+    role?: string,
+  ): Promise<{
+    profile: Awaited<ReturnType<typeof this.findUserProfileByUserId>>;
+    teacher: Awaited<ReturnType<typeof this.findTeacherByUserProfileId>> | null;
+    student: Awaited<ReturnType<typeof this.findStudentByUserProfileId>> | null;
+  }> {
+    const profile = await this.findUserProfileByUserId(userId);
+
+    if (!profile) {
+      return {
+        profile: null,
+        teacher: null,
+        student: null,
+      };
+    }
+
+    // Determine if we need to fetch teacher/student data
+    let userRole: string | undefined = role;
+    if (!userRole) {
+      const user = await this.userRepository.findById(userId);
+      userRole = user?.role ?? undefined;
+    }
+
+    // For instructors, fetch teacher data
+    const teacher =
+      userRole === 'instructor'
+        ? await this.findTeacherByUserProfileId(profile.id)
+        : null;
+
+    // For students, fetch student data
+    let student: Awaited<
+      ReturnType<typeof this.findStudentByUserProfileId>
+    > | null = null;
+    if (userRole === 'student') {
+      const existingStudent = await this.findStudentByUserProfileId(profile.id);
+      student = existingStudent || null;
+    }
+
+    return {
+      profile,
+      teacher,
+      student,
+    };
   }
 }
