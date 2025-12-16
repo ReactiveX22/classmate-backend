@@ -1,15 +1,14 @@
 import { relations } from 'drizzle-orm';
 import {
   date,
-  index,
   pgEnum,
   pgTable,
   text,
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { userProfile } from './user-profile-schema';
 import { course } from './course-schema';
+import { user } from './auth-schema';
 
 export const teacherTitleEnum = pgEnum('teacher_title', [
   'Professor',
@@ -19,29 +18,25 @@ export const teacherTitleEnum = pgEnum('teacher_title', [
   'Instructor',
 ]);
 
-export const teacher = pgTable(
-  'teacher',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    userProfileId: uuid('user_profile_id')
-      .notNull()
-      .unique()
-      .references(() => userProfile.id, { onDelete: 'cascade' }),
-    title: teacherTitleEnum('title').notNull(),
-    joinDate: date('join_date').notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
-      .defaultNow()
-      .$onUpdate(() => /* @__PURE__ */ new Date())
-      .notNull(),
-  },
-  (table) => [index('teacher_id_idx').on(table.id)],
-);
+export const teacher = pgTable('teacher', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: text('user_id')
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  title: teacherTitleEnum('title').notNull(),
+  joinDate: date('join_date').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at')
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
 
 export const teacherRelations = relations(teacher, ({ one, many }) => ({
-  userProfile: one(userProfile, {
-    fields: [teacher.userProfileId],
-    references: [userProfile.id],
+  user: one(user, {
+    fields: [teacher.userId],
+    references: [user.id],
   }),
   courses: many(course),
 }));
