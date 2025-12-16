@@ -78,8 +78,8 @@ export class TeacherSeeder extends BaseSeeder {
 
         // Create teacher record
         await this.userService.createTeacher({
-          userProfileId: profile.id,
-          title: teacherData.teacher.title as any,
+          userId,
+          title: teacherData.teacher.title,
           joinDate: teacherData.teacher.joinDate,
         });
 

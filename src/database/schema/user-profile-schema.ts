@@ -10,9 +10,6 @@ export const userProfile = pgTable(
       .notNull()
       .unique()
       .references(() => user.id, { onDelete: 'cascade' }),
-    firstName: text('first_name').notNull(),
-    lastName: text('last_name').notNull(),
-    displayName: text('display_name').notNull(),
     phone: text('phone'),
     bio: text('bio'),
     createdAt: timestamp('created_at').defaultNow().notNull(),

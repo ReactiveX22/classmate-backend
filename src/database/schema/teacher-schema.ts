@@ -10,22 +10,14 @@ import {
 import { course } from './course-schema';
 import { user } from './auth-schema';
 
-export const teacherTitleEnum = pgEnum('teacher_title', [
-  'Professor',
-  'Associate Professor',
-  'Assistant Professor',
-  'Lecturer',
-  'Instructor',
-]);
-
 export const teacher = pgTable('teacher', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: text('user_id')
     .notNull()
     .unique()
     .references(() => user.id, { onDelete: 'cascade' }),
-  title: teacherTitleEnum('title').notNull(),
-  joinDate: date('join_date').notNull(),
+  title: text('title'),
+  joinDate: date('join_date'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()
