@@ -178,4 +178,10 @@ export class UserService {
       student,
     };
   }
+
+  async updateUserOrg(userId: string, orgId: string) {
+    this.userRepository.update(userId, {
+      organizationId: orgId,
+    });
+  }
 }

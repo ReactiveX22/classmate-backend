@@ -50,4 +50,3 @@ export class UserRepository {
     return this.update(id, { role });
   }
 }
-
