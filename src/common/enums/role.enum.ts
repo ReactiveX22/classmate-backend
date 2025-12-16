@@ -1,5 +1,5 @@
 export enum AppRole {
-  SuperAdmin = 'super_admin',
+  SuperAdmin = 'super-admin',
   Admin = 'admin',
   Instructor = 'instructor',
   Student = 'student',

@@ -24,7 +24,8 @@
     "db:drop": "drizzle-kit drop",
     "db:studio": "drizzle-kit studio",
     "db:check": "drizzle-kit check",
-    "db:seed": "ts-node -r tsconfig-paths/register src/database/seed.ts"
+    "db:seed": "ts-node -r tsconfig-paths/register src/database/seed.ts",
+    "auth:generate": "pnpx @better-auth/cli generate --config ./src/auth/auth-schema-gen.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.9",
