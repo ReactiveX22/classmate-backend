@@ -8,12 +8,18 @@ import {
   unique,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { organization } from './organization-schema';
 import { teacher } from './teacher-schema';
 
 export const course = pgTable(
   'course',
   {
     id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id')
+      .references(() => organization.id, {
+        onDelete: 'cascade',
+      })
+      .notNull(),
     teacherId: uuid('teacher_id').references(() => teacher.id, {
       onDelete: 'set null',
     }),
@@ -35,6 +41,10 @@ export const course = pgTable(
 );
 
 export const courseRelations = relations(course, ({ one }) => ({
+  organization: one(organization, {
+    fields: [course.organizationId],
+    references: [organization.id],
+  }),
   teacher: one(teacher, {
     fields: [course.teacherId],
     references: [teacher.id],

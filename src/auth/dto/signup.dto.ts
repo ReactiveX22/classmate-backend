@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IsDefined,
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class SignupDto {
   @IsEmail({}, { message: 'Please provide a valid email address' })
@@ -14,4 +20,11 @@ export class SignupDto {
   @IsNotEmpty({ message: 'Name is required' })
   @MinLength(2, { message: 'Name must be at least 2 characters long' })
   name: string;
+
+  @IsString({ message: 'Organization name must be a string' })
+  @IsNotEmpty({ message: 'Organization name is required' })
+  @MinLength(2, {
+    message: 'Organization name must be at least 2 characters long',
+  })
+  organizationName: string;
 }

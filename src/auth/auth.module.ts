@@ -10,14 +10,17 @@ import { DB, DB_PROVIDER } from 'src/database/db.provider';
 import { UserModule } from 'src/user/user.module';
 import { AuthHooksModule } from './auth-hooks.module';
 import { AuthResponseHook } from './hooks/auth-response.hook';
-import { SignupValidationHook } from './hooks/signup-validation.hook';
+import { SignUpHook } from './hooks/signup.hook';
 import { UserStatus } from 'src/common/enums/user-status.enum';
+import { OrganizationModule } from 'src/organization/organization.module';
+import { OrganizationService } from 'src/organization/services/organization.service';
 
 @Module({
   imports: [
     ConfigModule,
     DatabaseModule,
     UserModule,
+    OrganizationModule,
     BetterAuthModule.forRootAsync({
       imports: [ConfigModule, DatabaseModule, UserModule, AuthHooksModule],
       inject: [ConfigService, DB_PROVIDER, AuthResponseHook],
@@ -43,17 +46,21 @@ import { UserStatus } from 'src/common/enums/user-status.enum';
           hooks: {
             after: authResponseHook.createHook(),
           },
-          plugins: [admin()],
+          plugins: [
+            admin({
+              defaultRole: 'org-admin',
+            }),
+          ],
           user: {
             additionalFields: {
               status: {
                 type: 'string',
-                defaultValue: UserStatus.Pending,
+                defaultValue: UserStatus.Active,
                 input: false,
               },
               organizationId: {
                 type: 'string',
-                input: false,
+                input: true,
                 defaultValue: null,
               },
             },
@@ -67,6 +74,6 @@ import { UserStatus } from 'src/common/enums/user-status.enum';
       }),
     }),
   ],
-  providers: [SignupValidationHook],
+  providers: [SignUpHook],
 })
 export class AuthModule {}

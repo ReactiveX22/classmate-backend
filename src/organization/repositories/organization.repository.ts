@@ -3,6 +3,11 @@ import { eq } from 'drizzle-orm';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import { organization } from 'src/database/schema';
 
+export type CreateOrganizationInput = Omit<
+  typeof organization.$inferInsert,
+  'id' | 'createdAt' | 'updatedAt'
+>;
+
 @Injectable()
 export class OrganizationRepository {
   constructor(@InjectDb() private readonly db: DB) {}
@@ -29,7 +34,7 @@ export class OrganizationRepository {
     return this.db.select().from(organization);
   }
 
-  async create(data: typeof organization.$inferInsert) {
+  async create(data: CreateOrganizationInput) {
     const [created] = await this.db
       .insert(organization)
       .values(data)

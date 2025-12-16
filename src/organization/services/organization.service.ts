@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { OrganizationRepository } from '../repositories/organization.repository';
+import {
+  CreateOrganizationInput,
+  OrganizationRepository,
+} from '../repositories/organization.repository';
 import { organization } from 'src/database/schema';
+import { CreateOrganizationDto } from '../dtos/create-organization.dto';
+import { APIError } from 'better-auth';
 
 @Injectable()
 export class OrganizationService {
@@ -8,14 +13,23 @@ export class OrganizationService {
     private readonly organizationRepository: OrganizationRepository,
   ) {}
 
-  async createOrganization(data: typeof organization.$inferInsert) {
-    // Check if organization with same slug already exists
-    const existing = await this.organizationRepository.findBySlug(data.slug);
+  async createOrganization(data: CreateOrganizationDto) {
+    const slug = this.createSlugFromOrgName(data.name);
+
+    const existing = await this.organizationRepository.findBySlug(slug);
     if (existing) {
-      throw new Error(`Organization with slug ${data.slug} already exists`);
+      throw new APIError('BAD_REQUEST', {
+        code: 'ORG_ALREADY_EXISTS',
+        message: `Organization with slug ${slug} already exists`,
+      });
     }
 
-    return this.organizationRepository.create(data);
+    const organizationData: CreateOrganizationInput = {
+      ...data,
+      slug,
+    };
+
+    return this.organizationRepository.create(organizationData);
   }
 
   async findOrganizationById(id: string) {
@@ -40,5 +54,17 @@ export class OrganizationService {
     }
 
     return this.organizationRepository.update(id, data);
+  }
+
+  private createSlugFromOrgName(orgName: string): string {
+    let newSlug = orgName.toLowerCase();
+
+    newSlug = newSlug
+      .replace(/\s+/g, '-') // Convert internal spaces to hyphens
+      .replace(/[^\w-]/g, '') // Remove all non-word characters (except hyphens)
+      .replaceAll('-', '-') // Keep hyphens
+      .replace(/^-+|-+$/g, ''); // Trim
+
+    return newSlug;
   }
 }
