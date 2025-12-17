@@ -1,7 +1,4 @@
-import { auth } from 'src/auth/auth-schema-gen';
-
-export type Session = typeof auth.$Infer.Session;
-export type User = typeof auth.$Infer.Session.user;
+import { Session, User } from 'src/auth/auth.factory';
 
 export interface AppUserSession {
   session: Session;

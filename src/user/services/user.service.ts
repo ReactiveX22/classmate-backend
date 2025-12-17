@@ -1,19 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { type DB, InjectDb } from 'src/database/db.provider';
-import { user, userProfile } from 'src/database/schema';
 import { eq } from 'drizzle-orm';
-import { TeacherRepository } from '../repositories/teacher.repository';
-import {
-  StudentRepository,
-  StudentWithProfile,
-} from '../repositories/student.repository';
-import { UserProfileRepository } from '../repositories/user-profile.repository';
-import { UserRepository } from '../repositories/user.repository';
 import {
   PaginatedResponse,
   PaginationQueryDto,
 } from 'src/common/dto/pagination.dto';
 import { createPaginatedResponse } from 'src/common/helpers/pagination.helper';
+import { type DB, InjectDb } from 'src/database/db.provider';
+import { user, userProfile } from 'src/database/schema';
+import {
+  StudentRepository,
+  StudentWithProfile,
+} from '../repositories/student.repository';
+import { TeacherRepository } from '../repositories/teacher.repository';
+import { UserProfileRepository } from '../repositories/user-profile.repository';
+import { UserRepository } from '../repositories/user.repository';
+import { CreateTeacherDto } from '../dto/create-teacher.dto';
 
 @Injectable()
 export class UserService {
@@ -69,9 +70,6 @@ export class UserService {
         .insert(userProfile)
         .values({
           userId: data.userId,
-          firstName: data.profile.firstName,
-          lastName: data.profile.lastName,
-          displayName: data.profile.displayName,
           phone: data.profile.phone,
           bio: data.profile.bio,
         })
@@ -82,14 +80,9 @@ export class UserService {
   }
 
   async createTeacher(data: {
-    userProfileId: string;
-    title:
-      | 'Professor'
-      | 'Associate Professor'
-      | 'Assistant Professor'
-      | 'Lecturer'
-      | 'Instructor';
-    joinDate: string;
+    userId: string;
+    title?: string;
+    joinDate?: string;
   }) {
     return this.teacherRepository.create(data);
   }
@@ -98,8 +91,8 @@ export class UserService {
     return this.userProfileRepository.findByUserId(userId);
   }
 
-  async findTeacherByUserProfileId(userProfileId: string) {
-    return this.teacherRepository.findByUserProfileId(userProfileId);
+  async findTeacherByUserId(userId: string) {
+    return this.teacherRepository.findByUserId(userId);
   }
 
   async findStudentByUserProfileId(userProfileId: string) {
@@ -126,6 +119,18 @@ export class UserService {
     return createPaginatedResponse(students, query, total);
   }
 
+  async getTeachersByOrganization(
+    organizationId: string,
+    query: PaginationQueryDto,
+  ): Promise<PaginatedResponse<StudentWithProfile>> {
+    const { meta, data } = await this.teacherRepository.findByOrganization(
+      organizationId,
+      query,
+    );
+
+    return { data, meta };
+  }
+
   /**
    * Fetches user with profile and role-specific data (teacher info for instructors)
    * @param userId - The user ID
@@ -137,7 +142,7 @@ export class UserService {
     role?: string,
   ): Promise<{
     profile: Awaited<ReturnType<typeof this.findUserProfileByUserId>>;
-    teacher: Awaited<ReturnType<typeof this.findTeacherByUserProfileId>> | null;
+    teacher: Awaited<ReturnType<typeof this.findTeacherByUserId>> | null;
     student: Awaited<ReturnType<typeof this.findStudentByUserProfileId>> | null;
   }> {
     const profile = await this.findUserProfileByUserId(userId);
@@ -159,9 +164,7 @@ export class UserService {
 
     // For instructors, fetch teacher data
     const teacher =
-      userRole === 'instructor'
-        ? await this.findTeacherByUserProfileId(profile.id)
-        : null;
+      userRole === 'instructor' ? await this.findTeacherByUserId(userId) : null;
 
     // For students, fetch student data
     let student: Awaited<

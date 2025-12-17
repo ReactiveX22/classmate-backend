@@ -1,6 +1,10 @@
-import { betterAuth } from 'better-auth';
+import { betterAuth, InferSession, InferUser } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { admin, createAccessControl } from 'better-auth/plugins';
+import {
+  admin,
+  createAccessControl,
+  InferAdminRolesFromOption,
+} from 'better-auth/plugins';
 import { AppRole } from 'src/common/enums/role.enum';
 import { UserStatus } from 'src/common/enums/user-status.enum';
 import { DB } from 'src/database/db.provider';
@@ -66,3 +70,5 @@ export const authFactory = (
 };
 
 export type AuthType = ReturnType<typeof authFactory>;
+export type Session = InferSession<AuthType>;
+export type User = InferUser<AuthType>;

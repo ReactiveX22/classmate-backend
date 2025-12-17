@@ -17,9 +17,6 @@ export interface StudentWithProfile {
   } | null;
   userProfile: {
     id: string;
-    firstName: string;
-    lastName: string;
-    displayName: string;
     phone: string | null;
     bio: string | null;
   } | null;
@@ -78,13 +75,7 @@ export class StudentRepository {
     if (query.search) {
       const searchPattern = `%${query.search}%`;
       conditions.push(
-        or(
-          ilike(user.name, searchPattern),
-          ilike(user.email, searchPattern),
-          ilike(userProfile.displayName, searchPattern),
-          ilike(userProfile.firstName, searchPattern),
-          ilike(userProfile.lastName, searchPattern),
-        )!,
+        or(ilike(user.name, searchPattern), ilike(user.email, searchPattern))!,
       );
     }
 
@@ -95,15 +86,12 @@ export class StudentRepository {
       .select({ total: count() })
       .from(user)
       .leftJoin(userProfile, eq(user.id, userProfile.userId))
-      .leftJoin(student, eq(userProfile.id, student.userProfileId))
+      .leftJoin(student, eq(userProfile.userId, student.userId))
       .where(whereClause);
 
     // Determine sort column
     let orderByColumn: SQL;
     switch (query.sortBy) {
-      case 'displayName':
-        orderByColumn = sortOrder(userProfile.displayName);
-        break;
       case 'name':
         orderByColumn = sortOrder(user.name);
         break;
@@ -130,9 +118,6 @@ export class StudentRepository {
         },
         userProfile: {
           id: userProfile.id,
-          firstName: userProfile.firstName,
-          lastName: userProfile.lastName,
-          displayName: userProfile.displayName,
           phone: userProfile.phone,
           bio: userProfile.bio,
         },
@@ -146,7 +131,7 @@ export class StudentRepository {
       })
       .from(user)
       .leftJoin(userProfile, eq(user.id, userProfile.userId))
-      .leftJoin(student, eq(userProfile.id, student.userProfileId))
+      .leftJoin(student, eq(userProfile.userId, student.userId))
       .where(whereClause)
       .orderBy(orderByColumn)
       .limit(limit)
