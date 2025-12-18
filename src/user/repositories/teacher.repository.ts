@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { count } from 'console';
 import { and, eq, SQL } from 'drizzle-orm';
+import { User } from 'src/auth/auth.factory';
 import {
   PaginatedResponse,
   PaginationQueryDto,
@@ -13,7 +14,13 @@ import {
   drizzlePaginate,
 } from 'src/common/helpers/pagination.helper';
 import { type DB, InjectDb } from 'src/database/db.provider';
-import { teacher, user, userProfile } from 'src/database/schema';
+import {
+  SelectTeacher,
+  SelectUserProfile,
+  teacher,
+  user,
+  userProfile,
+} from 'src/database/schema';
 import { TeacherPaginationConfig } from 'src/lib/pagination/config/teacher.config';
 import {
   InjectPaginationService,
@@ -90,22 +97,7 @@ export class TeacherRepository {
 }
 
 export interface TeacherWithProfile {
-  student: {
-    id: string;
-    studentId: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-  } | null;
-  userProfile: {
-    id: string;
-    phone: string | null;
-    bio: string | null;
-  } | null;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    status: 'pending' | 'active' | 'suspended';
-    createdAt: Date;
-  };
+  teacher: SelectTeacher | null;
+  userProfile: SelectUserProfile | null;
+  user: User;
 }

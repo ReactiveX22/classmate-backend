@@ -21,29 +21,10 @@ export class TeacherPaginationConfig {
 
   static getBaseQuery(db: DB) {
     return db
-      .select({
-        teacher: {
-          id: teacher.id,
-          title: teacher.title,
-          createdAt: teacher.createdAt,
-          updatedAt: teacher.updatedAt,
-        },
-        userProfile: {
-          id: userProfile.id,
-          phone: userProfile.phone,
-          bio: userProfile.bio,
-        },
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          status: user.status,
-          createdAt: user.createdAt,
-        },
-      })
+      .select()
       .from(user)
       .leftJoin(userProfile, eq(user.id, userProfile.userId))
-      .leftJoin(teacher, eq(userProfile.userId, teacher.userId))
+      .leftJoin(teacher, eq(user.id, teacher.userId))
       .$dynamic();
   }
 

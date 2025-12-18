@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { InferSelectModel, relations } from 'drizzle-orm';
 import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
 
@@ -28,3 +28,5 @@ export const userProfileRelations = relations(userProfile, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+export type SelectUserProfile = typeof userProfile.$inferSelect;

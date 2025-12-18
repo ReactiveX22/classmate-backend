@@ -11,7 +11,10 @@ import {
   StudentRepository,
   StudentWithProfile,
 } from '../repositories/student.repository';
-import { TeacherRepository } from '../repositories/teacher.repository';
+import {
+  TeacherRepository,
+  TeacherWithProfile,
+} from '../repositories/teacher.repository';
 import { UserProfileRepository } from '../repositories/user-profile.repository';
 import { UserRepository } from '../repositories/user.repository';
 import { CreateTeacherDto } from '../dto/create-teacher.dto';
@@ -122,7 +125,7 @@ export class UserService {
   async getTeachersByOrganization(
     organizationId: string,
     query: PaginationQueryDto,
-  ): Promise<PaginatedResponse<StudentWithProfile>> {
+  ): Promise<PaginatedResponse<TeacherWithProfile>> {
     const { meta, data } = await this.teacherRepository.findByOrganization(
       organizationId,
       query,
