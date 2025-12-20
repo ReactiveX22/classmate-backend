@@ -49,6 +49,28 @@ export class StudentRepository {
     return newStudent[0];
   }
 
+  async findByIdWithUser(
+    id: string,
+  ): Promise<{ student: SelectStudent; user: User } | null> {
+    const result = await this.db
+      .select()
+      .from(student)
+      .innerJoin(user, eq(student.userId, user.id))
+      .where(eq(student.id, id))
+      .limit(1);
+
+    return result[0] || null;
+  }
+
+  async update(id: string, data: Partial<typeof student.$inferInsert>) {
+    const [updated] = await this.db
+      .update(student)
+      .set(data)
+      .where(eq(student.id, id))
+      .returning();
+    return updated || null;
+  }
+
   async findByUserId(userId: string) {
     const result = await this.db.query.student.findFirst({
       where: eq(student.userId, userId),
