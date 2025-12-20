@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -20,9 +21,9 @@ import { UserStatus } from 'src/common/enums/user-status.enum';
 import { OrganizationGuard } from 'src/common/guards';
 import { type AppUserSession } from 'src/common/types/session.types';
 import { CreateTeacherDto } from '../dto/create-teacher.dto';
+import { UpdateTeacherDto } from '../dto/update-teacher.dto';
 import { TeacherService } from '../services/teacher.service';
 import { UserService } from '../services/user.service';
-import { session } from 'src/database/schema';
 
 @Controller('teachers')
 @UseGuards(OrganizationGuard)
@@ -81,5 +82,16 @@ export class TeacherController {
     @OrganizationId() orgId: string,
   ) {
     await this.teacherService.remove(orgId, id);
+  }
+
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @Roles([AppRole.Admin])
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @OrganizationId() orgId: string,
+    @Body() dto: UpdateTeacherDto,
+  ) {
+    return await this.teacherService.update(orgId, id, dto);
   }
 }

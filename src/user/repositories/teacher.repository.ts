@@ -1,25 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { count } from 'console';
-import { and, eq, SQL } from 'drizzle-orm';
+import { Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 import { User } from 'src/auth/auth.factory';
 import {
   PaginatedResponse,
   PaginationQueryDto,
 } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
-import {
-  buildOrganizationFilters,
-  buildSearchConfig,
-  buildSortConfig,
-  drizzlePaginate,
-} from 'src/common/helpers/pagination.helper';
+import { buildOrganizationFilters } from 'src/common/helpers/pagination.helper';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import {
   SelectTeacher,
   SelectUserProfile,
   teacher,
   user,
-  userProfile,
 } from 'src/database/schema';
 import { TeacherPaginationConfig } from 'src/lib/pagination/config/teacher.config';
 import {

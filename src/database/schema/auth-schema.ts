@@ -10,12 +10,12 @@ import {
 } from 'drizzle-orm/pg-core';
 import { organization } from './organization-schema';
 import { userProfile } from './user-profile-schema';
+import { UserStatus } from 'src/common/enums/user-status.enum';
 
-export const userStatusEnum = pgEnum('user_status', [
-  'pending',
-  'active',
-  'suspended',
-]);
+export const userStatusEnum = pgEnum(
+  'user_status',
+  Object.values(UserStatus) as [string, ...string[]],
+);
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),

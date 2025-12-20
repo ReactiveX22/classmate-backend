@@ -15,6 +15,7 @@ import {
 } from '../repositories/teacher.repository';
 import { UserProfileRepository } from '../repositories/user-profile.repository';
 import { UserRepository } from '../repositories/user.repository';
+import { user } from 'src/database/schema';
 
 @Injectable()
 export class UserService {
@@ -32,6 +33,10 @@ export class UserService {
     joinDate?: string;
   }) {
     return this.teacherRepository.create(data);
+  }
+
+  async update(userId: string, data: Partial<typeof user.$inferInsert>) {
+    return this.userRepository.update(userId, data);
   }
 
   async findTeacherByUserId(userId: string) {

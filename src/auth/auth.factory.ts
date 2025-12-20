@@ -63,6 +63,7 @@ export const authFactory = (
           type: 'string',
           input: true,
           defaultValue: null,
+          required: false,
         },
       },
     },
