@@ -1,0 +1,39 @@
+import { SQL, and, count, eq } from 'drizzle-orm';
+import { type DB } from 'src/database/db.provider';
+import { student, user, userProfile } from 'src/database/schema';
+
+export class StudentPaginationConfig {
+  static readonly searchableFields = [
+    user.name,
+    user.email,
+    student.id,
+    student.studentId,
+  ];
+
+  static readonly sortFields = {
+    name: user.name,
+    email: user.email,
+    studentId: student.studentId,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  } as const;
+
+  static getBaseQuery(db: DB) {
+    return db
+      .select()
+      .from(user)
+      .leftJoin(userProfile, eq(user.id, userProfile.userId))
+      .leftJoin(student, eq(user.id, student.userId))
+      .$dynamic();
+  }
+
+  static async getCountQuery(db: DB, filters: SQL[]) {
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(user)
+      .leftJoin(userProfile, eq(user.id, userProfile.userId))
+      .leftJoin(student, eq(user.id, student.userId))
+      .where(and(...filters));
+    return total;
+  }
+}

@@ -22,3 +22,5 @@ export const studentRelations = relations(student, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+export type SelectStudent = typeof student.$inferSelect;

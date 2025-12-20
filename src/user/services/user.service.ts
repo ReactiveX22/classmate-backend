@@ -55,12 +55,7 @@ export class UserService {
     organizationId: string,
     query: PaginationQueryDto,
   ): Promise<PaginatedResponse<StudentWithProfile>> {
-    const { students, total } = await this.studentRepository.findByOrganization(
-      organizationId,
-      query,
-    );
-
-    return createPaginatedResponse(students, query, total);
+    return this.studentRepository.findByOrganization(organizationId, query);
   }
 
   async getTeachersByOrganization(
