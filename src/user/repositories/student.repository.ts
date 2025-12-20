@@ -33,11 +33,11 @@ export interface StudentWithProfile {
 export class StudentRepository {
   constructor(@InjectDb() private readonly db: DB) {}
 
-  async create(data: { userProfileId: string; studentId?: string }) {
+  async create(data: { userId: string; studentId?: string }) {
     const newStudent = await this.db
       .insert(student)
       .values({
-        userProfileId: data.userProfileId,
+        userId: data.userId,
         studentId: data.studentId,
       })
       .returning();
@@ -45,9 +45,37 @@ export class StudentRepository {
     return newStudent[0];
   }
 
-  async findByUserProfileId(userProfileId: string) {
+  async createWithUser<T>(
+    studentData: { studentId?: string },
+    // A callback that runs inside the transaction to create the auth user
+    createAuthUser: (tx: any) => Promise<T>,
+  ) {
+    return await this.db.transaction(async (tx) => {
+      // 1. Execute the auth creation callback within this transaction
+      const authResult = await createAuthUser(tx);
+
+      // Extract the user id (assuming the callback returns { user: { id } })
+      const userId = (authResult as any).user.id;
+
+      // 2. Create the student record
+      const newStudent = await tx
+        .insert(student)
+        .values({
+          userId: userId,
+          studentId: studentData.studentId,
+        })
+        .returning();
+
+      return {
+        ...authResult,
+        student: newStudent[0],
+      };
+    });
+  }
+
+  async findByUserId(userId: string) {
     const result = await this.db.query.student.findFirst({
-      where: eq(student.userProfileId, userProfileId),
+      where: eq(student.userId, userId),
     });
 
     return result;
@@ -138,6 +166,7 @@ export class StudentRepository {
       .offset(offset);
 
     return {
+      // TODO: Fix this
       students: results,
       total,
     };
