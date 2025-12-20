@@ -53,6 +53,19 @@ export class TeacherRepository {
     return result[0] || null;
   }
 
+  async findByIdWithUser(
+    id: string,
+  ): Promise<{ teacher: SelectTeacher; user: User } | null> {
+    const result = await this.db
+      .select()
+      .from(teacher)
+      .innerJoin(user, eq(teacher.userId, user.id))
+      .where(eq(teacher.id, id))
+      .limit(1);
+
+    return result[0] || null;
+  }
+
   async create(data: { userId: string; title?: string; joinDate?: string }) {
     const [created] = await this.db.insert(teacher).values(data).returning();
     return created;

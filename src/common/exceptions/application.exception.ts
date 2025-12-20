@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { ERROR_CODES } from '../constants/error.codes';
 import { ApplicationErrorCode } from './error.types';
 
 /**
@@ -15,7 +16,10 @@ export class ApplicationException extends HttpException {
 }
 
 export class ApplicationNotFoundException extends ApplicationException {
-  constructor(message: string, errorCode: string) {
+  constructor(
+    message: string = 'Not Found',
+    errorCode: string = ERROR_CODES.INFRA.RESOURCE_NOT_FOUND,
+  ) {
     super(HttpStatus.NOT_FOUND, message, errorCode);
   }
 }

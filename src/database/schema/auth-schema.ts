@@ -8,8 +8,8 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { userProfile } from './user-profile-schema';
 import { organization } from './organization-schema';
+import { userProfile } from './user-profile-schema';
 
 export const userStatusEnum = pgEnum('user_status', [
   'pending',

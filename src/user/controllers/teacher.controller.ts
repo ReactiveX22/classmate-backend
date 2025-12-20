@@ -1,14 +1,28 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService, Roles, Session } from '@thallesp/nestjs-better-auth';
 import { type AuthType } from 'src/auth/auth.factory';
+import { OrganizationId } from 'src/common/decorators';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
 import { UserStatus } from 'src/common/enums/user-status.enum';
-import { CreateTeacherDto } from '../dto/create-teacher.dto';
-import { UserService } from '../services/user.service';
-import { type AppUserSession } from 'src/common/types/session.types';
-import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { OrganizationGuard } from 'src/common/guards';
-import { OrganizationId } from 'src/common/decorators';
+import { type AppUserSession } from 'src/common/types/session.types';
+import { CreateTeacherDto } from '../dto/create-teacher.dto';
+import { TeacherService } from '../services/teacher.service';
+import { UserService } from '../services/user.service';
+import { session } from 'src/database/schema';
 
 @Controller('teachers')
 @UseGuards(OrganizationGuard)
@@ -16,6 +30,7 @@ export class TeacherController {
   constructor(
     private readonly userService: UserService,
     private readonly authService: AuthService<AuthType>,
+    private readonly teacherService: TeacherService,
   ) {}
 
   @Post()
@@ -55,6 +70,16 @@ export class TeacherController {
     @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
   ) {
-    return this.userService.getTeachersByOrganization(orgId, query);
+    return await this.userService.getTeachersByOrganization(orgId, query);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles([AppRole.Admin])
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @OrganizationId() orgId: string,
+  ) {
+    await this.teacherService.remove(orgId, id);
   }
 }

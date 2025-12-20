@@ -8,12 +8,14 @@ import { UserRepository } from './repositories/user.repository';
 import { UserService } from './services/user.service';
 import { StudentController } from './controllers/student.controller';
 import { TeacherController } from './controllers/teacher.controller';
+import { TeacherService } from './services/teacher.service';
 
 @Module({
   imports: [DatabaseModule, PaginationModule],
   controllers: [StudentController, TeacherController],
   providers: [
     UserService,
+    TeacherService,
     UserRepository,
     UserProfileRepository,
     UserProfileRepository,

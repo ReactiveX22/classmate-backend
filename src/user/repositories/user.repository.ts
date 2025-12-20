@@ -16,27 +16,6 @@ export class UserRepository {
     return result[0] || null;
   }
 
-  async findByEmail(email: string) {
-    const result = await this.db
-      .select()
-      .from(user)
-      .where(eq(user.email, email))
-      .limit(1);
-    return result[0] || null;
-  }
-
-  async create(data: {
-    id: string;
-    name: string;
-    email: string;
-    emailVerified?: boolean;
-    image?: string;
-    role?: string;
-  }) {
-    const [created] = await this.db.insert(user).values(data).returning();
-    return created;
-  }
-
   async update(id: string, data: Partial<typeof user.$inferInsert>) {
     const [updated] = await this.db
       .update(user)
@@ -48,5 +27,9 @@ export class UserRepository {
 
   async updateRole(id: string, role: string) {
     return this.update(id, { role });
+  }
+
+  async delete(id: string) {
+    await this.db.delete(user).where(eq(user.id, id));
   }
 }
