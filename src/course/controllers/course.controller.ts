@@ -41,6 +41,15 @@ export class CourseController {
     return this.courseService.createCourse(createCourseDto, orgId);
   }
 
+  @Get(':id')
+  @Roles([AppRole.Admin, AppRole.Instructor])
+  async getById(
+    @Param('id', ParseUUIDPipe) id: string,
+    @OrganizationId() orgId: string,
+  ) {
+    return this.courseService.getCourseById(orgId, id);
+  }
+
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @Roles([AppRole.Admin])

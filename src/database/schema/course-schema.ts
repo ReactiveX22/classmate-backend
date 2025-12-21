@@ -10,6 +10,14 @@ import {
 } from 'drizzle-orm/pg-core';
 import { organization } from './organization-schema';
 import { teacher } from './teacher-schema';
+import { enrollment } from './enrollment-schema';
+import { Many } from 'drizzle-orm';
+
+export const courseStatusEnum = pgEnum('course_status', [
+  'active',
+  'inactive',
+  'archived',
+]);
 
 export const course = pgTable(
   'course',
@@ -28,6 +36,7 @@ export const course = pgTable(
     description: text('description'),
     credits: integer('credits').default(3).notNull(),
     semester: text('semester').notNull(),
+    status: courseStatusEnum('status').default('active').notNull(),
     maxStudents: integer('max_students').default(50).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
@@ -40,7 +49,7 @@ export const course = pgTable(
   ],
 );
 
-export const courseRelations = relations(course, ({ one }) => ({
+export const courseRelations = relations(course, ({ one, many }) => ({
   organization: one(organization, {
     fields: [course.organizationId],
     references: [organization.id],
@@ -49,6 +58,9 @@ export const courseRelations = relations(course, ({ one }) => ({
     fields: [course.teacherId],
     references: [teacher.id],
   }),
+  enrollment: many(enrollment),
 }));
 
 export type SelectCourse = typeof course.$inferSelect;
+
+export type CourseStatus = (typeof courseStatusEnum.enumValues)[number];

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import {
   PaginatedResponse,
   PaginationQueryDto,
 } from 'src/common/dto/pagination.dto';
 import { buildOrganizationFilters } from 'src/common/helpers/pagination.helper';
 import { type DB, InjectDb } from 'src/database/db.provider';
-import { course, SelectCourse } from 'src/database/schema';
+import { course, SelectCourse, teacher, user } from 'src/database/schema';
 import { coursePaginationConfig } from 'src/lib/pagination/config/course.config';
 import {
   InjectPaginationService,
@@ -41,6 +41,32 @@ export class CourseRepository {
       .from(course)
       .where(eq(course.id, id))
       .limit(1);
+    return result || null;
+  }
+
+  async findByIdWithTeacher(
+    courseId: string,
+    orgId: string,
+  ): Promise<SelectCourse | null> {
+    const result = await this.db.query.course.findFirst({
+      where: and(eq(course.id, courseId), eq(course.organizationId, orgId)),
+      with: {
+        teacher: {
+          with: {
+            user: true,
+          },
+        },
+        enrollment: {
+          with: {
+            student: {
+              with: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    });
     return result || null;
   }
 

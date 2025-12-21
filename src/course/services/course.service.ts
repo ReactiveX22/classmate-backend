@@ -25,6 +25,17 @@ export class CourseService {
     return this.courseRepository.create({ ...data, organizationId: orgId });
   }
 
+  async getCourseById(orgId: string, id: string) {
+    const course = await this.courseRepository.findByIdWithTeacher(id, orgId);
+
+    if (!course)
+      throw new ApplicationNotFoundException(
+        'Course not found in organization',
+      );
+
+    return course;
+  }
+
   async update(orgId: string, id: string, dto: UpdateCourseDto) {
     const course = await this.courseRepository.findById(id);
 
