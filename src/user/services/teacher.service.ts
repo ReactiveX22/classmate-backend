@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AuthService } from '@thallesp/nestjs-better-auth';
-import { AuthType, User } from 'src/auth/auth.factory';
+import { User } from 'src/auth/auth.factory';
 import { ERROR_CODES } from 'src/common/constants/error.codes';
 import {
   ApplicationForbiddenException,
@@ -14,10 +13,20 @@ import { UserService } from './user.service';
 @Injectable()
 export class TeacherService {
   constructor(
-    private readonly authService: AuthService<AuthType>,
     private readonly teacherRepository: TeacherRepository,
     private readonly userService: UserService,
   ) {}
+
+  async findTeacherInOrg(teacherId: string, orgId: string) {
+    const result = await this.teacherRepository.findByIdWithUser(teacherId);
+    if (!result || result.user.organizationId !== orgId) {
+      throw new ApplicationNotFoundException(
+        'Teacher not found in your organization',
+        ERROR_CODES.TEACHER.NOT_FOUND_IN_ORG,
+      );
+    }
+    return result;
+  }
 
   async remove(orgId: string, teacherId: string) {
     const teacherWithUser =

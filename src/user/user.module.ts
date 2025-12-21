@@ -24,6 +24,6 @@ import { UserService } from './services/user.service';
     TeacherRepository,
     StudentRepository,
   ],
-  exports: [UserService],
+  exports: [UserService, TeacherService, StudentService],
 })
 export class UserModule {}
