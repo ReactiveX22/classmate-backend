@@ -30,4 +30,34 @@ export class EnrollmentService {
       );
     });
   }
+
+  async removeEnrollment(courseId: string, studentId: string, orgId: string) {
+    return await this.enrollmentRepository.runInTransaction(async (tx) => {
+      const { courseMatch, studentMatch } =
+        await this.enrollmentRepository.verifyOrg(
+          tx,
+          orgId,
+          courseId,
+          studentId,
+        );
+
+      if (!courseMatch || !studentMatch) {
+        throw new ApplicationNotFoundException(
+          'Course or Student not found in the organization',
+        );
+      }
+
+      const result = await this.enrollmentRepository.remove(
+        tx,
+        courseId,
+        studentId,
+      );
+
+      if (result.length === 0) {
+        throw new ApplicationNotFoundException('Enrollment not found');
+      }
+
+      return result[0];
+    });
+  }
 }

@@ -46,4 +46,16 @@ export class EnrollmentRepository {
       .values({ courseId, studentId })
       .returning();
   }
+
+  async remove(tx: Transaction, courseId: string, studentId: string) {
+    return await tx
+      .delete(enrollment)
+      .where(
+        and(
+          eq(enrollment.courseId, courseId),
+          eq(enrollment.studentId, studentId),
+        ),
+      )
+      .returning();
+  }
 }
