@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
+import { PgQueryResultHKT } from 'drizzle-orm/pg-core';
+import { PgTransaction } from 'drizzle-orm/pg-core';
 
 export const DB_PROVIDER = 'DB_PROVIDER';
 
@@ -46,3 +48,9 @@ export const dbProvider: FactoryProvider = {
     });
   },
 };
+
+export type Transaction = PgTransaction<
+  PgQueryResultHKT,
+  typeof schema,
+  Record<string, never>
+>;
