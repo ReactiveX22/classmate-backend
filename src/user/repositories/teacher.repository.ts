@@ -14,7 +14,7 @@ import {
   teacher,
   user,
 } from 'src/database/schema';
-import { TeacherPaginationConfig } from 'src/lib/pagination/config/teacher.config';
+import { teacherPaginationConfig } from 'src/lib/pagination/config/teacher.config';
 import {
   InjectPaginationService,
   PaginationService,
@@ -77,25 +77,14 @@ export class TeacherRepository {
     organizationId: string,
     query: PaginationQueryDto,
   ): Promise<PaginatedResponse<TeacherWithProfile>> {
-    const filters = buildOrganizationFilters(
-      organizationId,
-      AppRole.Instructor,
-    );
+    const filters = buildOrganizationFilters(organizationId, {
+      role: AppRole.Instructor,
+    });
 
     return this.paginationService.paginate<TeacherWithProfile>(
       {
-        getBaseQuery: TeacherPaginationConfig.getBaseQuery,
+        config: teacherPaginationConfig,
         filters,
-        search: this.paginationService.buildSearchConfig(
-          query.search,
-          TeacherPaginationConfig.searchableFields,
-        ),
-        sort: this.paginationService.buildSortConfig(
-          TeacherPaginationConfig.sortFields,
-          'createdAt',
-          query.sortOrder === 'asc' ? 'asc' : 'desc',
-        ),
-        getCountQuery: TeacherPaginationConfig.getCountQuery,
       },
       query,
     );

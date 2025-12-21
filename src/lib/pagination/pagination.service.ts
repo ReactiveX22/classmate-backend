@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { SQL, and, asc, count, desc, ilike, or, eq } from 'drizzle-orm';
-import { PgSelect } from 'drizzle-orm/pg-core';
 import {
   PaginatedResponse,
   PaginationQueryDto,
@@ -11,32 +10,23 @@ import {
 } from 'src/common/helpers/pagination.helper';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import { user } from 'src/database/schema';
+import { PaginatedConfig } from './pagination.interface';
 
 export interface PaginationOptions<T> {
-  // Base query builder factory
-  getBaseQuery: (db: DB) => PgSelect;
+  /**
+   * Pagination configuration instance or class
+   */
+  config: PaginatedConfig<T>;
 
-  // Filter configuration
-  filters: SQL[];
+  /**
+   * Additional filters to apply
+   */
+  filters?: SQL[];
 
-  // Search configuration
-  search?: {
-    term?: string;
-    fields?: any[];
-  };
-
-  // Sort configuration
-  sort?: {
-    allowedFields: Record<string, any>;
-    defaultField?: string;
-    defaultOrder?: 'asc' | 'desc';
-  };
-
-  // Optional custom count query
-  getCountQuery?: (db: DB, filters: SQL[]) => Promise<number>;
-
-  // Optional data transformation
-  transform?: (data: any[]) => T[];
+  /**
+   * Search query override (defaults to query.search)
+   */
+  searchQuery?: string;
 }
 
 export const PAGINATION_SERVICE = 'PAGINATION_SERVICE';
@@ -53,27 +43,21 @@ export class PaginationService {
     options: PaginationOptions<T>,
     query: PaginationQueryDto,
   ): Promise<PaginatedResponse<T>> {
-    const {
-      getBaseQuery,
-      filters = [],
-      search,
-      sort,
-      getCountQuery,
-      transform,
-    } = options;
+    const { config, filters = [], searchQuery } = options;
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const offset = calculateOffset(page, limit);
 
     // Get base query with injected db instance
-    let dynamicQuery = getBaseQuery(this.db).$dynamic();
+    let dynamicQuery = config.getBaseQuery(this.db).$dynamic();
     const allConditions: SQL[] = [...filters];
 
     // Add search if provided
-    if (search?.term && search.fields?.length) {
-      const searchConditions = search.fields.map((field) =>
-        ilike(field, `%${search.term}%`),
+    const term = searchQuery ?? query.search;
+    if (term && config.searchableFields?.length) {
+      const searchConditions = config.searchableFields.map((field) =>
+        ilike(field, `%${term}%`),
       );
       const searchCondition = or(...searchConditions);
       if (searchCondition) {
@@ -87,12 +71,14 @@ export class PaginationService {
     }
 
     // Apply sorting
-    if (sort) {
-      const sortField =
-        query.sortBy && sort.allowedFields[query.sortBy]
-          ? sort.allowedFields[query.sortBy]
-          : sort.allowedFields[sort.defaultField || 'createdAt'];
+    if (config.sortFields) {
+      const defaultField = config.defaultSortField || 'createdAt';
+      const sortBy =
+        query.sortBy && config.sortFields[query.sortBy]
+          ? query.sortBy
+          : defaultField;
 
+      const sortField = config.sortFields[sortBy];
       const sortOrder = query.sortOrder === 'asc' ? asc : desc;
 
       if (sortField) {
@@ -102,8 +88,8 @@ export class PaginationService {
 
     // Get total count
     let totalItems: number;
-    if (getCountQuery) {
-      totalItems = await getCountQuery(this.db, allConditions);
+    if (config.getCountQuery) {
+      totalItems = await config.getCountQuery(this.db, allConditions);
     } else {
       // Default count using the same conditions
       const countQb = dynamicQuery.as('count_qb');
@@ -117,13 +103,16 @@ export class PaginationService {
     const rawData = await dynamicQuery.limit(limit).offset(offset);
 
     // Transform data if needed
-    const data = transform ? transform(rawData) : (rawData as T[]);
+    const data = config.transform
+      ? config.transform(rawData)
+      : (rawData as T[]);
 
     return createPaginatedResponse(data, query, totalItems);
   }
 
   /**
    * Helper to build organization filters
+   * @deprecated Use buildOrganizationFilters helper from pagination.helper.ts if possible
    */
   buildOrganizationFilters(
     organizationId: string,
@@ -140,37 +129,5 @@ export class PaginationService {
     }
 
     return filters;
-  }
-
-  /**
-   * Helper for building search configuration
-   */
-  buildSearchConfig(
-    searchTerm?: string,
-    searchableFields: any[] = [],
-  ): { term?: string; fields?: any[] } | undefined {
-    if (!searchTerm || searchableFields.length === 0) {
-      return undefined;
-    }
-
-    return {
-      term: searchTerm,
-      fields: searchableFields,
-    };
-  }
-
-  /**
-   * Helper for building sort configuration
-   */
-  buildSortConfig<T extends Record<string, any>>(
-    fieldMappings: T,
-    defaultField: keyof T = 'createdAt' as keyof T,
-    defaultOrder: 'asc' | 'desc' = 'desc',
-  ) {
-    return {
-      allowedFields: fieldMappings,
-      defaultField: defaultField as string,
-      defaultOrder,
-    };
   }
 }

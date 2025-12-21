@@ -1,13 +1,12 @@
-import { and, asc, desc, eq, ilike, SQL } from 'drizzle-orm';
+import { type DB } from 'src/database/db.provider';
+import { and, asc, count, desc, eq, ilike, or, SQL } from 'drizzle-orm';
+import { PgSelect } from 'drizzle-orm/pg-core';
+import { user } from 'src/database/schema';
 import {
   PaginatedResponse,
   PaginationMeta,
   PaginationQueryDto,
 } from '../dto/pagination.dto';
-import { count } from 'console';
-import { PgSelect } from 'drizzle-orm/pg-core';
-import { or } from 'drizzle-orm';
-import { user } from 'src/database/schema';
 
 /**
  * Calculate the offset for database queries based on page and limit.
@@ -52,6 +51,9 @@ export function createPaginatedResponse<T>(
 }
 
 export interface DrizzlePaginationOptions<T> {
+  // Required: The database instance
+  db: DB;
+
   // Required: The base Drizzle query builder
   queryBuilder: PgSelect;
 
@@ -87,6 +89,7 @@ export async function drizzlePaginate<T>(
 ): Promise<PaginatedResponse<T>> {
   const {
     queryBuilder,
+    db,
     filters = [],
     search,
     sort,
@@ -107,7 +110,10 @@ export async function drizzlePaginate<T>(
     const searchConditions = search.fields.map((field) =>
       ilike(field, `%${search.term}%`),
     );
-    allConditions.push(or(...searchConditions));
+    const searchCondition = or(...searchConditions);
+    if (searchCondition) {
+      allConditions.push(searchCondition);
+    }
   }
 
   // Apply conditions
@@ -135,7 +141,7 @@ export async function drizzlePaginate<T>(
     totalItems = await countQuery();
   } else {
     // Default count using the same conditions
-    const countQb = dynamicQuery.$as('count_qb');
+    const countQb = dynamicQuery.$dynamic().as('count_qb');
     const [{ count: totalCount }] = await db
       .select({ count: count() })
       .from(countQb);
@@ -157,16 +163,20 @@ export async function drizzlePaginate<T>(
  */
 export function buildOrganizationFilters(
   organizationId: string,
-  role?: string,
-  extraFilters: SQL[] = [],
+  options: {
+    table?: any;
+    role?: string;
+    extraFilters?: SQL[];
+  } = {},
 ): SQL[] {
+  const { table = user, role, extraFilters = [] } = options;
   const filters: SQL[] = [
-    eq(user.organizationId, organizationId),
+    eq(table.organizationId, organizationId),
     ...extraFilters,
   ];
 
-  if (role) {
-    filters.push(eq(user.role, role));
+  if (role && table.role) {
+    filters.push(eq(table.role, role));
   }
 
   return filters;

@@ -1,24 +1,22 @@
 import { SQL, and, count, eq } from 'drizzle-orm';
 import { type DB } from 'src/database/db.provider';
 import { student, user, userProfile } from 'src/database/schema';
+import { PaginatedConfig } from '../pagination.interface';
 
-export class StudentPaginationConfig {
-  static readonly searchableFields = [
-    user.name,
-    user.email,
-    student.id,
-    student.studentId,
-  ];
+export class StudentPaginationConfig implements PaginatedConfig {
+  searchableFields = [user.name, user.email, student.id, student.studentId];
 
-  static readonly sortFields = {
+  sortFields = {
     name: user.name,
     email: user.email,
     studentId: student.studentId,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
-  } as const;
+  };
 
-  static getBaseQuery(db: DB) {
+  defaultSortField = 'createdAt';
+
+  getBaseQuery(db: DB) {
     return db
       .select()
       .from(user)
@@ -27,7 +25,7 @@ export class StudentPaginationConfig {
       .$dynamic();
   }
 
-  static async getCountQuery(db: DB, filters: SQL[]) {
+  async getCountQuery(db: DB, filters: SQL[]) {
     const [{ total }] = await db
       .select({ total: count() })
       .from(user)
@@ -37,3 +35,5 @@ export class StudentPaginationConfig {
     return total;
   }
 }
+
+export const studentPaginationConfig = new StudentPaginationConfig();

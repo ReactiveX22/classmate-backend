@@ -17,7 +17,7 @@ import {
   InjectPaginationService,
   PaginationService,
 } from 'src/lib/pagination/pagination.service';
-import { StudentPaginationConfig } from 'src/lib/pagination/config/student.config';
+import { studentPaginationConfig } from 'src/lib/pagination/config/student.config';
 import { User } from 'src/auth/auth.factory';
 
 /**
@@ -97,22 +97,14 @@ export class StudentRepository {
     organizationId: string,
     query: PaginationQueryDto,
   ): Promise<PaginatedResponse<StudentWithProfile>> {
-    const filters = buildOrganizationFilters(organizationId, 'student');
+    const filters = buildOrganizationFilters(organizationId, {
+      role: 'student',
+    });
 
     return this.paginationService.paginate<StudentWithProfile>(
       {
-        getBaseQuery: StudentPaginationConfig.getBaseQuery,
+        config: studentPaginationConfig,
         filters,
-        search: this.paginationService.buildSearchConfig(
-          query.search,
-          StudentPaginationConfig.searchableFields,
-        ),
-        sort: this.paginationService.buildSortConfig(
-          StudentPaginationConfig.sortFields,
-          'createdAt',
-          query.sortOrder === 'asc' ? 'asc' : 'desc',
-        ),
-        getCountQuery: StudentPaginationConfig.getCountQuery,
       },
       query,
     );

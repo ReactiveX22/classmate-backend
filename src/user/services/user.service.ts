@@ -47,10 +47,6 @@ export class UserService {
     return this.studentRepository.findByUserProfileId(userProfileId);
   }
 
-  async createStudent(data: { userProfileId: string; studentId?: string }) {
-    return this.studentRepository.create(data);
-  }
-
   async getStudentsByOrganization(
     organizationId: string,
     query: PaginationQueryDto,

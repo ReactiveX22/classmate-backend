@@ -1,25 +1,23 @@
 import { SQL, and, count, eq } from 'drizzle-orm';
 import { type DB } from 'src/database/db.provider';
 import { teacher, user, userProfile } from 'src/database/schema';
+import { PaginatedConfig } from '../pagination.interface';
 
-export class TeacherPaginationConfig {
-  static readonly searchableFields = [
-    user.name,
-    user.email,
-    teacher.id,
-    teacher.title,
-  ];
+export class TeacherPaginationConfig implements PaginatedConfig {
+  searchableFields = [user.name, user.email, teacher.id, teacher.title];
 
-  static readonly sortFields = {
+  sortFields = {
     name: user.name,
     email: user.email,
     teacherId: teacher.id,
     title: teacher.title,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
-  } as const;
+  };
 
-  static getBaseQuery(db: DB) {
+  defaultSortField = 'createdAt';
+
+  getBaseQuery(db: DB) {
     return db
       .select()
       .from(user)
@@ -28,13 +26,15 @@ export class TeacherPaginationConfig {
       .$dynamic();
   }
 
-  static async getCountQuery(db: DB, filters: SQL[]) {
+  async getCountQuery(db: DB, filters: SQL[]) {
     const [{ total }] = await db
       .select({ total: count() })
       .from(user)
       .leftJoin(userProfile, eq(user.id, userProfile.userId))
-      .leftJoin(teacher, eq(userProfile.userId, teacher.userId))
+      .leftJoin(teacher, eq(user.id, teacher.userId))
       .where(and(...filters));
     return total;
   }
 }
+
+export const teacherPaginationConfig = new TeacherPaginationConfig();

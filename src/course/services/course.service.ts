@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TeacherService } from 'src/user/services/teacher.service';
 import { CreateCourseDto } from '../dto/create-course.dto';
 import { CourseRepository } from '../repositories/course.repository';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class CourseService {
@@ -16,5 +17,9 @@ export class CourseService {
     }
 
     return this.courseRepository.create({ ...data, organizationId: orgId });
+  }
+
+  async getAllCourses(orgId: string, query: PaginationQueryDto) {
+    return this.courseRepository.findAllByOrganization(orgId, query);
   }
 }

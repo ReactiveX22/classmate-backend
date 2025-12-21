@@ -50,3 +50,5 @@ export const courseRelations = relations(course, ({ one }) => ({
     references: [teacher.id],
   }),
 }));
+
+export type SelectCourse = typeof course.$inferSelect;
