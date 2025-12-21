@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 import {
   PaginatedResponse,
   PaginationQueryDto,
@@ -32,6 +33,28 @@ export class CourseRepository {
   }) {
     const [created] = await this.db.insert(course).values(data).returning();
     return created;
+  }
+
+  async findById(id: string): Promise<SelectCourse | null> {
+    const [result] = await this.db
+      .select()
+      .from(course)
+      .where(eq(course.id, id))
+      .limit(1);
+    return result || null;
+  }
+
+  async update(id: string, data: Partial<typeof course.$inferInsert>) {
+    const [updated] = await this.db
+      .update(course)
+      .set(data)
+      .where(eq(course.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async remove(id: string) {
+    await this.db.delete(course).where(eq(course.id, id));
   }
 
   async findAllByOrganization(

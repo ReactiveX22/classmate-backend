@@ -29,7 +29,7 @@ export class CreateCourseDto {
   @IsOptional()
   @IsNumber()
   @Min(1, { message: 'Credit must be at least 1' })
-  credit?: number;
+  credits?: number;
 
   @IsNotEmpty()
   @IsString()

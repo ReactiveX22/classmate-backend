@@ -4,7 +4,7 @@ import { teacher, user, userProfile } from 'src/database/schema';
 import { PaginatedConfig } from '../pagination.interface';
 
 export class TeacherPaginationConfig implements PaginatedConfig {
-  searchableFields = [user.name, user.email, teacher.id, teacher.title];
+  searchableFields = [user.name, user.email, teacher.title];
 
   sortFields = {
     name: user.name,

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { SQL, and, asc, count, desc, ilike, or, eq } from 'drizzle-orm';
+import { SQL, and, asc, count, desc, ilike, or } from 'drizzle-orm';
 import {
   PaginatedResponse,
   PaginationQueryDto,
@@ -9,7 +9,6 @@ import {
   createPaginatedResponse,
 } from 'src/common/helpers/pagination.helper';
 import { type DB, InjectDb } from 'src/database/db.provider';
-import { user } from 'src/database/schema';
 import { PaginatedConfig } from './pagination.interface';
 
 export interface PaginationOptions<T> {
@@ -108,26 +107,5 @@ export class PaginationService {
       : (rawData as T[]);
 
     return createPaginatedResponse(data, query, totalItems);
-  }
-
-  /**
-   * Helper to build organization filters
-   * @deprecated Use buildOrganizationFilters helper from pagination.helper.ts if possible
-   */
-  buildOrganizationFilters(
-    organizationId: string,
-    role?: string,
-    extraFilters: SQL[] = [],
-  ): SQL[] {
-    const filters: SQL[] = [
-      eq(user.organizationId, organizationId),
-      ...extraFilters,
-    ];
-
-    if (role) {
-      filters.push(eq(user.role, role));
-    }
-
-    return filters;
   }
 }

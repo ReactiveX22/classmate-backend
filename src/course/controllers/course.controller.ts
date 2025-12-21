@@ -1,10 +1,23 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { Roles } from '@thallesp/nestjs-better-auth';
 import { OrganizationId } from 'src/common/decorators';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
 import { CreateCourseDto } from '../dto/create-course.dto';
 import { CourseService } from '../services/course.service';
+import { UpdateCourseDto } from '../dto/update-course.dto';
 
 @Controller('courses')
 export class CourseController {
@@ -26,5 +39,26 @@ export class CourseController {
     @OrganizationId() orgId: string,
   ) {
     return this.courseService.createCourse(createCourseDto, orgId);
+  }
+
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @Roles([AppRole.Admin])
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @OrganizationId() orgId: string,
+    @Body() dto: UpdateCourseDto,
+  ) {
+    return await this.courseService.update(orgId, id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles([AppRole.Admin])
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @OrganizationId() orgId: string,
+  ) {
+    await this.courseService.remove(orgId, id);
   }
 }
