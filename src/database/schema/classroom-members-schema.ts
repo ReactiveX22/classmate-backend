@@ -1,6 +1,12 @@
-import { pgTable, primaryKey, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
+import { user } from './auth-schema';
 import { classroom } from './classroom-schema';
-import { student } from './student-schema';
 
 export const classroomMembers = pgTable(
   'classroom_members',
@@ -9,9 +15,9 @@ export const classroomMembers = pgTable(
       .notNull()
       .references(() => classroom.id, { onDelete: 'cascade' }),
 
-    studentId: uuid('student_id')
+    studentId: text('student_id')
       .notNull()
-      .references(() => student.id, { onDelete: 'cascade' }),
+      .references(() => user.id, { onDelete: 'cascade' }),
 
     joinedAt: timestamp('joined_at').defaultNow().notNull(),
   },

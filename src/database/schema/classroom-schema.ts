@@ -1,8 +1,8 @@
-import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { course } from './course-schema';
-import { teacher } from './teacher-schema';
 import { relations } from 'drizzle-orm';
+import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { user } from './auth-schema';
 import { classroomMembers } from './classroom-members-schema';
+import { course } from './course-schema';
 
 export const classroomStatus = pgEnum('classroom_status', [
   'active',
@@ -14,8 +14,8 @@ export const classroom = pgTable('classroom', {
   courseId: uuid('course_id')
     .references(() => course.id, { onDelete: 'cascade' })
     .notNull(),
-  teacherId: uuid('teacher_id')
-    .references(() => teacher.id, { onDelete: 'cascade' })
+  teacherId: text('teacher_id')
+    .references(() => user.id, { onDelete: 'cascade' })
     .notNull(),
   name: text('name').notNull(),
   section: text('section'),
@@ -34,9 +34,9 @@ export const classroomRelations = relations(classroom, ({ one, many }) => ({
     fields: [classroom.courseId],
     references: [course.id],
   }),
-  teacher: one(teacher, {
+  teacher: one(user, {
     fields: [classroom.teacherId],
-    references: [teacher.id],
+    references: [user.id],
   }),
   classroomMembers: many(classroomMembers),
 }));

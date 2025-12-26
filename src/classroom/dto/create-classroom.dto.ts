@@ -12,10 +12,6 @@ export class CreateClassroomDto {
   courseId: string;
 
   @IsNotEmpty()
-  @IsUUID()
-  teacherId: string;
-
-  @IsNotEmpty()
   @IsString()
   @MinLength(3, {
     message: 'Classroom name must be at least 3 characters long',

@@ -31,7 +31,10 @@ export class ApplicationBadRequestException extends ApplicationException {
 }
 
 export class ApplicationForbiddenException extends ApplicationException {
-  constructor(message: string, errorCode: string) {
+  constructor(
+    message: string,
+    errorCode: string = ERROR_CODES.INFRA.FORBIDDEN,
+  ) {
     super(HttpStatus.FORBIDDEN, message, errorCode);
   }
 }

@@ -1,15 +1,44 @@
 import { Injectable } from '@nestjs/common';
 import { CreateClassroomDto } from './dto/create-classroom.dto';
+import { CourseRepository } from 'src/course/repositories/course.repository';
+import { ClassroomRepository } from './classroom.repository';
+import {
+  ApplicationForbiddenException,
+  ApplicationNotFoundException,
+} from 'src/common/exceptions/application.exception';
+import { customAlphabet } from 'nanoid';
 
 @Injectable()
 export class ClassroomService {
-  async create(dto: CreateClassroomDto, userId: string) {
-    // check userId and dto.teacherId are same person (we could use a decorator for it? to get the teacherId from session user?)
-    // check if course exists? or may be not check it just handle that error using our drizzle exception filter?
-    // generate the classCode (invite code)
+  constructor(
+    private readonly courseRepository: CourseRepository,
+    private readonly classroomRepository: ClassroomRepository,
+  ) {}
 
-    // finally pass it to repository
+  async create(dto: CreateClassroomDto, userId: string, orgId: string) {
+    const course = await this.courseRepository.findById(dto.courseId);
+    if (!course) {
+      throw new ApplicationNotFoundException('Course not found');
+    }
+    if (course.organizationId !== orgId) {
+      throw new ApplicationForbiddenException(
+        'Course does not belong to your organization',
+      );
+    }
 
-    return dto;
+    // TODO: check if user is assigned to this course
+
+    const classCode = this.generateClassCode();
+
+    return await this.classroomRepository.create({
+      ...dto,
+      teacherId: userId,
+      classCode,
+    });
+  }
+
+  private generateClassCode(): string {
+    const alphabet = '23456789abcdefghjkmnpqrstuvwxyz';
+    return customAlphabet(alphabet, 7)();
   }
 }
