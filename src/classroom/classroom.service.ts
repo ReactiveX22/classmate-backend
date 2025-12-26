@@ -7,6 +7,7 @@ import {
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
 import { customAlphabet } from 'nanoid';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class ClassroomService {
@@ -14,6 +15,10 @@ export class ClassroomService {
     private readonly courseRepository: CourseRepository,
     private readonly classroomRepository: ClassroomRepository,
   ) {}
+
+  async findAll(query: PaginationQueryDto, orgId: string) {
+    return await this.classroomRepository.findAll(query, orgId);
+  }
 
   async create(dto: CreateClassroomDto, userId: string, orgId: string) {
     const course = await this.courseRepository.findById(dto.courseId);

@@ -6,18 +6,14 @@ import {
 } from 'src/common/dto/pagination.dto';
 import { buildOrganizationFilters } from 'src/common/helpers/pagination.helper';
 import { type DB, InjectDb } from 'src/database/db.provider';
-import { course, SelectCourse, teacher, user } from 'src/database/schema';
+import { course, SelectCourse } from 'src/database/schema';
 import { coursePaginationConfig } from 'src/lib/pagination/config/course.config';
-import {
-  InjectPaginationService,
-  PaginationService,
-} from 'src/lib/pagination/pagination.service';
+import { PaginationService } from 'src/lib/pagination/pagination.service';
 
 @Injectable()
 export class CourseRepository {
   constructor(
     @InjectDb() private readonly db: DB,
-    @InjectPaginationService()
     private readonly paginationService: PaginationService,
   ) {}
 

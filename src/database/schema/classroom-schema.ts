@@ -40,3 +40,5 @@ export const classroomRelations = relations(classroom, ({ one, many }) => ({
   }),
   classroomMembers: many(classroomMembers),
 }));
+
+export type SelectClassroom = typeof classroom.$inferSelect;
