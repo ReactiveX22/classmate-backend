@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { eq, SQL } from 'drizzle-orm';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { ClassroomPaginationConfig } from 'src/course/repositories/classroom.config';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import { classroom, course, SelectClassroom } from 'src/database/schema';
-import { ClassroomPaginationConfig } from 'src/course/repositories/classroom.config';
 import { PaginationService } from 'src/lib/pagination/pagination.service';
 
 @Injectable()
@@ -36,5 +36,24 @@ export class ClassroomRepository {
       },
       query,
     );
+  }
+
+  async update(id: string, data: Partial<typeof classroom.$inferInsert>) {
+    return this.db
+      .update(classroom)
+      .set(data)
+      .where(eq(classroom.id, id))
+      .returning();
+  }
+
+  async findById(id: string) {
+    return this.db.query.classroom.findFirst({
+      with: {
+        course: true,
+        teacher: true,
+        classroomMembers: true,
+      },
+      where: eq(classroom.id, id),
+    });
   }
 }

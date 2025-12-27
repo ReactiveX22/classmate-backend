@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import {
   pgTable,
   primaryKey,
@@ -22,4 +23,18 @@ export const classroomMembers = pgTable(
     joinedAt: timestamp('joined_at').defaultNow().notNull(),
   },
   (t) => [primaryKey({ columns: [t.classroomId, t.studentId] })],
+);
+
+export const classroomMembersRelations = relations(
+  classroomMembers,
+  ({ one }) => ({
+    classroom: one(classroom, {
+      fields: [classroomMembers.classroomId],
+      references: [classroom.id],
+    }),
+    student: one(user, {
+      fields: [classroomMembers.studentId],
+      references: [user.id],
+    }),
+  }),
 );

@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { CreateClassroomDto } from './dto/create-classroom.dto';
-import { CourseRepository } from 'src/course/repositories/course.repository';
-import { ClassroomRepository } from './classroom.repository';
+import { customAlphabet } from 'nanoid';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import {
   ApplicationForbiddenException,
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
-import { customAlphabet } from 'nanoid';
-import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { CourseRepository } from 'src/course/repositories/course.repository';
+import { ClassroomRepository } from './classroom.repository';
+import { CreateClassroomDto } from './dto/create-classroom.dto';
+import { UpdateClassroomDto } from './dto/update-classroom.dto';
 
 @Injectable()
 export class ClassroomService {
@@ -18,6 +19,14 @@ export class ClassroomService {
 
   async findAll(query: PaginationQueryDto, orgId: string) {
     return await this.classroomRepository.findAll(query, orgId);
+  }
+
+  async findOne(id: string, orgId: string) {
+    const classroom = await this.classroomRepository.findById(id);
+    if (!classroom || classroom.course.organizationId !== orgId) {
+      throw new ApplicationNotFoundException('Classroom not found');
+    }
+    return classroom;
   }
 
   async create(dto: CreateClassroomDto, userId: string, orgId: string) {
@@ -40,6 +49,28 @@ export class ClassroomService {
       teacherId: userId,
       classCode,
     });
+  }
+
+  async update(
+    id: string,
+    userId: string,
+    orgId: string,
+    dto: UpdateClassroomDto,
+  ) {
+    const classroom = await this.classroomRepository.findById(id);
+    if (!classroom) {
+      throw new ApplicationNotFoundException('Classroom not found');
+    }
+    if (
+      classroom.teacherId !== userId ||
+      classroom.course.organizationId !== orgId
+    ) {
+      throw new ApplicationForbiddenException(
+        'You are not authorized to update this classroom',
+      );
+    }
+
+    return await this.classroomRepository.update(id, dto);
   }
 
   private generateClassCode(): string {
