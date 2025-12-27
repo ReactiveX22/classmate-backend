@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { eq, SQL } from 'drizzle-orm';
+import { and, eq, inArray, SQL } from 'drizzle-orm';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { ClassroomPaginationConfig } from 'src/course/repositories/classroom.config';
 import { type DB, InjectDb } from 'src/database/db.provider';
-import { classroom, course, SelectClassroom } from 'src/database/schema';
+import {
+  classroom,
+  classroomMembers,
+  course,
+  SelectClassroom,
+} from 'src/database/schema';
 import { PaginationService } from 'src/lib/pagination/pagination.service';
 
 @Injectable()
@@ -51,9 +56,38 @@ export class ClassroomRepository {
       with: {
         course: true,
         teacher: true,
-        classroomMembers: true,
+        classroomMembers: {
+          with: {
+            student: true,
+          },
+        },
       },
       where: eq(classroom.id, id),
     });
+  }
+
+  async addMembers(classroomId: string, studentIds: string[]) {
+    return this.db
+      .insert(classroomMembers)
+      .values(
+        studentIds.map((id) => ({
+          classroomId: classroomId,
+          studentId: id,
+        })),
+      )
+      .returning();
+  }
+
+  async removeMembers(classroomId: string, studentIds: string[]) {
+    if (studentIds.length === 0) return [];
+
+    await this.db
+      .delete(classroomMembers)
+      .where(
+        and(
+          eq(classroomMembers.classroomId, classroomId),
+          inArray(classroomMembers.studentId, studentIds),
+        ),
+      );
   }
 }

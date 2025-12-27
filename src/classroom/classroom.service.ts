@@ -9,6 +9,7 @@ import { CourseRepository } from 'src/course/repositories/course.repository';
 import { ClassroomRepository } from './classroom.repository';
 import { CreateClassroomDto } from './dto/create-classroom.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
+import { AddMembersClassroomDto } from './dto/addMembers-classroom.dto';
 
 @Injectable()
 export class ClassroomService {
@@ -71,6 +72,50 @@ export class ClassroomService {
     }
 
     return await this.classroomRepository.update(id, dto);
+  }
+
+  async addMembers(
+    id: string,
+    userId: string,
+    orgId: string,
+    dto: AddMembersClassroomDto,
+  ) {
+    const classroom = await this.classroomRepository.findById(id);
+    if (!classroom) {
+      throw new ApplicationNotFoundException('Classroom not found');
+    }
+    if (
+      classroom.teacherId !== userId ||
+      classroom.course.organizationId !== orgId
+    ) {
+      throw new ApplicationForbiddenException(
+        'You are not authorized to update this classroom',
+      );
+    }
+
+    return await this.classroomRepository.addMembers(id, dto.studentIds);
+  }
+
+  async removeMembers(
+    id: string,
+    userId: string,
+    orgId: string,
+    dto: AddMembersClassroomDto,
+  ) {
+    const classroom = await this.classroomRepository.findById(id);
+    if (!classroom) {
+      throw new ApplicationNotFoundException('Classroom not found');
+    }
+    if (
+      classroom.teacherId !== userId ||
+      classroom.course.organizationId !== orgId
+    ) {
+      throw new ApplicationForbiddenException(
+        'You are not authorized to update this classroom',
+      );
+    }
+
+    await this.classroomRepository.removeMembers(id, dto.studentIds);
   }
 
   private generateClassCode(): string {

@@ -31,7 +31,7 @@ export class StudentController {
   ) {}
 
   @Get()
-  @Roles([AppRole.Admin])
+  @Roles([AppRole.Admin, AppRole.Instructor]) // TODO: remove instructor
   async getAll(
     @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
