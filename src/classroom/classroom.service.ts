@@ -118,6 +118,18 @@ export class ClassroomService {
     await this.classroomRepository.removeMembers(id, dto.studentIds);
   }
 
+  async findPostsByClassroom(
+    id: string,
+    orgId: string,
+    query: PaginationQueryDto,
+  ) {
+    const classroom = await this.findOne(id, orgId);
+    return await this.classroomRepository.findPostsByClassroom(
+      query,
+      classroom.id,
+    );
+  }
+
   private generateClassCode(): string {
     const alphabet = '23456789abcdefghjkmnpqrstuvwxyz';
     return customAlphabet(alphabet, 7)();

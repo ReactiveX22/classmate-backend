@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
 import { OrganizationId } from 'src/common/decorators';
@@ -26,7 +27,7 @@ export class ClassroomController {
   @Roles([AppRole.Instructor])
   @Get()
   async findAll(
-    @Param() query: PaginationQueryDto,
+    @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
   ) {
     return this.classroomService.findAll(query, orgId);
@@ -80,5 +81,14 @@ export class ClassroomController {
     @OrganizationId() orgId: string,
   ) {
     this.classroomService.removeMembers(id, session.user.id, orgId, dto);
+  }
+
+  @Get(':id/posts')
+  async findPostsByClassroom(
+    @Param('id') id: string,
+    @Query() query: PaginationQueryDto,
+    @OrganizationId() orgId: string,
+  ) {
+    return this.classroomService.findPostsByClassroom(id, orgId, query);
   }
 }

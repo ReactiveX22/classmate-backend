@@ -3,6 +3,7 @@ import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
 import { classroomMembers } from './classroom-members-schema';
 import { course } from './course-schema';
+import { classroomPost } from './classroom-post-schema';
 
 export const classroomStatus = pgEnum('classroom_status', [
   'active',
@@ -39,6 +40,7 @@ export const classroomRelations = relations(classroom, ({ one, many }) => ({
     references: [user.id],
   }),
   classroomMembers: many(classroomMembers),
+  posts: many(classroomPost),
 }));
 
 export type SelectClassroom = typeof classroom.$inferSelect;
