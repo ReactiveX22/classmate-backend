@@ -1,20 +1,13 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { ClassroomPostService } from './classroom-post.service';
-import { OrganizationId } from 'src/common/decorators';
-import { CreateClassroomPostDto } from './dto/create-classroom-post.dto';
+import { Body, Controller, Post } from '@nestjs/common';
 import { Session } from '@thallesp/nestjs-better-auth';
+import { OrganizationId } from 'src/common/decorators';
 import { type AppUserSession } from 'src/common/types/session.types';
+import { ClassroomPostService } from './classroom-post.service';
+import { CreateClassroomPostDto } from './dto/create-classroom-post.dto';
 
 @Controller('posts')
 export class ClassroomPostController {
   constructor(private readonly classroomPostService: ClassroomPostService) {}
-
-  @Get()
-  async findAllByClass(@OrganizationId() orgId: string) {
-    return {
-      orgId,
-    };
-  }
 
   @Post()
   async create(

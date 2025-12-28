@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DB } from 'better-auth/adapters/drizzle';
 import { and, count, eq, SQL } from 'drizzle-orm';
-import { classroom, classroomPost, course } from 'src/database/schema';
+import { classroom, classroomPost, course, user } from 'src/database/schema';
 import { PaginationConfig } from '../lib/pagination/pagination.config';
 
 @Injectable()
@@ -52,15 +52,21 @@ export class ClassroomPostPaginationConfig extends PaginationConfig<
     updatedAt: classroomPost.updatedAt,
   };
   defaultSortField = 'createdAt';
+  defaultSortOrder: 'asc' | 'desc' = 'desc';
 
   getBaseQuery(db: DB) {
-    return db.select().from(classroomPost).$dynamic();
+    return db
+      .select({ ...classroomPost, author: user })
+      .from(classroomPost)
+      .innerJoin(user, eq(classroomPost.authorId, user.id))
+      .$dynamic();
   }
 
   async getCountQuery(db: DB, filters: SQL[]) {
     const [{ total }] = await db
       .select({ total: count() })
       .from(classroomPost)
+      .innerJoin(user, eq(classroomPost.authorId, user.id))
       .where(and(...filters));
     return total;
   }

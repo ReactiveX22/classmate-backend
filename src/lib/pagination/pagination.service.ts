@@ -75,8 +75,12 @@ export class PaginationService {
           : defaultField;
 
       const sortField = config.sortFields[sortBy];
-      const sortOrder = query.sortOrder === 'asc' ? asc : desc;
-
+      const defaultOrder = config.defaultSortOrder;
+      const sortOrder =
+        (query.sortOrder || defaultOrder) === 'asc' ? asc : desc;
+      console.log('query.sortOrder :>> ', query.sortOrder);
+      console.log('defaultOrder :>> ', defaultOrder);
+      console.log('SortOrder :>> ', sortOrder);
       if (sortField) {
         dynamicQuery = dynamicQuery.orderBy(sortOrder(sortField));
       }

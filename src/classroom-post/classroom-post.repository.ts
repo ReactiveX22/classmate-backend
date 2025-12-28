@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { type DB, InjectDb } from 'src/database/db.provider';
-import { CreateClassroomPostDto } from './dto/create-classroom-post.dto';
 import { classroomPost } from 'src/database/schema';
 
 @Injectable()

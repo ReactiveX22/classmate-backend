@@ -7,6 +7,7 @@ export abstract class PaginationConfig<T extends PgTable<any>> {
   abstract searchableFields: PgColumn[];
   abstract sortFields: Record<string, PgColumn>;
   abstract defaultSortField: string;
+  defaultSortOrder?: 'asc' | 'desc';
 
   getBaseQuery(db: DB) {
     return db
