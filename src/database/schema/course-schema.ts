@@ -38,8 +38,10 @@ export const course = pgTable(
     semester: text('semester').notNull(),
     status: courseStatusEnum('status').default('active').notNull(),
     maxStudents: integer('max_students').default(50).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),

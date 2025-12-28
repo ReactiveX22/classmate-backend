@@ -44,7 +44,7 @@ export const dbProvider: FactoryProvider = {
 
     return drizzle(pool, {
       schema,
-      logger: true,
+      logger: false,
     });
   },
 };

@@ -20,7 +20,9 @@ export const classroomMembers = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
 
-    joinedAt: timestamp('joined_at').defaultNow().notNull(),
+    joinedAt: timestamp('joined_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (t) => [primaryKey({ columns: [t.classroomId, t.studentId] })],
 );

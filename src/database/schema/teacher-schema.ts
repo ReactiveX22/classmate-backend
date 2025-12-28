@@ -12,8 +12,10 @@ export const teacher = pgTable('teacher', {
     .references(() => user.id, { onDelete: 'cascade' }),
   title: text('title'),
   joinDate: date('join_date'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at')
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
