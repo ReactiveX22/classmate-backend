@@ -7,8 +7,8 @@ import { CourseModule } from './course/course.module';
 import { DatabaseModule } from './database/database.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
 import { OrganizationModule } from './organization/organization.module';
-import { UserModule } from './user/user.module';
 import { StorageModule } from './storage/storage.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [

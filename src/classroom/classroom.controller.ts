@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -78,7 +79,7 @@ export class ClassroomController {
   @Delete(':id/members')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeMembers(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AddMembersClassroomDto,
     @Session() session: AppUserSession,
     @OrganizationId() orgId: string,
@@ -88,7 +89,7 @@ export class ClassroomController {
 
   @Get(':id/posts')
   async findPostsByClassroom(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
   ) {
@@ -99,7 +100,7 @@ export class ClassroomController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadAttachment() file: Express.Multer.File,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @OrganizationId() orgId: string,
   ) {
     return await this.classroomService.uploadAttachments(file, id, orgId);

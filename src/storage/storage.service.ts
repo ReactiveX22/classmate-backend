@@ -53,7 +53,7 @@ export class StorageService {
     await fs.writeFile(filePath, file.buffer);
 
     // Build public URL
-    const url = `${this.baseUrl}/uploads/${folder}/${fileName}`;
+    const url = `${this.baseUrl}/api/v1/uploads/${folder}/${fileName}`;
 
     return {
       id: fileId,
