@@ -122,6 +122,16 @@ export class ClassroomController {
     );
   }
 
+  @Delete(':id/posts/:postId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deletePost(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @OrganizationId() orgId: string,
+  ) {
+    await this.classroomService.deletePost(id, orgId, postId);
+  }
+
   @Delete(':id/posts/upload/:attachmentId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteFile(

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import { classroomPost } from 'src/database/schema';
 
@@ -34,5 +34,24 @@ export class ClassroomPostRepository {
       .update(classroomPost)
       .set({ attachments: updatedAttachments })
       .where(eq(classroomPost.id, postId));
+
+    return post.attachments.find((a) => a.id === attachmentId);
+  }
+
+  async deletePost(classroomId: string, postId: string) {
+    await this.db
+      .delete(classroomPost)
+      .where(
+        and(
+          eq(classroomPost.classroomId, classroomId),
+          eq(classroomPost.id, postId),
+        ),
+      );
+  }
+
+  async fetchOne(postId: string) {
+    return await this.db.query.classroomPost.findFirst({
+      where: eq(classroomPost.id, postId),
+    });
   }
 }

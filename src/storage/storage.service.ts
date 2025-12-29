@@ -91,10 +91,43 @@ export class StorageService {
 
   async deleteFile(filePath: string): Promise<void> {
     try {
-      const fullPath = path.join(this.uploadDir, filePath);
-      await fs.unlink(fullPath);
+      const absolutePath = path.resolve(this.uploadDir, filePath);
+      const directory = path.dirname(absolutePath);
+      const fileNameToMatch = path.basename(absolutePath);
+
+      const files = await fs.readdir(directory);
+
+      const filesToDelete = files.filter((file) => {
+        return (
+          file === fileNameToMatch || file.startsWith(`${fileNameToMatch}.`)
+        );
+      });
+
+      for (const file of filesToDelete) {
+        await fs.unlink(path.join(directory, file));
+      }
     } catch (error) {
       console.error('Error deleting file:', error);
+    }
+  }
+
+  async deleteFiles(folderPath: string, fileIds: string[]): Promise<void> {
+    try {
+      const directory = path.resolve(this.uploadDir, folderPath);
+      const files = await fs.readdir(directory);
+
+      const idSet = new Set(fileIds);
+
+      const deletionPromises = files
+        .filter((file) => {
+          const fileId = path.parse(file).name;
+          return idSet.has(fileId) || idSet.has(file);
+        })
+        .map((file) => fs.unlink(path.join(directory, file)));
+
+      await Promise.all(deletionPromises);
+    } catch (error) {
+      console.error('Error in bulk deletion:', error);
     }
   }
 

@@ -161,12 +161,34 @@ export class ClassroomService {
   async deleteAttachment(id: string, orgId: string, attachmentId: string) {
     const classroom = await this.findOne(id, orgId);
 
-    await this.classroomPostRepository.deleteAttachment(id, attachmentId);
+    await this.classroomPostRepository.deleteAttachment(
+      classroom.id,
+      attachmentId,
+    );
+
     await this.storageService.deleteFile(
-      `classroom-attachments/${id}/${attachmentId}`,
+      `classroom-attachments/${classroom.id}/${attachmentId}`,
     );
   }
 
+  async deletePost(id: string, orgId: string, postId: string) {
+    const classroom = await this.findOne(id, orgId);
+    const post = await this.classroomPostRepository.fetchOne(postId);
+
+    if (!post) return;
+
+    const attachmentIds =
+      post.attachments?.filter((a) => a.type !== 'link').map((a) => a.id) ?? [];
+
+    if (attachmentIds.length > 0) {
+      await this.storageService.deleteFiles(
+        `classroom-attachments/${classroom.id}`,
+        attachmentIds,
+      );
+    }
+
+    await this.classroomPostRepository.deletePost(classroom.id, postId);
+  }
   private generateClassCode(): string {
     const alphabet = '23456789abcdefghjkmnpqrstuvwxyz';
     return customAlphabet(alphabet, 7)();
