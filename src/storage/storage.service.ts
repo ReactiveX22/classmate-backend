@@ -36,24 +36,21 @@ export class StorageService {
     }
   }
 
-  async uploadFile(
+  private async saveFileToDisk(
     file: Express.Multer.File,
-    folder: string = 'attachments',
+    folderPath: string,
   ): Promise<UploadResult> {
     const fileId = randomUUID();
     const ext = path.extname(file.originalname);
     const fileName = `${fileId}${ext}`;
-
-    // Create folder if it doesn't exist
-    const folderPath = path.join(this.uploadDir, folder);
-    await fs.mkdir(folderPath, { recursive: true });
-
-    // Save file
     const filePath = path.join(folderPath, fileName);
+
     await fs.writeFile(filePath, file.buffer);
 
-    // Build public URL
-    const url = `${this.baseUrl}/api/v1/uploads/${folder}/${fileName}`;
+    const relativeFolder = path
+      .relative(this.uploadDir, folderPath)
+      .replace(/\\/g, '/');
+    const url = `${this.baseUrl}/api/v1/uploads/${relativeFolder}/${fileName}`;
 
     return {
       id: fileId,
@@ -63,6 +60,33 @@ export class StorageService {
       size: file.size,
       mimeType: file.mimetype,
     };
+  }
+
+  async uploadFile(
+    file: Express.Multer.File,
+    folder: string = 'attachments',
+  ): Promise<UploadResult> {
+    const folderPath = path.join(this.uploadDir, folder);
+    await fs.mkdir(folderPath, { recursive: true });
+
+    return this.saveFileToDisk(file, folderPath);
+  }
+
+  async uploadFiles(
+    files: Express.Multer.File[],
+    folder: string = 'attachments',
+  ): Promise<UploadResult[]> {
+    if (!files || files.length === 0) return [];
+
+    const folderPath = path.join(this.uploadDir, folder);
+
+    await fs.mkdir(folderPath, { recursive: true });
+
+    const uploadPromises = files.map((file) =>
+      this.saveFileToDisk(file, folderPath),
+    );
+
+    return await Promise.all(uploadPromises);
   }
 
   async deleteFile(filePath: string): Promise<void> {

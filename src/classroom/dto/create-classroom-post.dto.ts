@@ -39,12 +39,20 @@ export enum SubmissionType {
 
 export class AttachmentDto {
   @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  id: string;
+
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   name: string;
 
   @ApiProperty()
-  @IsUrl()
+  @IsUrl({
+    require_tld: false, // This allows 'localhost' which has no TLD
+    require_protocol: true, // Ensures http:// or https:// is present
+  })
   @IsNotEmpty()
   url: string;
 
@@ -89,11 +97,6 @@ export class AssignmentDataDto {
 }
 
 export class CreateClassroomPostDto {
-  @ApiProperty()
-  @IsUUID()
-  @IsNotEmpty()
-  classroomId: string;
-
   @ApiProperty({ enum: PostType, default: PostType.ANNOUNCEMENT })
   @IsEnum(PostType)
   @IsNotEmpty()

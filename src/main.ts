@@ -1,40 +1,15 @@
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { DrizzleExceptionFilter } from './common/filters/drizzle-exception.filter';
+import { GlobalValidationPipe } from './common/filters/validation.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bodyParser: false, // Required for Better Auth
   });
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      exceptionFactory: (errors) => {
-        const customErrors: { field: string; issue: string }[] = [];
-
-        errors.forEach((error) => {
-          if (error.constraints) {
-            Object.values(error.constraints).forEach((issue) => {
-              customErrors.push({
-                field: error.property,
-                issue: issue,
-              });
-            });
-          }
-        });
-
-        throw new BadRequestException({
-          errorCode: 'VALIDATION_FAILED',
-          message: 'Validation failed',
-          errors: customErrors,
-        });
-      },
-    }),
-  );
+  app.useGlobalPipes(GlobalValidationPipe);
 
   app.useGlobalFilters(new DrizzleExceptionFilter());
 

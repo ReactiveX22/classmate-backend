@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
+import { CreateClassroomPostDto } from 'src/classroom/dto/create-classroom-post.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import {
   ApplicationForbiddenException,
@@ -11,6 +12,7 @@ import { ClassroomRepository } from './classroom.repository';
 import { AddMembersClassroomDto } from './dto/addMembers-classroom.dto';
 import { CreateClassroomDto } from './dto/create-classroom.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
+import { ClassroomPostRepository } from './repositories/classroom-post.repository';
 
 @Injectable()
 export class ClassroomService {
@@ -18,6 +20,7 @@ export class ClassroomService {
     private readonly courseRepository: CourseRepository,
     private readonly classroomRepository: ClassroomRepository,
     private readonly storageService: StorageService,
+    private readonly classroomPostRepository: ClassroomPostRepository,
   ) {}
 
   async findAll(query: PaginationQueryDto, orgId: string) {
@@ -132,17 +135,35 @@ export class ClassroomService {
     );
   }
 
-  async uploadAttachments(
-    file: Express.Multer.File,
+  async createPost(
     id: string,
+    authorId: string,
+    body: CreateClassroomPostDto,
     orgId: string,
   ) {
-    // check classroom exists
+    const classroom = await this.findOne(id, orgId);
+    return await this.classroomPostRepository.create(
+      body,
+      classroom.id,
+      authorId,
+    );
+  }
+
+  async uploadAttachment(file: Express.Multer.File, id: string, orgId: string) {
     const classroom = await this.findOne(id, orgId);
 
     return await this.storageService.uploadFile(
       file,
       `classroom-attachments/${classroom.id}`,
+    );
+  }
+
+  async deleteAttachment(id: string, orgId: string, attachmentId: string) {
+    const classroom = await this.findOne(id, orgId);
+
+    await this.classroomPostRepository.deleteAttachment(id, attachmentId);
+    await this.storageService.deleteFile(
+      `classroom-attachments/${id}/${attachmentId}`,
     );
   }
 

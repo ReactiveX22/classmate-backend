@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
+import { CreateClassroomPostDto } from 'src/classroom/dto/create-classroom-post.dto';
 import { OrganizationId } from 'src/common/decorators';
 import { UploadAttachment } from 'src/common/decorators/upload-attachment.decorator';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
@@ -103,6 +104,31 @@ export class ClassroomController {
     @Param('id', ParseUUIDPipe) id: string,
     @OrganizationId() orgId: string,
   ) {
-    return await this.classroomService.uploadAttachments(file, id, orgId);
+    return await this.classroomService.uploadAttachment(file, id, orgId);
+  }
+
+  @Post(':id/posts/')
+  async createPost(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: CreateClassroomPostDto,
+    @OrganizationId() orgId: string,
+    @Session() session: AppUserSession,
+  ) {
+    return await this.classroomService.createPost(
+      id,
+      session.user.id,
+      body,
+      orgId,
+    );
+  }
+
+  @Delete(':id/posts/upload/:attachmentId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteFile(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('attachmentId') attachmentId: string,
+    @OrganizationId() orgId: string,
+  ) {
+    await this.classroomService.deleteAttachment(id, orgId, attachmentId);
   }
 }

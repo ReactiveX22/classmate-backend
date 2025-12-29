@@ -7,11 +7,17 @@ import { StorageModule } from 'src/storage/storage.module';
 import { ClassroomController } from './classroom.controller';
 import { ClassroomRepository } from './classroom.repository';
 import { ClassroomService } from './classroom.service';
+import { ClassroomPostRepository } from './repositories/classroom-post.repository';
 
 @Module({
   imports: [CourseModule, DatabaseModule, PaginationModule, StorageModule],
   controllers: [ClassroomController],
-  providers: [ClassroomService, ClassroomRepository, ClassroomPaginationConfig],
+  providers: [
+    ClassroomService,
+    ClassroomRepository,
+    ClassroomPaginationConfig,
+    ClassroomPostRepository,
+  ],
   exports: [ClassroomService],
 })
 export class ClassroomModule {}
