@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
 import { OrganizationModule } from './organization/organization.module';
 import { UserModule } from './user/user.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UserModule } from './user/user.module';
     EnrollmentModule,
     ClassroomModule,
     ClassroomPostModule,
+    StorageModule,
   ],
   controllers: [],
   providers: [AppService],

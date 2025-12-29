@@ -11,7 +11,6 @@ export class ClassroomPostService {
   ) {}
 
   async create(body: any, orgId: string, authorId: string) {
-    // classroom exist and match orgId
     const classroom = await this.classroomService.findOne(
       body.classroomId,
       orgId,

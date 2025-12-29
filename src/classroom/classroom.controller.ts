@@ -9,9 +9,12 @@ import {
   Patch,
   Post,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
 import { OrganizationId } from 'src/common/decorators';
+import { UploadAttachment } from 'src/common/decorators/upload-attachment.decorator';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
 import { type AppUserSession } from 'src/common/types/session.types';
@@ -90,5 +93,15 @@ export class ClassroomController {
     @OrganizationId() orgId: string,
   ) {
     return this.classroomService.findPostsByClassroom(id, orgId, query);
+  }
+
+  @Post(':id/posts/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadAttachment() file: Express.Multer.File,
+    @Param('id') id: string,
+    @OrganizationId() orgId: string,
+  ) {
+    return await this.classroomService.uploadAttachments(file, id, orgId);
   }
 }

@@ -6,16 +6,18 @@ import {
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
 import { CourseRepository } from 'src/course/repositories/course.repository';
+import { StorageService } from 'src/storage/storage.service';
 import { ClassroomRepository } from './classroom.repository';
+import { AddMembersClassroomDto } from './dto/addMembers-classroom.dto';
 import { CreateClassroomDto } from './dto/create-classroom.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
-import { AddMembersClassroomDto } from './dto/addMembers-classroom.dto';
 
 @Injectable()
 export class ClassroomService {
   constructor(
     private readonly courseRepository: CourseRepository,
     private readonly classroomRepository: ClassroomRepository,
+    private readonly storageService: StorageService,
   ) {}
 
   async findAll(query: PaginationQueryDto, orgId: string) {
@@ -127,6 +129,20 @@ export class ClassroomService {
     return await this.classroomRepository.findPostsByClassroom(
       query,
       classroom.id,
+    );
+  }
+
+  async uploadAttachments(
+    file: Express.Multer.File,
+    id: string,
+    orgId: string,
+  ) {
+    // check classroom exists
+    const classroom = await this.findOne(id, orgId);
+
+    return await this.storageService.uploadFile(
+      file,
+      `classroom-attachments/${classroom.id}`,
     );
   }
 
