@@ -24,8 +24,8 @@ export class ClassroomService {
     private readonly classroomPostRepository: ClassroomPostRepository,
   ) {}
 
-  async findAll(query: PaginationQueryDto, orgId: string) {
-    return await this.classroomRepository.findAll(query, orgId);
+  async findAll(query: PaginationQueryDto, orgId: string, userId: string) {
+    return await this.classroomRepository.findAll(query, orgId, userId);
   }
 
   async findOne(id: string, orgId: string) {
@@ -159,6 +159,11 @@ export class ClassroomService {
   ) {
     const classroom = await this.findOne(id, orgId);
     return await this.classroomPostRepository.update(postId, authorId, body);
+  }
+
+  async findPost(id: string, orgId: string, postId: string) {
+    const classroom = await this.findOne(id, orgId);
+    return await this.classroomPostRepository.fetchOne(postId);
   }
 
   async uploadAttachment(file: Express.Multer.File, id: string, orgId: string) {

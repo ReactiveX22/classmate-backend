@@ -53,6 +53,7 @@ export class ClassroomPostRepository {
   async fetchOne(postId: string) {
     return await this.db.query.classroomPost.findFirst({
       where: eq(classroomPost.id, postId),
+      with: { author: true },
     });
   }
 

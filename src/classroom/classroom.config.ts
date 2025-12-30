@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { DB } from 'better-auth/adapters/drizzle';
-import { and, count, eq, SQL } from 'drizzle-orm';
-import { classroom, classroomPost, course, user } from 'src/database/schema';
+import { and, count, countDistinct, eq, sql, SQL } from 'drizzle-orm';
+import {
+  classroom,
+  classroomMembers,
+  classroomPost,
+  course,
+  user,
+} from 'src/database/schema';
 import { PaginationConfig } from '../lib/pagination/pagination.config';
 
 @Injectable()
@@ -22,20 +28,41 @@ export class ClassroomPaginationConfig extends PaginationConfig<
   defaultSortField = 'createdAt';
 
   getBaseQuery(db: DB) {
+    const studentCountSq = db
+      .select({
+        classroomId: classroomMembers.classroomId,
+        count: count(classroomMembers.studentId).as('student_count'),
+      })
+      .from(classroomMembers)
+      .groupBy(classroomMembers.classroomId)
+      .as('sq');
+
     return db
-      .select()
+      .select({
+        classroom: classroom,
+        course: course,
+        studentCount: sql<number>`COALESCE(${studentCountSq.count}, 0)`.mapWith(
+          Number,
+        ),
+      })
       .from(classroom)
       .innerJoin(course, eq(classroom.courseId, course.id))
+      .leftJoin(studentCountSq, eq(classroom.id, studentCountSq.classroomId))
       .$dynamic();
   }
 
   async getCountQuery(db: DB, filters: SQL[]) {
-    const [{ total }] = await db
-      .select({ total: count() })
+    const [result] = await db
+      .select({ total: countDistinct(classroom.id) })
       .from(classroom)
       .innerJoin(course, eq(classroom.courseId, course.id))
+      .leftJoin(
+        classroomMembers,
+        eq(classroom.id, classroomMembers.classroomId),
+      )
       .where(and(...filters));
-    return total;
+
+    return result?.total ?? 0;
   }
 }
 

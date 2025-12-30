@@ -30,13 +30,14 @@ import { UpdateClassroomDto } from './dto/update-classroom.dto';
 export class ClassroomController {
   constructor(private readonly classroomService: ClassroomService) {}
 
-  @Roles([AppRole.Instructor])
+  @Roles([AppRole.Instructor, AppRole.Student])
   @Get()
   async findAll(
     @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
+    @Session() session: AppUserSession,
   ) {
-    return this.classroomService.findAll(query, orgId);
+    return this.classroomService.findAll(query, orgId, session.user.id);
   }
 
   @Roles([AppRole.Instructor, AppRole.Student])
@@ -138,6 +139,15 @@ export class ClassroomController {
       body,
       orgId,
     );
+  }
+
+  @Get(':id/posts/:postId')
+  async findPost(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @OrganizationId() orgId: string,
+  ) {
+    return await this.classroomService.findPost(id, orgId, postId);
   }
 
   @Delete(':id/posts/:postId')

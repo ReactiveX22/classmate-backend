@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, inArray, SQL } from 'drizzle-orm';
-import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { and, eq, exists, inArray, or, SQL } from 'drizzle-orm';
 import {
   ClassroomPaginationConfig,
   ClassroomPostPaginationConfig,
 } from 'src/classroom/classroom.config';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import {
   classroom,
@@ -34,9 +34,24 @@ export class ClassroomRepository {
     return this.db.insert(classroom).values(data).returning();
   }
 
-  async findAll(query: PaginationQueryDto, orgId: string) {
-    const filters: SQL[] = [eq(course.organizationId, orgId)];
-    // TODO: check role if admin then no filter, if teacher then filter by that user ID
+  async findAll(query: PaginationQueryDto, orgId: string, userId: string) {
+    const filters: SQL[] = [
+      eq(course.organizationId, orgId),
+      or(
+        eq(classroom.teacherId, userId),
+        exists(
+          this.db
+            .select()
+            .from(classroomMembers)
+            .where(
+              and(
+                eq(classroomMembers.classroomId, classroom.id),
+                eq(classroomMembers.studentId, userId),
+              ),
+            ),
+        ),
+      )!,
+    ];
 
     return this.paginationService.paginate<SelectClassroom>(
       {
