@@ -11,6 +11,7 @@ import { StorageService } from 'src/storage/storage.service';
 import { ClassroomRepository } from './classroom.repository';
 import { AddMembersClassroomDto } from './dto/addMembers-classroom.dto';
 import { CreateClassroomDto } from './dto/create-classroom.dto';
+import { UpdateClassroomPostDto } from './dto/update-classroom-post.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
 import { ClassroomPostRepository } from './repositories/classroom-post.repository';
 
@@ -147,6 +148,17 @@ export class ClassroomService {
       classroom.id,
       authorId,
     );
+  }
+
+  async updatePost(
+    id: string,
+    postId: string,
+    authorId: string,
+    body: UpdateClassroomPostDto,
+    orgId: string,
+  ) {
+    const classroom = await this.findOne(id, orgId);
+    return await this.classroomPostRepository.update(postId, authorId, body);
   }
 
   async uploadAttachment(file: Express.Multer.File, id: string, orgId: string) {

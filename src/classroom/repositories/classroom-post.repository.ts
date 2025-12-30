@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
+import { ApplicationForbiddenException } from 'src/common/exceptions/application.exception';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import { classroomPost } from 'src/database/schema';
 
@@ -53,5 +54,23 @@ export class ClassroomPostRepository {
     return await this.db.query.classroomPost.findFirst({
       where: eq(classroomPost.id, postId),
     });
+  }
+
+  async update(postId: string, authorId: string, body: any) {
+    const post = await this.db.query.classroomPost.findFirst({
+      where: eq(classroomPost.id, postId),
+    });
+
+    if (!post || post.authorId !== authorId) {
+      throw new ApplicationForbiddenException(
+        'You are not authorized to update this post',
+      );
+    }
+
+    return await this.db
+      .update(classroomPost)
+      .set(body)
+      .where(eq(classroomPost.id, postId))
+      .returning();
   }
 }

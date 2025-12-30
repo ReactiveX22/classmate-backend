@@ -23,6 +23,7 @@ import { type AppUserSession } from 'src/common/types/session.types';
 import { ClassroomService } from './classroom.service';
 import { AddMembersClassroomDto } from './dto/addMembers-classroom.dto';
 import { CreateClassroomDto } from './dto/create-classroom.dto';
+import { UpdateClassroomPostDto } from './dto/update-classroom-post.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
 
 @Controller('classrooms')
@@ -116,6 +117,23 @@ export class ClassroomController {
   ) {
     return await this.classroomService.createPost(
       id,
+      session.user.id,
+      body,
+      orgId,
+    );
+  }
+
+  @Patch(':id/posts/:postId')
+  async updatePost(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @Body() body: UpdateClassroomPostDto,
+    @OrganizationId() orgId: string,
+    @Session() session: AppUserSession,
+  ) {
+    return await this.classroomService.updatePost(
+      id,
+      postId,
       session.user.id,
       body,
       orgId,
