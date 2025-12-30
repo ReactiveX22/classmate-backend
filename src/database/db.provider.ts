@@ -1,10 +1,9 @@
 import { FactoryProvider, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { PgQueryResultHKT, PgTransaction } from 'drizzle-orm/pg-core';
 import { Pool } from 'pg';
 import * as schema from './schema';
-import { PgQueryResultHKT } from 'drizzle-orm/pg-core';
-import { PgTransaction } from 'drizzle-orm/pg-core';
 
 export const DB_PROVIDER = 'DB_PROVIDER';
 
@@ -33,13 +32,17 @@ export const dbProvider: FactoryProvider = {
       //   ssl: true
     });
 
+    pool.on('error', (err) => {
+      logger.error('Unexpected error on database client', err.stack);
+    });
+
     try {
       const client = await pool.connect();
       logger.log('Database connected successfully');
       client.release();
     } catch (error) {
-      logger.error('Database connection failed', error.stack);
-      throw error;
+      logger.error('Database connection failed at startup.');
+      logger.debug(error.message);
     }
 
     return drizzle(pool, {
