@@ -23,6 +23,7 @@ import { type AppUserSession } from 'src/common/types/session.types';
 import { ClassroomService } from './classroom.service';
 import { AddMembersClassroomDto } from './dto/addMembers-classroom.dto';
 import { CreateClassroomDto } from './dto/create-classroom.dto';
+import { JoinClassroomDto } from './dto/join-classroom.dto';
 import { UpdateClassroomPostDto } from './dto/update-classroom-post.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
 
@@ -168,5 +169,19 @@ export class ClassroomController {
     @OrganizationId() orgId: string,
   ) {
     await this.classroomService.deleteAttachment(id, orgId, attachmentId);
+  }
+
+  @Roles([AppRole.Student])
+  @Post('join')
+  async joinClassroom(
+    @Body() dto: JoinClassroomDto,
+    @Session() session: AppUserSession,
+    @OrganizationId() orgId: string,
+  ) {
+    return await this.classroomService.joinClassroom(
+      dto,
+      session.user.id,
+      orgId,
+    );
   }
 }

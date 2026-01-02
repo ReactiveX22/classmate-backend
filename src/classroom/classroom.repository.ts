@@ -121,4 +121,13 @@ export class ClassroomRepository {
       query,
     );
   }
+
+  async findByClassCode(classCode: string) {
+    return this.db.query.classroom.findFirst({
+      where: eq(classroom.classCode, classCode),
+      with: {
+        course: true,
+      },
+    });
+  }
 }

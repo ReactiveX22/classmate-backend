@@ -14,6 +14,7 @@ import { CreateClassroomDto } from './dto/create-classroom.dto';
 import { UpdateClassroomPostDto } from './dto/update-classroom-post.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
 import { ClassroomPostRepository } from './repositories/classroom-post.repository';
+import { JoinClassroomDto } from './dto/join-classroom.dto';
 
 @Injectable()
 export class ClassroomService {
@@ -206,6 +207,24 @@ export class ClassroomService {
 
     await this.classroomPostRepository.deletePost(classroom.id, postId);
   }
+
+  async joinClassroom(dto: JoinClassroomDto, userId: string, orgId: string) {
+    const classroom = await this.classroomRepository.findByClassCode(
+      dto.classCode,
+    );
+    if (!classroom) {
+      throw new ApplicationNotFoundException('Classroom not found');
+    }
+
+    if (classroom.course.organizationId !== orgId) {
+      throw new ApplicationForbiddenException(
+        'You are not authorized to join this classroom',
+      );
+    }
+
+    return await this.classroomRepository.addMembers(classroom.id, [userId]);
+  }
+
   private generateClassCode(): string {
     const alphabet = '23456789abcdefghjkmnpqrstuvwxyz';
     return customAlphabet(alphabet, 7)();
