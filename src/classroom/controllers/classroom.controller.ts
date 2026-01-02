@@ -20,12 +20,12 @@ import { UploadAttachment } from 'src/common/decorators/upload-attachment.decora
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
 import { type AppUserSession } from 'src/common/types/session.types';
-import { ClassroomService } from './classroom.service';
-import { AddMembersClassroomDto } from './dto/addMembers-classroom.dto';
-import { CreateClassroomDto } from './dto/create-classroom.dto';
-import { JoinClassroomDto } from './dto/join-classroom.dto';
-import { UpdateClassroomPostDto } from './dto/update-classroom-post.dto';
-import { UpdateClassroomDto } from './dto/update-classroom.dto';
+import { ClassroomService } from '../services/classroom.service';
+import { AddMembersClassroomDto } from '../dto/addMembers-classroom.dto';
+import { CreateClassroomDto } from '../dto/create-classroom.dto';
+import { JoinClassroomDto } from '../dto/join-classroom.dto';
+import { UpdateClassroomPostDto } from '../dto/update-classroom-post.dto';
+import { UpdateClassroomDto } from '../dto/update-classroom.dto';
 
 @Controller('classrooms')
 export class ClassroomController {

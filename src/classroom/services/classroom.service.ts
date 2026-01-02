@@ -8,13 +8,13 @@ import {
 } from 'src/common/exceptions/application.exception';
 import { CourseRepository } from 'src/course/repositories/course.repository';
 import { StorageService } from 'src/storage/storage.service';
-import { ClassroomRepository } from './classroom.repository';
-import { AddMembersClassroomDto } from './dto/addMembers-classroom.dto';
-import { CreateClassroomDto } from './dto/create-classroom.dto';
-import { UpdateClassroomPostDto } from './dto/update-classroom-post.dto';
-import { UpdateClassroomDto } from './dto/update-classroom.dto';
-import { ClassroomPostRepository } from './repositories/classroom-post.repository';
-import { JoinClassroomDto } from './dto/join-classroom.dto';
+import { ClassroomRepository } from '../classroom.repository';
+import { AddMembersClassroomDto } from '../dto/addMembers-classroom.dto';
+import { CreateClassroomDto } from '../dto/create-classroom.dto';
+import { JoinClassroomDto } from '../dto/join-classroom.dto';
+import { UpdateClassroomPostDto } from '../dto/update-classroom-post.dto';
+import { UpdateClassroomDto } from '../dto/update-classroom.dto';
+import { ClassroomPostRepository } from '../repositories/classroom-post.repository';
 
 @Injectable()
 export class ClassroomService {
@@ -163,8 +163,10 @@ export class ClassroomService {
   }
 
   async findPost(id: string, orgId: string, postId: string) {
-    const classroom = await this.findOne(id, orgId);
-    return await this.classroomPostRepository.fetchOne(postId);
+    await this.findOne(id, orgId);
+    const post = await this.classroomPostRepository.fetchOne(postId);
+    if (!post) throw new ApplicationNotFoundException('Post not found');
+    return post;
   }
 
   async uploadAttachment(file: Express.Multer.File, id: string, orgId: string) {

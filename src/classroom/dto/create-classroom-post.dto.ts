@@ -37,6 +37,13 @@ export enum SubmissionType {
   MULTIPLE = 'multiple',
 }
 
+export enum SubmissionStatus {
+  ASSIGNED = 'assigned',
+  TURNED_IN = 'turned_in',
+  GRADED = 'graded',
+  RETURNED = 'returned',
+}
+
 export class AttachmentDto {
   @ApiProperty()
   @IsNotEmpty()

@@ -10,6 +10,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
 import { classroom } from './classroom-schema';
+import { assignmentSubmission } from './assignment-submission-schema';
 
 export const postType = pgEnum('post_type', [
   'announcement',
@@ -58,20 +59,23 @@ export const classroomPost = pgTable('classroom_post', {
     .notNull(),
 });
 
-export const classroomPostRelations = relations(classroomPost, ({ one }) => ({
-  classroom: one(classroom, {
-    fields: [classroomPost.classroomId],
-    references: [classroom.id],
+export const classroomPostRelations = relations(
+  classroomPost,
+  ({ one, many }) => ({
+    classroom: one(classroom, {
+      fields: [classroomPost.classroomId],
+      references: [classroom.id],
+    }),
+    author: one(user, {
+      fields: [classroomPost.authorId],
+      references: [user.id],
+    }),
+    submissions: many(assignmentSubmission),
+    // future:
+    // comments: many(classroomPostComment),
+    // reactions: many(classroomPostReaction),
   }),
-  author: one(user, {
-    fields: [classroomPost.authorId],
-    references: [user.id],
-  }),
-  // future:
-  // comments: many(classroomPostComment),
-  // reactions: many(classroomPostReaction),
-  // submissions: many(assignmentSubmission), // if type is 'assignment'
-}));
+);
 
 export type SelectClassroomPost = typeof classroomPost.$inferSelect;
 export type InsertClassroomPost = typeof classroomPost.$inferInsert;

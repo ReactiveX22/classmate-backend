@@ -8,9 +8,10 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { UserStatus } from 'src/common/enums/user-status.enum';
+import { classroomMembers } from './classroom-members-schema';
 import { organization } from './organization-schema';
 import { userProfile } from './user-profile-schema';
-import { UserStatus } from 'src/common/enums/user-status.enum';
 
 export const userStatusEnum = pgEnum(
   'user_status',
@@ -121,6 +122,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
     fields: [user.organizationId],
     references: [organization.id],
   }),
+  classroomMembers: many(classroomMembers),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

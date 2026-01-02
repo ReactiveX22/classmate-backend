@@ -2,7 +2,6 @@ import { relations } from 'drizzle-orm';
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
 import { enrollment } from './enrollment-schema';
-import { classroomMembers } from './classroom-members-schema';
 
 export const student = pgTable('student', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -26,7 +25,6 @@ export const studentRelations = relations(student, ({ one, many }) => ({
     references: [user.id],
   }),
   enrollment: many(enrollment),
-  classroomMembers: many(classroomMembers),
 }));
 
 export type SelectStudent = typeof student.$inferSelect;
