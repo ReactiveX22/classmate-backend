@@ -8,6 +8,7 @@ import { EnrollmentModule } from './enrollment/enrollment.module';
 import { OrganizationModule } from './organization/organization.module';
 import { StorageModule } from './storage/storage.module';
 import { UserModule } from './user/user.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { UserModule } from './user/user.module';
     ClassroomModule,
     StorageModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

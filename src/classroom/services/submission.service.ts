@@ -28,6 +28,11 @@ export class SubmissionService {
       studentId: userId,
       content: dto.content,
       attachments: dto.attachments,
+      status: 'turned_in',
     });
+  }
+
+  async fetch(userId: string) {
+    return await this.submissionRepository.fetchOneByUser(userId);
   }
 }
