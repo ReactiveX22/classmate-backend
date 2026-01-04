@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ClassroomPaginationConfig } from 'src/classroom/classroom.config';
+
+import {
+  ClassroomPaginationConfig,
+  SubmissionPaginationConfig,
+} from 'src/classroom/classroom.config';
 import { CourseModule } from 'src/course/course.module';
 import { DatabaseModule } from 'src/database/database.module';
 import { PaginationModule } from 'src/lib/pagination/pagination.module';
@@ -21,7 +25,9 @@ import { SubmissionService } from './services/submission.service';
     ClassroomPaginationConfig,
     ClassroomPostRepository,
     SubmissionService,
+
     SubmissionRepository,
+    SubmissionPaginationConfig,
   ],
   exports: [ClassroomService],
 })

@@ -126,3 +126,39 @@ export class ClassroomPostPaginationConfig extends PaginationConfig<
     return total;
   }
 }
+
+@Injectable()
+export class SubmissionPaginationConfig extends PaginationConfig<
+  typeof assignmentSubmission
+> {
+  table = assignmentSubmission;
+  searchableFields = [];
+  sortFields = {
+    content: assignmentSubmission.content,
+    createdAt: assignmentSubmission.createdAt,
+    updatedAt: assignmentSubmission.updatedAt,
+    status: assignmentSubmission.status,
+  };
+  defaultSortField = 'createdAt';
+  defaultSortOrder: 'asc' | 'desc' = 'desc';
+
+  getBaseQuery(db: DB) {
+    return db
+      .select({
+        ...getTableColumns(assignmentSubmission),
+        student: user,
+      })
+      .from(assignmentSubmission)
+      .innerJoin(user, eq(assignmentSubmission.studentId, user.id))
+      .$dynamic();
+  }
+
+  async getCountQuery(db: DB, filters: SQL[]) {
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(assignmentSubmission)
+      .innerJoin(user, eq(assignmentSubmission.studentId, user.id))
+      .where(and(...filters));
+    return total;
+  }
+}

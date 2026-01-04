@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
 import { OrganizationId } from 'src/common/decorators';
@@ -16,6 +17,7 @@ import { AppRole } from 'src/common/enums/role.enum';
 import { type AppUserSession } from 'src/common/types/session.types';
 import { CreateSubmissionDto } from '../dto/create-assignment-submission.dto';
 import { SubmissionService } from '../services/submission.service';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
 @Controller('classrooms/:classroomId/posts/:postId/submissions')
 export class SubmissionsController {
@@ -39,12 +41,13 @@ export class SubmissionsController {
     );
   }
 
+  @Roles([AppRole.Instructor])
   @Get()
-  async getSubmission(
-    @Session() session: AppUserSession,
+  async getAllSubmissions(
+    @Query() query: PaginationQueryDto,
     @Param('postId', ParseUUIDPipe) postId: string,
   ) {
-    return await this.submissionService.fetch(session.user.id, postId);
+    return await this.submissionService.fetchAll(postId, query);
   }
 
   @Patch('unsubmit')
@@ -53,11 +56,7 @@ export class SubmissionsController {
     @Param('postId', ParseUUIDPipe) postId: string,
     @Session() session: AppUserSession,
   ) {
-    return await this.submissionService.unsubmit(
-      classroomId,
-      postId,
-      session.user.id,
-    );
+    return await this.submissionService.unsubmit(postId, session.user.id);
   }
 
   @Delete('upload/:attachmentId')

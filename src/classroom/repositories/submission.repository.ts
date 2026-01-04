@@ -1,15 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import {
   assignmentSubmission,
   Attachment,
   InsertSubmission,
 } from 'src/database/schema';
+import { PaginationService } from 'src/lib/pagination/pagination.service';
+import { SubmissionPaginationConfig } from '../classroom.config';
 
 @Injectable()
 export class SubmissionRepository {
-  constructor(@InjectDb() private readonly db: DB) {}
+  constructor(
+    @InjectDb() private readonly db: DB,
+    private readonly paginationService: PaginationService,
+    private readonly config: SubmissionPaginationConfig,
+  ) {}
 
   async create(data: {
     postId: string;
@@ -94,5 +101,17 @@ export class SubmissionRepository {
       .limit(1);
 
     return results[0] ?? null;
+  }
+
+  async fetchAll(postId: string, query: PaginationQueryDto) {
+    const filters = [eq(assignmentSubmission.postId, postId)];
+
+    return this.paginationService.paginate(
+      {
+        config: this.config,
+        filters,
+      },
+      query,
+    );
   }
 }

@@ -7,6 +7,7 @@ import { StorageService } from 'src/storage/storage.service';
 import { CreateSubmissionDto } from '../dto/create-assignment-submission.dto';
 import { SubmissionRepository } from '../repositories/submission.repository';
 import { ClassroomService } from './classroom.service';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class SubmissionService {
@@ -39,12 +40,16 @@ export class SubmissionService {
     });
   }
 
-  async fetch(userId: string, postId: string) {
+  async fetchAll(postId: string, query: PaginationQueryDto) {
+    return await this.submissionRepository.fetchAll(postId, query);
+  }
+
+  async fetchOne(userId: string, postId: string) {
     return await this.submissionRepository.fetchOneByUser(userId, postId);
   }
 
-  async unsubmit(classroomId: string, postId: string, userId: string) {
-    const submission = await this.fetch(userId, postId);
+  async unsubmit(postId: string, userId: string) {
+    const submission = await this.fetchOne(userId, postId);
 
     if (!submission) {
       throw new NotFoundException('Submission not found');
