@@ -181,4 +181,16 @@ export class ClassroomController {
       orgId,
     );
   }
+
+  @Roles([AppRole.Instructor])
+  @Get(':classroomId/students/:studentId/grade-stats')
+  async getStudentGradeStats(
+    @Param('studentId') studentId: string,
+    @Param('classroomId') classroomId: string,
+  ) {
+    return await this.classroomService.getStudentGradeStats(
+      classroomId,
+      studentId,
+    );
+  }
 }

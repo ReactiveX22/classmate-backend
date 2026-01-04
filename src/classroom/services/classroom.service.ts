@@ -249,6 +249,13 @@ export class ClassroomService {
     return await this.classroomRepository.addMembers(classroom.id, [userId]);
   }
 
+  async getStudentGradeStats(classroomId: string, studentId: string) {
+    return await this.classroomRepository.fetchStudentGradeStats(
+      classroomId,
+      studentId,
+    );
+  }
+
   private generateClassCode(): string {
     const alphabet = '23456789abcdefghjkmnpqrstuvwxyz';
     return customAlphabet(alphabet, 7)();

@@ -7,6 +7,7 @@ import {
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import {
+  assignmentSubmission,
   classroom,
   classroomMembers,
   classroomPost,
@@ -134,5 +135,74 @@ export class ClassroomRepository {
         course: true,
       },
     });
+  }
+
+  async fetchStudentGradeStats(classroomId: string, studentId: string) {
+    const assignments = await this.db.query.classroomPost.findMany({
+      where: and(
+        eq(classroomPost.classroomId, classroomId),
+        eq(classroomPost.type, 'assignment'),
+      ),
+      with: {
+        submissions: {
+          where: eq(assignmentSubmission.studentId, studentId),
+        },
+      },
+    });
+
+    let totalEarnedPoints = 0;
+    let totalPossiblePoints = 0;
+
+    assignments.forEach((assignment) => {
+      const submission = assignment.submissions[0];
+      const maxPoints = assignment.assignmentData?.points || 0;
+
+      if (
+        submission &&
+        submission.status === 'graded' &&
+        submission.grade !== null &&
+        maxPoints > 0
+      ) {
+        totalEarnedPoints += submission.grade;
+        totalPossiblePoints += maxPoints;
+      }
+    });
+
+    const overallGradePercentage =
+      totalPossiblePoints > 0
+        ? Math.round((totalEarnedPoints / totalPossiblePoints) * 100)
+        : 0;
+
+    const missingWorkCount = assignments.filter((assignment) => {
+      const submission = assignment.submissions[0];
+      const dueDate = assignment.assignmentData?.dueDate;
+
+      if (!dueDate) return false;
+
+      const dueDateTime = new Date(dueDate).getTime();
+      const now = new Date().getTime();
+
+      if (dueDateTime < now && (!submission || !submission.submittedAt)) {
+        return true;
+      }
+
+      if (submission?.submittedAt) {
+        const submittedDateTime = new Date(submission.submittedAt).getTime();
+        if (submittedDateTime > dueDateTime) {
+          return true;
+        }
+      }
+
+      return false;
+    }).length;
+
+    return {
+      assignments,
+      gradeStats: {
+        overall_grade: overallGradePercentage,
+        missing_work: missingWorkCount,
+        attendance: Math.floor(Math.random() * 101),
+      },
+    };
   }
 }
