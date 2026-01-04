@@ -113,13 +113,14 @@ export class ClassroomRepository {
   async findPostsByClassroom(
     query: PaginationQueryDto,
     classroomId: string,
+    isInstructor: boolean,
     userId?: string,
   ) {
     const filters: SQL[] = [eq(classroomPost.classroomId, classroomId)];
 
     return this.paginationService.paginate(
       {
-        config: new ClassroomPostPaginationConfig(userId),
+        config: new ClassroomPostPaginationConfig(userId, isInstructor),
         filters,
       },
       query,

@@ -90,26 +90,59 @@ export class ClassroomPostPaginationConfig extends PaginationConfig<
   defaultSortField = 'createdAt';
   defaultSortOrder: 'asc' | 'desc' = 'desc';
 
-  constructor(private readonly studentId?: string) {
+  constructor(
+    private readonly userId?: string,
+    private readonly isInstructor: boolean = false,
+  ) {
     super();
   }
 
   getBaseQuery(db: DB) {
-    const query = db
+    // 1. Prepare the count subquery
+    const subCounts = db
       .select({
-        ...getTableColumns(classroomPost),
-        author: user,
-        submission: assignmentSubmission,
+        postId: assignmentSubmission.postId,
+        total: count(assignmentSubmission.id).as('total'),
+        graded: count(
+          sql`CASE WHEN ${assignmentSubmission.grade} IS NOT NULL THEN 1 END`,
+        ).as('graded'),
       })
+      .from(assignmentSubmission)
+      .groupBy(assignmentSubmission.postId)
+      .as('sub_counts');
+
+    const selectFields: any = {
+      ...getTableColumns(classroomPost),
+      author: user,
+    };
+
+    if (this.isInstructor) {
+      selectFields.submissionStats = sql`
+      CASE 
+        WHEN ${classroomPost.type} = 'assignment' 
+        THEN json_build_object(
+          'total', CAST(COALESCE(${subCounts.total}, 0) AS INTEGER),
+          'graded', CAST(COALESCE(${subCounts.graded}, 0) AS INTEGER)
+        )
+        ELSE NULL 
+      END`.as('submissionStats');
+    } else {
+      selectFields.submission = assignmentSubmission;
+    }
+
+    const query = db
+      .select(selectFields)
       .from(classroomPost)
       .innerJoin(user, eq(classroomPost.authorId, user.id));
 
-    if (this.studentId) {
+    if (this.isInstructor) {
+      query.leftJoin(subCounts, eq(classroomPost.id, subCounts.postId));
+    } else if (this.userId) {
       query.leftJoin(
         assignmentSubmission,
         and(
           eq(assignmentSubmission.postId, classroomPost.id),
-          eq(assignmentSubmission.studentId, this.studentId),
+          eq(assignmentSubmission.studentId, this.userId),
         ),
       );
     }

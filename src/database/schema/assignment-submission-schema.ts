@@ -12,12 +12,17 @@ import {
 import { user } from './auth-schema';
 import { Attachment, classroomPost } from './classroom-post-schema';
 
-export const submissionStatus = pgEnum('submission_status', [
-  'assigned',
-  'turned_in',
-  'graded',
-  'returned',
-]);
+export const SUBMISSION_STATUS = {
+  ASSIGNED: 'assigned',
+  TURNED_IN: 'turned_in',
+  GRADED: 'graded',
+  RETURNED: 'returned',
+} as const;
+
+export const submissionStatus = pgEnum(
+  'submission_status',
+  Object.values(SUBMISSION_STATUS) as [string, ...string[]],
+);
 
 export const assignmentSubmission = pgTable(
   'assignment_submission',
@@ -72,3 +77,5 @@ export const assignmentSubmissionRelations = relations(
 
 export type SelectSubmission = typeof assignmentSubmission.$inferSelect;
 export type InsertSubmission = typeof assignmentSubmission.$inferInsert;
+export type SubmissionStatus =
+  (typeof SUBMISSION_STATUS)[keyof typeof SUBMISSION_STATUS];

@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
+import { User } from 'src/auth/auth.factory';
 import { CreateClassroomPostDto } from 'src/classroom/dto/create-classroom-post.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { AppRole } from 'src/common/enums/role.enum';
 import {
   ApplicationForbiddenException,
   ApplicationNotFoundException,
@@ -127,7 +129,7 @@ export class ClassroomService {
 
   async findPostsByClassroom(
     id: string,
-    userId: string,
+    user: User,
     orgId: string,
     query: PaginationQueryDto,
   ) {
@@ -135,7 +137,8 @@ export class ClassroomService {
     return await this.classroomRepository.findPostsByClassroom(
       query,
       classroom.id,
-      userId,
+      user.role === AppRole.Instructor,
+      user.id,
     );
   }
 
@@ -200,7 +203,9 @@ export class ClassroomService {
     if (!post) return;
 
     const attachmentIds =
-      post.attachments?.filter((a) => a.type !== 'link').map((a) => a.id) ?? [];
+      post.classroom_post.attachments
+        ?.filter((a) => a.type !== 'link')
+        .map((a) => a.id) ?? [];
 
     if (attachmentIds.length > 0) {
       await this.storageService.deleteFiles(

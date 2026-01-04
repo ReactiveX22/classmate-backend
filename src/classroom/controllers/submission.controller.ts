@@ -13,11 +13,12 @@ import {
 } from '@nestjs/common';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
 import { OrganizationId } from 'src/common/decorators';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
 import { type AppUserSession } from 'src/common/types/session.types';
 import { CreateSubmissionDto } from '../dto/create-assignment-submission.dto';
 import { SubmissionService } from '../services/submission.service';
-import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { GradeSubmissionDto } from '../dto/grade-submission.dto';
 
 @Controller('classrooms/:classroomId/posts/:postId/submissions')
 export class SubmissionsController {
@@ -57,6 +58,23 @@ export class SubmissionsController {
     @Session() session: AppUserSession,
   ) {
     return await this.submissionService.unsubmit(postId, session.user.id);
+  }
+
+  @Roles([AppRole.Instructor])
+  @Patch('/students/:studentId/grade')
+  async grade(
+    @Param('classroomId', ParseUUIDPipe) classroomId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @Param('studentId') studentId: string,
+    @Body() body: GradeSubmissionDto,
+    @Session() session: AppUserSession,
+  ) {
+    return await this.submissionService.grade(
+      postId,
+      studentId,
+      session.user.id,
+      body,
+    );
   }
 
   @Delete('upload/:attachmentId')

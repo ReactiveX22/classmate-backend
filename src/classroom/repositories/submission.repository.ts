@@ -6,6 +6,7 @@ import {
   assignmentSubmission,
   Attachment,
   InsertSubmission,
+  SUBMISSION_STATUS,
 } from 'src/database/schema';
 import { PaginationService } from 'src/lib/pagination/pagination.service';
 import { SubmissionPaginationConfig } from '../classroom.config';
@@ -113,5 +114,31 @@ export class SubmissionRepository {
       },
       query,
     );
+  }
+
+  async grade(
+    studentId: string,
+    postId: string,
+    teacherId: string,
+    dto: {
+      grade: number;
+      feedback?: string;
+    },
+  ) {
+    return await this.db
+      .update(assignmentSubmission)
+      .set({
+        grade: dto.grade,
+        feedback: dto.feedback,
+        status: SUBMISSION_STATUS.GRADED,
+        gradedById: teacherId,
+      })
+      .where(
+        and(
+          eq(assignmentSubmission.studentId, studentId),
+          eq(assignmentSubmission.postId, postId),
+        ),
+      )
+      .returning();
   }
 }

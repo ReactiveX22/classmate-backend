@@ -8,6 +8,8 @@ import { CreateSubmissionDto } from '../dto/create-assignment-submission.dto';
 import { SubmissionRepository } from '../repositories/submission.repository';
 import { ClassroomService } from './classroom.service';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { GradeSubmissionDto } from '../dto/grade-submission.dto';
+import { SUBMISSION_STATUS } from 'src/database/schema';
 
 @Injectable()
 export class SubmissionService {
@@ -83,5 +85,29 @@ export class SubmissionService {
         `classroom-attachments/${classroomId}/${attachmentId}`,
       );
     }
+  }
+
+  async grade(
+    postId: string,
+    studentId: string,
+    teacherId: string,
+    dto: GradeSubmissionDto,
+  ) {
+    const submission = await this.fetchOne(studentId, postId);
+
+    if (!submission) {
+      throw new NotFoundException('Submission not found');
+    }
+
+    if (submission.status === SUBMISSION_STATUS.ASSIGNED) {
+      throw new BadRequestException('Submission is not turned in');
+    }
+
+    return await this.submissionRepository.grade(
+      studentId,
+      postId,
+      teacherId,
+      dto,
+    );
   }
 }
