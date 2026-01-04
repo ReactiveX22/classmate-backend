@@ -1,9 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
@@ -41,5 +45,34 @@ export class SubmissionsController {
     @Param('postId', ParseUUIDPipe) postId: string,
   ) {
     return await this.submissionService.fetch(session.user.id, postId);
+  }
+
+  @Patch('unsubmit')
+  async unsubmit(
+    @Param('classroomId', ParseUUIDPipe) classroomId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @Session() session: AppUserSession,
+  ) {
+    return await this.submissionService.unsubmit(
+      classroomId,
+      postId,
+      session.user.id,
+    );
+  }
+
+  @Delete('upload/:attachmentId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteAttachment(
+    @Param('classroomId', ParseUUIDPipe) classroomId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @Param('attachmentId') attachmentId: string,
+    @Session() session: AppUserSession,
+  ) {
+    await this.submissionService.deleteAttachment(
+      classroomId,
+      postId,
+      session.user.id,
+      attachmentId,
+    );
   }
 }
