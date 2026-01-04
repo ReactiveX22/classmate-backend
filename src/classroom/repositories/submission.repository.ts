@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import {
   assignmentSubmission,
@@ -32,11 +32,16 @@ export class SubmissionRepository {
       .returning();
   }
 
-  async fetchOneByUser(userId: string) {
+  async fetchOneByUser(userId: string, postId: string) {
     const results = await this.db
       .select()
       .from(assignmentSubmission)
-      .where(eq(assignmentSubmission.studentId, userId))
+      .where(
+        and(
+          eq(assignmentSubmission.studentId, userId),
+          eq(assignmentSubmission.postId, postId),
+        ),
+      )
       .limit(1);
 
     return results[0] ?? null;

@@ -110,12 +110,16 @@ export class ClassroomRepository {
       );
   }
 
-  async findPostsByClassroom(query: PaginationQueryDto, classroomId: string) {
+  async findPostsByClassroom(
+    query: PaginationQueryDto,
+    classroomId: string,
+    userId?: string,
+  ) {
     const filters: SQL[] = [eq(classroomPost.classroomId, classroomId)];
 
     return this.paginationService.paginate(
       {
-        config: new ClassroomPostPaginationConfig(),
+        config: new ClassroomPostPaginationConfig(userId),
         filters,
       },
       query,

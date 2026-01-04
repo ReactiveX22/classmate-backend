@@ -96,8 +96,14 @@ export class ClassroomController {
     @Param('id', ParseUUIDPipe) id: string,
     @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
+    @Session() session: AppUserSession,
   ) {
-    return this.classroomService.findPostsByClassroom(id, orgId, query);
+    return this.classroomService.findPostsByClassroom(
+      id,
+      session.user.id,
+      orgId,
+      query,
+    );
   }
 
   @Post(':id/posts/upload')
@@ -147,8 +153,14 @@ export class ClassroomController {
     @Param('id', ParseUUIDPipe) id: string,
     @Param('postId', ParseUUIDPipe) postId: string,
     @OrganizationId() orgId: string,
+    @Session() session: AppUserSession,
   ) {
-    return await this.classroomService.findPost(id, orgId, postId);
+    return await this.classroomService.findPost(
+      id,
+      orgId,
+      postId,
+      session.user.id,
+    );
   }
 
   @Delete(':id/posts/:postId')

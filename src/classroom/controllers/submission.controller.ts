@@ -36,7 +36,10 @@ export class SubmissionsController {
   }
 
   @Get()
-  async getSubmission(@Session() session: AppUserSession) {
-    return await this.submissionService.fetch(session.user.id);
+  async getSubmission(
+    @Session() session: AppUserSession,
+    @Param('postId', ParseUUIDPipe) postId: string,
+  ) {
+    return await this.submissionService.fetch(session.user.id, postId);
   }
 }

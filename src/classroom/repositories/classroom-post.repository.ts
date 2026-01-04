@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, getTableColumns } from 'drizzle-orm';
 import { ApplicationForbiddenException } from 'src/common/exceptions/application.exception';
 import { type DB, InjectDb } from 'src/database/db.provider';
-import { classroomPost } from 'src/database/schema';
+import { assignmentSubmission, classroomPost, user } from 'src/database/schema';
 
 @Injectable()
 export class ClassroomPostRepository {
@@ -50,11 +50,34 @@ export class ClassroomPostRepository {
       );
   }
 
-  async fetchOne(postId: string) {
-    return await this.db.query.classroomPost.findFirst({
-      where: eq(classroomPost.id, postId),
-      with: { author: true },
-    });
+  async fetchOne(postId: string, userId?: string) {
+    const selection: any = {
+      ...getTableColumns(classroomPost),
+      author: user,
+    };
+
+    if (userId) {
+      selection.submission = assignmentSubmission;
+    }
+
+    let query = this.db
+      .select(selection)
+      .from(classroomPost)
+      .innerJoin(user, eq(classroomPost.authorId, user.id))
+      .where(eq(classroomPost.id, postId));
+
+    if (userId) {
+      query = query.leftJoin(
+        assignmentSubmission,
+        and(
+          eq(assignmentSubmission.postId, classroomPost.id),
+          eq(assignmentSubmission.studentId, userId),
+        ),
+      ) as any;
+    }
+
+    const [post] = await query;
+    return post;
   }
 
   async update(postId: string, authorId: string, body: any) {

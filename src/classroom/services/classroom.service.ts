@@ -127,6 +127,7 @@ export class ClassroomService {
 
   async findPostsByClassroom(
     id: string,
+    userId: string,
     orgId: string,
     query: PaginationQueryDto,
   ) {
@@ -134,6 +135,7 @@ export class ClassroomService {
     return await this.classroomRepository.findPostsByClassroom(
       query,
       classroom.id,
+      userId,
     );
   }
 
@@ -162,9 +164,9 @@ export class ClassroomService {
     return await this.classroomPostRepository.update(postId, authorId, body);
   }
 
-  async findPost(id: string, orgId: string, postId: string) {
+  async findPost(id: string, orgId: string, postId: string, userId: string) {
     await this.findOne(id, orgId);
-    const post = await this.classroomPostRepository.fetchOne(postId);
+    const post = await this.classroomPostRepository.fetchOne(postId, userId);
     if (!post) throw new ApplicationNotFoundException('Post not found');
     return post;
   }

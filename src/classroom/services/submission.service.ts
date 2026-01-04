@@ -32,7 +32,7 @@ export class SubmissionService {
     });
   }
 
-  async fetch(userId: string) {
-    return await this.submissionRepository.fetchOneByUser(userId);
+  async fetch(userId: string, postId: string) {
+    return await this.submissionRepository.fetchOneByUser(userId, postId);
   }
 }
