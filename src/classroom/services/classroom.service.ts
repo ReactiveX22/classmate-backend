@@ -149,11 +149,28 @@ export class ClassroomService {
     orgId: string,
   ) {
     const classroom = await this.findOne(id, orgId);
-    return await this.classroomPostRepository.create(
-      body,
-      classroom.id,
-      authorId,
-    );
+    return await this.classroomPostRepository.runInTransaction(async (tx) => {
+      const post = await this.classroomPostRepository.create(
+        tx,
+        body,
+        classroom.id,
+        authorId,
+      );
+
+      if (body.type === 'assignment') {
+        const members = await this.classroomPostRepository.getClassroomMembers(
+          tx,
+          classroom.id,
+        );
+        await this.classroomPostRepository.createSubmissions(
+          tx,
+          post[0].id,
+          members.map((m) => m.studentId),
+        );
+      }
+
+      return post;
+    });
   }
 
   async updatePost(
@@ -203,9 +220,7 @@ export class ClassroomService {
     if (!post) return;
 
     const attachmentIds =
-      post.classroom_post.attachments
-        ?.filter((a) => a.type !== 'link')
-        .map((a) => a.id) ?? [];
+      post.attachments?.filter((a) => a.type !== 'link').map((a) => a.id) ?? [];
 
     if (attachmentIds.length > 0) {
       await this.storageService.deleteFiles(
