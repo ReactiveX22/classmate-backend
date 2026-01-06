@@ -52,9 +52,9 @@ export const assignmentSubmission = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => ({
-    studentPostUnique: unique().on(table.postId, table.studentId),
-  }),
+  (table) => [
+    unique('student_post_unique_idx').on(table.postId, table.studentId),
+  ],
 );
 
 export const assignmentSubmissionRelations = relations(
