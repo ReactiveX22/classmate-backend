@@ -8,10 +8,9 @@ import {
   unique,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { enrollment } from './enrollment-schema';
 import { organization } from './organization-schema';
 import { teacher } from './teacher-schema';
-import { enrollment } from './enrollment-schema';
-import { Many } from 'drizzle-orm';
 
 export const courseStatusEnum = pgEnum('course_status', [
   'active',
@@ -47,7 +46,7 @@ export const course = pgTable(
       .notNull(),
   },
   (table) => [
-    unique('course_code_semester_unique').on(table.code, table.semester),
+    unique('course_code_semester_unique').on(table.semester, table.code),
   ],
 );
 

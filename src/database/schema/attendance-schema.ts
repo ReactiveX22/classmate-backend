@@ -33,9 +33,9 @@ export const attendance = pgTable(
   },
   (table) => [
     unique('unique_daily_attendance').on(
-      table.classroomId,
       table.studentId,
       table.date,
+      table.classroomId,
     ),
   ],
 );

@@ -53,7 +53,7 @@ export const assignmentSubmission = pgTable(
       .notNull(),
   },
   (table) => [
-    unique('student_post_unique_idx').on(table.postId, table.studentId),
+    unique('student_post_unique_idx').on(table.studentId, table.postId),
   ],
 );
 

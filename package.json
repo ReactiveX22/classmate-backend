@@ -24,6 +24,7 @@
     "db:drop": "drizzle-kit drop",
     "db:studio": "drizzle-kit studio",
     "db:check": "drizzle-kit check",
+    "db:introspect": "drizzle-kit introspect",
     "db:seed": "ts-node -r tsconfig-paths/register src/database/seed.ts",
     "auth:generate": "pnpx @better-auth/cli generate --config ./src/auth/auth-schema-gen.ts"
   },
