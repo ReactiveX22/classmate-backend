@@ -93,13 +93,24 @@ export class ClassroomController {
   @Roles([AppRole.Instructor])
   @Delete(':id/members')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async removeMembers(
+  async bulkRemoveMembers(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AddMembersClassroomDto,
     @Session() session: AppUserSession,
     @OrganizationId() orgId: string,
   ) {
     this.classroomService.removeMembers(id, session.user.id, orgId, dto);
+  }
+
+  @Roles([AppRole.Student])
+  @Post(':id/members/leave')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async leaveClassroom(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Session() session: AppUserSession,
+    @OrganizationId() orgId: string,
+  ) {
+    await this.classroomService.leaveClassroom(id, session.user.id, orgId);
   }
 
   @Post(':id/posts/upload')

@@ -145,6 +145,20 @@ export class ClassroomService {
     await this.classroomRepository.removeMembers(id, dto.studentIds);
   }
 
+  async leaveClassroom(id: string, userId: string, orgId: string) {
+    const classroom = await this.classroomRepository.findById(id);
+    if (!classroom) {
+      throw new ApplicationNotFoundException('Classroom not found');
+    }
+    if (classroom.course.organizationId !== orgId) {
+      throw new ApplicationForbiddenException(
+        'Classroom does not belong to your organization',
+      );
+    }
+
+    await this.classroomRepository.leaveClassroom(id, userId);
+  }
+
   async findPostsByClassroom(
     id: string,
     user: User,

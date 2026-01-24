@@ -115,6 +115,17 @@ export class ClassroomRepository {
       );
   }
 
+  async leaveClassroom(classroomId: string, studentId: string) {
+    await this.db
+      .delete(classroomMembers)
+      .where(
+        and(
+          eq(classroomMembers.classroomId, classroomId),
+          eq(classroomMembers.studentId, studentId),
+        ),
+      );
+  }
+
   async findPostsByClassroom(
     query: PaginationQueryDto,
     classroomId: string,
