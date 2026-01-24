@@ -10,6 +10,8 @@ import {
 } from '../dto/create-attendance.dto';
 import { AttendanceRepository } from '../repositories/attendance.repository';
 import { ClassroomService } from './classroom.service';
+import { AppRole } from 'src/common/enums/role.enum';
+import { AppUserSession } from 'src/common/types/session.types';
 
 @Injectable()
 export class AttendanceService {
@@ -123,5 +125,68 @@ export class AttendanceService {
     );
 
     return attendances;
+  }
+
+  async getStats(
+    session: AppUserSession,
+    classroomId: string,
+    orgId: string,
+    studentId: string,
+  ) {
+    const classroom = await this.classroomService.findOne(classroomId, orgId);
+    const { user } = session;
+
+    if (user.role === AppRole.Instructor) {
+      if (classroom.teacherId !== user.id) {
+        throw new ApplicationForbiddenException(
+          'You are not authorized to view attendance stats for this classroom',
+          ERROR_CODES.ATTENDANCE.NOT_AUTHORIZED,
+        );
+      }
+    } else if (user.role === AppRole.Student) {
+      if (user.id !== studentId) {
+        throw new ApplicationForbiddenException(
+          'You can only view your own attendance statistics',
+          ERROR_CODES.ATTENDANCE.NOT_AUTHORIZED,
+        );
+      }
+
+      const isMember = classroom.classroomMembers.some(
+        (m) => m.studentId === user.id,
+      );
+      if (!isMember) {
+        throw new ApplicationForbiddenException(
+          'You are not a member of this classroom',
+          ERROR_CODES.ATTENDANCE.NOT_AUTHORIZED,
+        );
+      }
+    }
+
+    if (user.role === AppRole.Instructor) {
+      const isTargetMember = classroom.classroomMembers.some(
+        (m) => m.studentId === studentId,
+      );
+      if (!isTargetMember) {
+        throw new ApplicationBadRequestException(
+          'Student is not a member of this classroom',
+          ERROR_CODES.ATTENDANCE.NOT_MEMBER,
+        );
+      }
+    }
+
+    const stats = await this.attendanceRepository.getStudentStats(
+      classroomId,
+      studentId,
+    );
+
+    const attendanceRate =
+      stats.total > 0
+        ? Math.round(((stats.present + stats.late) / stats.total) * 100)
+        : 0;
+
+    return {
+      ...stats,
+      attendanceRate,
+    };
   }
 }

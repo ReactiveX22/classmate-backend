@@ -39,6 +39,7 @@ export class AttendanceController {
   }
 
   @Get('/checklist')
+  @Roles([AppRole.Instructor])
   async getChecklist(
     @Param('classroomId', ParseUUIDPipe) classroomId: string,
     @OrganizationId() orgId: string,
@@ -50,6 +51,22 @@ export class AttendanceController {
       classroomId,
       orgId,
       date,
+    );
+  }
+
+  @Get('/stats/:studentId')
+  @Roles([AppRole.Instructor, AppRole.Student])
+  async getStats(
+    @Param('classroomId', ParseUUIDPipe) classroomId: string,
+    @Param('studentId') studentId: string,
+    @OrganizationId() orgId: string,
+    @Session() session: AppUserSession,
+  ) {
+    return await this.attendanceService.getStats(
+      session,
+      classroomId,
+      orgId,
+      studentId,
     );
   }
 }

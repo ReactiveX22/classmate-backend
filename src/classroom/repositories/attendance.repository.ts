@@ -68,4 +68,38 @@ export class AttendanceRepository {
 
     return checklist;
   }
+
+  async getStudentStats(classroomId: string, studentId: string) {
+    const stats = await this.db
+      .select({
+        status: attendance.status,
+        count: sql<number>`count(*)`.mapWith(Number),
+      })
+      .from(attendance)
+      .where(
+        and(
+          eq(attendance.classroomId, classroomId),
+          eq(attendance.studentId, studentId),
+        ),
+      )
+      .groupBy(attendance.status);
+
+    const result = {
+      present: 0,
+      late: 0,
+      absent: 0,
+      excused: 0,
+      total: 0,
+    };
+
+    stats.forEach((stat) => {
+      if (stat.status === 'present') result.present = stat.count;
+      else if (stat.status === 'late') result.late = stat.count;
+      else if (stat.status === 'absent') result.absent = stat.count;
+      else if (stat.status === 'excused') result.excused = stat.count;
+      result.total += stat.count;
+    });
+
+    return result;
+  }
 }
