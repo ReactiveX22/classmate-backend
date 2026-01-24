@@ -4,7 +4,10 @@ import {
   ApplicationBadRequestException,
   ApplicationForbiddenException,
 } from 'src/common/exceptions/application.exception';
-import { CreateAttendanceDto } from '../dto/create-attendance.dto';
+import {
+  BulkCreateAttendanceDto,
+  CreateAttendanceDto,
+} from '../dto/create-attendance.dto';
 import { AttendanceRepository } from '../repositories/attendance.repository';
 import { ClassroomService } from './classroom.service';
 
@@ -53,5 +56,72 @@ export class AttendanceService {
       classroomId,
       date: attendanceDate,
     });
+  }
+
+  async createBulk(
+    classroomId: string,
+    userId: string,
+    orgId: string,
+    dto: BulkCreateAttendanceDto,
+  ) {
+    const classroom = await this.classroomService.findOne(classroomId, orgId);
+    if (classroom.teacherId !== userId) {
+      throw new ApplicationForbiddenException(
+        'You are not authorized to manage this classroom',
+        ERROR_CODES.ATTENDANCE.NOT_AUTHORIZED,
+      );
+    }
+
+    if (new Date(dto.date) > new Date()) {
+      throw new ApplicationBadRequestException(
+        'Cannot mark attendance for a future date',
+        ERROR_CODES.ATTENDANCE.FUTURE_DATE,
+      );
+    }
+
+    const validStudentIds = new Set(
+      classroom.classroomMembers.map((m) => m.studentId),
+    );
+
+    for (const record of dto.records) {
+      if (!validStudentIds.has(record.studentId)) {
+        throw new ApplicationBadRequestException(
+          `Student ${record.studentId} is not a member of this classroom`,
+          ERROR_CODES.ATTENDANCE.NOT_MEMBER,
+        );
+      }
+    }
+
+    const attendanceData = dto.records.map((record) => ({
+      ...record,
+      classroomId,
+      date: dto.date,
+    }));
+
+    return await this.attendanceRepository.upsertBulk(attendanceData);
+  }
+
+  async getChecklist(
+    userId: string,
+    classroomId: string,
+    orgId: string,
+    date?: string,
+  ) {
+    const classroom = await this.classroomService.findOne(classroomId, orgId);
+
+    if (classroom.teacherId !== userId) {
+      throw new ApplicationForbiddenException(
+        'You are not authorized to view attendances for this classroom',
+        ERROR_CODES.ATTENDANCE.NOT_AUTHORIZED,
+      );
+    }
+
+    const targetDate = date ?? new Date().toISOString().split('T')[0];
+    const attendances = await this.attendanceRepository.getChecklist(
+      classroomId,
+      targetDate,
+    );
+
+    return attendances;
   }
 }

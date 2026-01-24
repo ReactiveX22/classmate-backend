@@ -1,6 +1,7 @@
 import { date, pgEnum, pgTable, text, unique, uuid } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
 import { classroom } from './classroom-schema';
+import { relations } from 'drizzle-orm';
 
 export const ATTENDANCE_STATUS = {
   PRESENT: 'present',
@@ -39,5 +40,12 @@ export const attendance = pgTable(
     ),
   ],
 );
+
+export const attendanceRelations = relations(attendance, ({ one }) => ({
+  student: one(user, {
+    fields: [attendance.studentId],
+    references: [user.id],
+  }),
+}));
 
 export type InsertAttendance = typeof attendance.$inferInsert;
