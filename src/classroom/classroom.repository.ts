@@ -71,6 +71,10 @@ export class ClassroomRepository {
       .returning();
   }
 
+  async delete(id: string) {
+    return this.db.delete(classroom).where(eq(classroom.id, id)).returning();
+  }
+
   async findById(id: string) {
     return this.db.query.classroom.findFirst({
       with: {

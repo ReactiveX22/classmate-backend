@@ -131,6 +131,15 @@ export class StorageService {
     }
   }
 
+  async deleteDirectory(folderPath: string): Promise<void> {
+    try {
+      const directory = path.resolve(this.uploadDir, folderPath);
+      await fs.rm(directory, { recursive: true, force: true });
+    } catch (error) {
+      console.error('Error deleting directory:', error);
+    }
+  }
+
   private getAttachmentType(
     mimeType: string,
   ): 'file' | 'image' | 'video' | 'link' {

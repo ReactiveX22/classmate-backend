@@ -83,6 +83,24 @@ export class ClassroomService {
     return await this.classroomRepository.update(id, dto);
   }
 
+  async delete(id: string, userId: string, orgId: string) {
+    const classroom = await this.classroomRepository.findById(id);
+    if (!classroom) {
+      throw new ApplicationNotFoundException('Classroom not found');
+    }
+    if (
+      classroom.teacherId !== userId ||
+      classroom.course.organizationId !== orgId
+    ) {
+      throw new ApplicationForbiddenException(
+        'You are not authorized to delete this classroom',
+      );
+    }
+
+    await this.storageService.deleteDirectory(`classroom-attachments/${id}`);
+    return await this.classroomRepository.delete(id);
+  }
+
   async addMembers(
     id: string,
     userId: string,

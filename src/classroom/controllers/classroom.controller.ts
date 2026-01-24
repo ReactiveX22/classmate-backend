@@ -69,6 +69,17 @@ export class ClassroomController {
   }
 
   @Roles([AppRole.Instructor])
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async delete(
+    @Param('id') id: string,
+    @Session() session: AppUserSession,
+    @OrganizationId() orgId: string,
+  ) {
+    return this.classroomService.delete(id, session.user.id, orgId);
+  }
+
+  @Roles([AppRole.Instructor])
   @Post(':id/members')
   async addMembers(
     @Param('id') id: string,
