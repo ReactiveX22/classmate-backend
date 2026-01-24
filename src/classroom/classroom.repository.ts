@@ -1,5 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, exists, inArray, or, SQL } from 'drizzle-orm';
+import {
+  and,
+  eq,
+  exists,
+  gte,
+  inArray,
+  notExists,
+  or,
+  SQL,
+  sql,
+} from 'drizzle-orm';
 import {
   ClassroomPaginationConfig,
   ClassroomPostPaginationConfig,
@@ -219,5 +229,50 @@ export class ClassroomRepository {
         attendance: Math.floor(Math.random() * 101),
       },
     };
+  }
+
+  async findUpcomingPosts(
+    classroomId: string,
+    userId: string,
+    isStudent: boolean,
+  ) {
+    const filters: SQL[] = [
+      eq(classroomPost.classroomId, classroomId),
+      eq(classroomPost.type, 'assignment'),
+      gte(
+        sql<string>`(${classroomPost.assignmentData}->>'dueDate')::timestamp with time zone`,
+        sql`now()`,
+      ),
+    ];
+
+    if (isStudent) {
+      filters.push(
+        notExists(
+          this.db
+            .select()
+            .from(assignmentSubmission)
+            .where(
+              and(
+                eq(assignmentSubmission.postId, classroomPost.id),
+                eq(assignmentSubmission.studentId, userId),
+                sql`${assignmentSubmission.status} != 'assigned'`,
+              ),
+            ),
+        ),
+      );
+    }
+
+    const posts = await this.db
+      .select({
+        id: classroomPost.id,
+        title: classroomPost.title,
+        type: classroomPost.type,
+        dueAt: sql<string>`${classroomPost.assignmentData}->>'dueDate'`,
+      })
+      .from(classroomPost)
+      .where(and(...filters))
+      .orderBy(sql`${classroomPost.assignmentData}->>'dueDate' asc`);
+
+    return posts;
   }
 }

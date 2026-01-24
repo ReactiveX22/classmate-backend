@@ -47,6 +47,21 @@ export class ClassroomController {
     return this.classroomService.findOne(id, orgId);
   }
 
+  @Roles([AppRole.Instructor, AppRole.Student])
+  @Get(':id/upcoming-posts')
+  async getUpcomingPosts(
+    @Param('id', ParseUUIDPipe) id: string,
+    @OrganizationId() orgId: string,
+    @Session() session: AppUserSession,
+  ) {
+    return await this.classroomService.getUpcomingPosts(
+      id,
+      session.user.id,
+      orgId,
+      session.user.role as AppRole,
+    );
+  }
+
   @Roles([AppRole.Instructor])
   @Post()
   async create(

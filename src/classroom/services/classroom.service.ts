@@ -288,6 +288,20 @@ export class ClassroomService {
     );
   }
 
+  async getUpcomingPosts(
+    id: string,
+    userId: string,
+    orgId: string,
+    role: AppRole,
+  ) {
+    await this.findOne(id, orgId);
+    return await this.classroomRepository.findUpcomingPosts(
+      id,
+      userId,
+      role === AppRole.Student,
+    );
+  }
+
   private generateClassCode(): string {
     const alphabet = '23456789abcdefghjkmnpqrstuvwxyz';
     return customAlphabet(alphabet, 7)();
