@@ -1,6 +1,9 @@
 import { relations } from 'drizzle-orm';
 import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
+import { notice } from './notice-schema';
+import { notification } from './notification-schema';
+import { course } from './course-schema';
 
 export const organization = pgTable(
   'organization',
@@ -27,4 +30,7 @@ export const organization = pgTable(
 
 export const organizationRelations = relations(organization, ({ many }) => ({
   users: many(user),
+  courses: many(course),
+  notices: many(notice),
+  notifications: many(notification),
 }));

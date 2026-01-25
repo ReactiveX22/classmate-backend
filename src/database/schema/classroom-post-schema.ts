@@ -11,6 +11,7 @@ import {
 import { user } from './auth-schema';
 import { classroom } from './classroom-schema';
 import { assignmentSubmission } from './assignment-submission-schema';
+import { Attachment } from './types';
 
 export const postType = pgEnum('post_type', [
   'announcement',
@@ -18,15 +19,6 @@ export const postType = pgEnum('post_type', [
   'material',
   'question',
 ]);
-
-export type Attachment = {
-  id: string;
-  name: string;
-  url: string;
-  type: 'file' | 'link' | 'video' | 'image';
-  size?: number;
-  mimeType?: string;
-};
 
 export type AssignmentData = {
   dueDate?: string;
