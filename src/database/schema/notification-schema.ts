@@ -5,9 +5,9 @@ import { organization } from './organization-schema';
 
 export const notification = pgTable('notification', {
   id: uuid('id').primaryKey().defaultRandom(),
-  organizationId: uuid('organization_id')
-    .references(() => organization.id, { onDelete: 'cascade' })
-    .notNull(),
+  organizationId: uuid('organization_id').references(() => organization.id, {
+    onDelete: 'cascade',
+  }),
   title: text('title').notNull(),
   content: text('content'),
   type: text('type').notNull(),
@@ -33,3 +33,5 @@ export const notificationRelations = relations(notification, ({ one }) => ({
     references: [organization.id],
   }),
 }));
+
+export type InsertNotification = typeof notification.$inferInsert;
