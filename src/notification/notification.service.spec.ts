@@ -1,53 +1,65 @@
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
 import { Test, TestingModule } from '@nestjs/testing';
-import { sql } from 'drizzle-orm';
-import { DatabaseModule } from 'src/database/database.module';
-import { DB, DB_PROVIDER } from 'src/database/db.provider';
 import { NotificationService } from './notification.service';
+import { NotificationRepository } from './notification.repository';
+import { MailModule } from 'src/mail/mail.module';
+import { MailService } from 'src/mail/mail.service';
 
-describe('NotificationService (Integration)', () => {
+describe('NotificationService', () => {
   let service: NotificationService;
   let eventEmitter: EventEmitter2;
-  let db: DB;
-  let moduleRef: TestingModule;
+  let repository: NotificationRepository;
 
-  beforeEach(async () => {
-    moduleRef = await Test.createTestingModule({
-      imports: [EventEmitterModule.forRoot(), DatabaseModule],
-      providers: [NotificationService],
+  const mockNotificationRepository = {
+    create: jest.fn(),
+  };
+
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [EventEmitterModule.forRoot(), MailModule],
+      providers: [
+        NotificationService,
+        {
+          provide: NotificationRepository,
+          useValue: mockNotificationRepository,
+        },
+        MailService,
+      ],
     }).compile();
 
-    await moduleRef.init();
+    await module.init();
 
-    service = moduleRef.get<NotificationService>(NotificationService);
-    eventEmitter = moduleRef.get<EventEmitter2>(EventEmitter2);
-    db = moduleRef.get<DB>(DB_PROVIDER);
-
-    await db.execute(
-      sql`TRUNCATE TABLE "notification" RESTART IDENTITY CASCADE`,
-    );
+    service = module.get<NotificationService>(NotificationService);
+    eventEmitter = module.get<EventEmitter2>(EventEmitter2);
+    repository = module.get<NotificationRepository>(NotificationRepository);
   });
 
-  afterEach(async () => {
-    if (moduleRef) {
-      await moduleRef.close();
-    }
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  it('should save the notification to the real database when event is emitted', async () => {
+  it('should trigger the repository when the "notification.created" event is emitted', async () => {
     const testPayload = {
-      title: 'Integration Test',
-      content: 'This is a real DB test',
+      title: 'Real Event Test',
+      content: 'Event is real, DB is fake',
+      organizationId: 'any-string-works-here',
+      type: 'INFO',
+      recipientEmail: 'test@example.com',
+      recipientName: 'Test User',
     };
+
+    mockNotificationRepository.create.mockResolvedValue({
+      id: '123',
+      ...testPayload,
+    });
 
     await eventEmitter.emitAsync('notification.created', testPayload);
 
-    const result = await db.query.notification.findFirst();
-    expect(result).toBeDefined();
-    expect(result?.title).toBe(testPayload.title);
+    expect(repository.create).toHaveBeenCalledWith(testPayload);
+    expect(repository.create).toHaveBeenCalledTimes(1);
   });
 });

@@ -12,6 +12,7 @@ import { OrganizationModule } from './organization/organization.module';
 import { StorageModule } from './storage/storage.module';
 import { UserModule } from './user/user.module';
 import { NoticeModule } from './notice/notice.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { NoticeModule } from './notice/notice.module';
     StorageModule,
     NotificationModule,
     NoticeModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
