@@ -13,10 +13,7 @@ import {
   PaginationQueryDto,
 } from 'src/common/dto/pagination.dto';
 import { buildOrganizationFilters } from 'src/common/helpers/pagination.helper';
-import {
-  InjectPaginationService,
-  PaginationService,
-} from 'src/lib/pagination/pagination.service';
+import { PaginationService } from 'src/lib/pagination/pagination.service';
 import { studentPaginationConfig } from 'src/lib/pagination/config/student.config';
 import { User } from 'src/auth/auth.factory';
 
@@ -33,7 +30,6 @@ export interface StudentWithProfile {
 export class StudentRepository {
   constructor(
     @InjectDb() private readonly db: DB,
-    @InjectPaginationService()
     private readonly paginationService: PaginationService,
   ) {}
 

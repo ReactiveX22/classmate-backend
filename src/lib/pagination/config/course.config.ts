@@ -2,7 +2,6 @@ import { and, count, SQL } from 'drizzle-orm';
 import { DB } from 'src/database/db.provider';
 import { course } from 'src/database/schema';
 import { PaginatedConfig } from '../pagination.interface';
-import { PgSelect } from 'drizzle-orm/pg-core';
 
 export class CoursePaginationConfig implements PaginatedConfig {
   searchableFields = [course.code, course.title, course.semester];

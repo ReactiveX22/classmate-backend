@@ -14,7 +14,9 @@ export const enrollment = pgTable(
     courseId: uuid('course_id')
       .notNull()
       .references(() => course.id, { onDelete: 'cascade' }),
-    enrollAt: timestamp('enroll_at').defaultNow().notNull(),
+    enrollAt: timestamp('enroll_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (t) => [primaryKey({ columns: [t.studentId, t.courseId] })],
 );

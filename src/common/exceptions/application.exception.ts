@@ -25,13 +25,19 @@ export class ApplicationNotFoundException extends ApplicationException {
 }
 
 export class ApplicationBadRequestException extends ApplicationException {
-  constructor(message: string, errorCode: string) {
+  constructor(
+    message: string,
+    errorCode: string = ERROR_CODES.INFRA.BAD_REQUEST,
+  ) {
     super(HttpStatus.BAD_REQUEST, message, errorCode);
   }
 }
 
 export class ApplicationForbiddenException extends ApplicationException {
-  constructor(message: string, errorCode: string) {
+  constructor(
+    message: string,
+    errorCode: string = ERROR_CODES.INFRA.FORBIDDEN,
+  ) {
     super(HttpStatus.FORBIDDEN, message, errorCode);
   }
 }
