@@ -4,6 +4,7 @@ import { type DB, InjectDb } from 'src/database/db.provider';
 import { classroomMembers, student, user } from 'src/database/schema';
 import {
   attendance,
+  ATTENDANCE_STATUS,
   InsertAttendance,
 } from 'src/database/schema/attendance-schema';
 
@@ -93,10 +94,13 @@ export class AttendanceRepository {
     };
 
     stats.forEach((stat) => {
-      if (stat.status === 'present') result.present = stat.count;
-      else if (stat.status === 'late') result.late = stat.count;
-      else if (stat.status === 'absent') result.absent = stat.count;
-      else if (stat.status === 'excused') result.excused = stat.count;
+      if (stat.status === ATTENDANCE_STATUS.PRESENT)
+        result.present = stat.count;
+      else if (stat.status === ATTENDANCE_STATUS.LATE) result.late = stat.count;
+      else if (stat.status === ATTENDANCE_STATUS.ABSENT)
+        result.absent = stat.count;
+      else if (stat.status === ATTENDANCE_STATUS.EXCUSED)
+        result.excused = stat.count;
       result.total += stat.count;
     });
 

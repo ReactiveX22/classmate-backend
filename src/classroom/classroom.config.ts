@@ -50,12 +50,18 @@ export class ClassroomPaginationConfig extends PaginationConfig<
       .select({
         classroom: classroom,
         course: course,
+        teacher: {
+          id: user.id,
+          name: user.name,
+          image: user.image,
+        },
         studentCount: sql<number>`COALESCE(${studentCountSq.count}, 0)`.mapWith(
           Number,
         ),
       })
       .from(classroom)
       .innerJoin(course, eq(classroom.courseId, course.id))
+      .innerJoin(user, eq(classroom.teacherId, user.id))
       .leftJoin(studentCountSq, eq(classroom.id, studentCountSq.classroomId))
       .$dynamic();
   }

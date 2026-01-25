@@ -27,8 +27,32 @@ export class ClassroomService {
     private readonly classroomPostRepository: ClassroomPostRepository,
   ) {}
 
-  async findAll(query: PaginationQueryDto, orgId: string, userId: string) {
-    return await this.classroomRepository.findAll(query, orgId, userId);
+  async findAll(
+    query: PaginationQueryDto,
+    orgId: string,
+    userId: string,
+    role: AppRole,
+  ) {
+    const result = await this.classroomRepository.findAll(query, orgId, userId);
+
+    const dataWithUpcoming = await Promise.all(
+      (result.data as any[]).map(async (item) => {
+        const upcoming = await this.classroomRepository.findUpcomingPosts(
+          item.classroom.id,
+          userId,
+          role === AppRole.Student,
+        );
+        return {
+          ...item,
+          upcoming,
+        };
+      }),
+    );
+
+    return {
+      ...result,
+      data: dataWithUpcoming,
+    };
   }
 
   async findOne(id: string, orgId: string) {

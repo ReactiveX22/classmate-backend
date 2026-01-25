@@ -38,7 +38,12 @@ export class ClassroomController {
     @OrganizationId() orgId: string,
     @Session() session: AppUserSession,
   ) {
-    return this.classroomService.findAll(query, orgId, session.user.id);
+    return this.classroomService.findAll(
+      query,
+      orgId,
+      session.user.id,
+      session.user.role as AppRole,
+    );
   }
 
   @Roles([AppRole.Instructor, AppRole.Student])
