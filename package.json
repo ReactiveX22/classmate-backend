@@ -18,6 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:int": "dotenv -e .env.test -- jest --runInBand",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -26,12 +27,14 @@
     "db:check": "drizzle-kit check",
     "db:introspect": "drizzle-kit introspect",
     "db:seed": "ts-node -r tsconfig-paths/register src/database/seed.ts",
+    "db:test:push": "dotenv -e .env.test -- drizzle-kit push --config=drizzle.test.config.ts",
     "auth:generate": "pnpx @better-auth/cli generate --config ./src/auth/auth-schema-gen.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.9",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.9",
+    "@nestjs/event-emitter": "^3.0.1",
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/platform-express": "^11.1.9",
     "@nestjs/serve-static": "^5.0.4",
@@ -60,6 +63,7 @@
     "@types/node": "^22.10.7",
     "@types/pg": "^8.15.6",
     "@types/supertest": "^6.0.2",
+    "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
@@ -91,6 +95,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    }
   }
 }
