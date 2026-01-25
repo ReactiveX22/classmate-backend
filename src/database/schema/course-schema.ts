@@ -8,10 +8,9 @@ import {
   unique,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { enrollment } from './enrollment-schema';
 import { organization } from './organization-schema';
 import { teacher } from './teacher-schema';
-import { enrollment } from './enrollment-schema';
-import { Many } from 'drizzle-orm';
 
 export const courseStatusEnum = pgEnum('course_status', [
   'active',
@@ -38,14 +37,16 @@ export const course = pgTable(
     semester: text('semester').notNull(),
     status: courseStatusEnum('status').default('active').notNull(),
     maxStudents: integer('max_students').default(50).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
   (table) => [
-    unique('course_code_semester_unique').on(table.code, table.semester),
+    unique('course_code_semester_unique').on(table.semester, table.code),
   ],
 );
 

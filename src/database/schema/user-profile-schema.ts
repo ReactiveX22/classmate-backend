@@ -12,12 +12,14 @@ export const userProfile = pgTable(
       .references(() => user.id, { onDelete: 'cascade' }),
     phone: text('phone'),
     bio: text('bio'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
-    deletedAt: timestamp('deleted_at'),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [index('user_profile_userId_idx').on(table.userId)],
 );

@@ -10,6 +10,6 @@ import { CourseService } from './services/course.service';
   imports: [DatabaseModule, UserModule, PaginationModule],
   controllers: [CourseController],
   providers: [CourseService, CourseRepository],
-  exports: [CourseService],
+  exports: [CourseService, CourseRepository],
 })
 export class CourseModule {}

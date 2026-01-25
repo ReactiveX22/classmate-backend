@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { SQL, and, asc, count, desc, ilike, or } from 'drizzle-orm';
 import {
   PaginatedResponse,
@@ -27,9 +27,6 @@ export interface PaginationOptions<T> {
    */
   searchQuery?: string;
 }
-
-export const PAGINATION_SERVICE = 'PAGINATION_SERVICE';
-export const InjectPaginationService = () => Inject(PAGINATION_SERVICE);
 
 @Injectable()
 export class PaginationService {
@@ -78,7 +75,9 @@ export class PaginationService {
           : defaultField;
 
       const sortField = config.sortFields[sortBy];
-      const sortOrder = query.sortOrder === 'asc' ? asc : desc;
+      const defaultOrder = config.defaultSortOrder;
+      const sortOrder =
+        (query.sortOrder || defaultOrder) === 'asc' ? asc : desc;
 
       if (sortField) {
         dynamicQuery = dynamicQuery.orderBy(sortOrder(sortField));

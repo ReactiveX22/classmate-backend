@@ -15,16 +15,12 @@ import {
   user,
 } from 'src/database/schema';
 import { teacherPaginationConfig } from 'src/lib/pagination/config/teacher.config';
-import {
-  InjectPaginationService,
-  PaginationService,
-} from 'src/lib/pagination/pagination.service';
+import { PaginationService } from 'src/lib/pagination/pagination.service';
 
 @Injectable()
 export class TeacherRepository {
   constructor(
     @InjectDb() private readonly db: DB,
-    @InjectPaginationService()
     private readonly paginationService: PaginationService,
   ) {}
 
