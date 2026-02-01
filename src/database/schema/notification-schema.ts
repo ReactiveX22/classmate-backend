@@ -35,3 +35,4 @@ export const notificationRelations = relations(notification, ({ one }) => ({
 }));
 
 export type InsertNotification = typeof notification.$inferInsert;
+export type AppNotification = typeof notification.$inferSelect;

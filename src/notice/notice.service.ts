@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { type InsertNotice } from 'src/database/schema';
-import { NotificationCreatedEvent } from 'src/notification/notification-created.event';
-import { NotificationTemplate } from 'src/notification/template/notification.template';
-import { NoticeRepository } from './notice.repository';
-import { CreateNoticeDto } from './dto/create-notice.dto';
-import { UpdateNoticeDto } from './dto/update-notice.dto';
 import { User } from 'src/auth/auth.factory';
 import {
   ApplicationForbiddenException,
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
+import { type InsertNotice } from 'src/database/schema';
+import { NotificationCreatedEvent } from 'src/notification/notification-created.event';
+import { NotificationType } from 'src/notification/notification.constants';
+import { NotificationTemplate } from 'src/notification/template/notification.template';
+import { CreateNoticeDto } from './dto/create-notice.dto';
+import { UpdateNoticeDto } from './dto/update-notice.dto';
+import { NoticeRepository } from './notice.repository';
 
 @Injectable()
 export class NoticeService {
@@ -44,7 +45,7 @@ export class NoticeService {
       new NotificationCreatedEvent({
         title: formatted.title,
         content: formatted.content,
-        type: 'NOTICE',
+        type: NotificationType.ORGANIZATION.NOTICE,
         organizationId: newNotice.organizationId,
         recipientId: null,
         actorId: user.id,

@@ -2,12 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { MailService } from 'src/mail/mail.service';
 import { NotificationCreatedEvent } from './notification-created.event';
+import { isClassroomType, isOrganizationType } from './notification.constants';
+import { NotificationGateway } from './notification.gateway';
 import { NotificationRepository } from './notification.repository';
 
 @Injectable()
 export class NotificationService {
   constructor(
     private readonly notificationRepository: NotificationRepository,
+    private readonly notificationGateway: NotificationGateway,
     private readonly mailService: MailService,
   ) {}
 
@@ -30,7 +33,33 @@ export class NotificationService {
           );
       }
 
-      return notification;
+      if (isClassroomType(payload.type)) {
+        if (!payload.entityId) {
+          Logger.error(
+            `Notification type is ${payload.type} but entityId is missing`,
+          );
+          return;
+        }
+
+        this.notificationGateway.sendNotificationToClassroom(
+          payload.entityId,
+          notification,
+        );
+      }
+
+      if (isOrganizationType(payload.type)) {
+        if (!payload.organizationId) {
+          Logger.error(
+            `Notification type is ${payload.type} but organizationId is missing`,
+          );
+          return;
+        }
+
+        this.notificationGateway.sendNotificationToOrganization(
+          payload.organizationId,
+          notification,
+        );
+      }
     } catch (error) {
       Logger.error('Failed to process notification event', error);
     }
