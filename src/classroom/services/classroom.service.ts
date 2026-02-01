@@ -326,6 +326,12 @@ export class ClassroomService {
     );
   }
 
+  async findUserClassroomIds(userId: string): Promise<string[]> {
+    const classrooms =
+      await this.classroomRepository.findJoinedClassrooms(userId);
+    return classrooms.map((c) => c.id);
+  }
+
   private generateClassCode(): string {
     const alphabet = '23456789abcdefghjkmnpqrstuvwxyz';
     return customAlphabet(alphabet, 7)();
