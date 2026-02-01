@@ -37,8 +37,10 @@
     "@nestjs/event-emitter": "^3.0.1",
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/platform-express": "^11.1.9",
+    "@nestjs/platform-socket.io": "^11.1.12",
     "@nestjs/serve-static": "^5.0.4",
     "@nestjs/swagger": "^11.2.3",
+    "@nestjs/websockets": "^11.1.12",
     "@thallesp/nestjs-better-auth": "^2.2.0",
     "better-auth": "^1.4.6",
     "class-transformer": "^0.5.1",
@@ -47,7 +49,8 @@
     "nanoid": "^5.1.6",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
