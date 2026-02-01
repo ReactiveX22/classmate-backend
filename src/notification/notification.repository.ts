@@ -34,17 +34,13 @@ export class NotificationRepository {
     orgId: string,
     userClassroomIds: string[],
   ) {
-    // 1. Direct notifications: recipientId == userId
     const directCondition = eq(notification.recipientId, userId);
 
-    // 2. Organization notifications: organizationId == orgId AND type starts with ORGANIZATION
     const orgCondition = and(
       eq(notification.organizationId, orgId),
       like(notification.type, `${NotificationCategory.ORGANIZATION}%`),
     );
 
-    // 3. Classroom notifications: entityId IN userClassroomIds AND type starts with CLASSROOM
-    // Only apply if user is in any classrooms
     let classroomCondition: SQL | undefined;
     if (userClassroomIds.length > 0) {
       classroomCondition = and(
@@ -57,9 +53,13 @@ export class NotificationRepository {
       or(directCondition, orgCondition, classroomCondition)!,
     ];
 
+    const configWithUser = Object.create(this.notificationPaginationConfig);
+    configWithUser.getBaseQuery = (db: DB) =>
+      this.notificationPaginationConfig.getAuthorizedQuery(db, userId);
+
     return this.paginationService.paginate<AppNotification>(
       {
-        config: this.notificationPaginationConfig,
+        config: configWithUser,
         filters,
       },
       query,
