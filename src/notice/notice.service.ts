@@ -5,8 +5,12 @@ import { NotificationCreatedEvent } from 'src/notification/notification-created.
 import { NotificationTemplate } from 'src/notification/template/notification.template';
 import { NoticeRepository } from './notice.repository';
 import { CreateNoticeDto } from './dto/create-notice.dto';
+import { UpdateNoticeDto } from './dto/update-notice.dto';
 import { User } from 'src/auth/auth.factory';
-import { ApplicationForbiddenException } from 'src/common/exceptions/application.exception';
+import {
+  ApplicationForbiddenException,
+  ApplicationNotFoundException,
+} from 'src/common/exceptions/application.exception';
 
 @Injectable()
 export class NoticeService {
@@ -49,5 +53,37 @@ export class NoticeService {
     );
 
     return newNotice;
+  }
+
+  async update(id: string, dto: UpdateNoticeDto, user: User) {
+    if (!user.organizationId) {
+      throw new ApplicationForbiddenException('Organization not found');
+    }
+
+    const updated = await this.noticeRepository.update(
+      user.organizationId,
+      id,
+      dto,
+    );
+
+    if (!updated) {
+      throw new ApplicationNotFoundException('Notice not found');
+    }
+
+    return updated;
+  }
+
+  async delete(id: string, user: User) {
+    if (!user.organizationId) {
+      throw new ApplicationForbiddenException('Organization not found');
+    }
+
+    const deleted = await this.noticeRepository.delete(user.organizationId, id);
+
+    if (!deleted) {
+      throw new ApplicationNotFoundException('Notice not found');
+    }
+
+    return deleted;
   }
 }
