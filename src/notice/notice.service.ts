@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { User } from 'src/auth/auth.factory';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import {
   ApplicationForbiddenException,
   ApplicationNotFoundException,
@@ -19,6 +20,10 @@ export class NoticeService {
     private readonly noticeRepository: NoticeRepository,
     private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  async findAll(query: PaginationQueryDto, orgId: string) {
+    return this.noticeRepository.findAll(query, orgId);
+  }
 
   async create(dto: CreateNoticeDto, user: User) {
     if (!user.organizationId) {

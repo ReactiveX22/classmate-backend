@@ -2,14 +2,18 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
+import { OrganizationId } from 'src/common/decorators';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
 import { type AppUserSession } from 'src/common/types/session.types';
 import { CreateNoticeDto } from './dto/create-notice.dto';
@@ -19,6 +23,20 @@ import { NoticeService } from './notice.service';
 @Controller('notices')
 export class NoticeController {
   constructor(private readonly noticeService: NoticeService) {}
+
+  @Roles([
+    AppRole.Admin,
+    AppRole.SuperAdmin,
+    AppRole.Instructor,
+    AppRole.Student,
+  ])
+  @Get()
+  async findAll(
+    @Query() query: PaginationQueryDto,
+    @OrganizationId() orgId: string,
+  ) {
+    return this.noticeService.findAll(query, orgId);
+  }
 
   @Roles([AppRole.Admin, AppRole.SuperAdmin])
   @Post()
