@@ -6,13 +6,29 @@ import { isClassroomType, isOrganizationType } from './notification.constants';
 import { NotificationGateway } from './notification.gateway';
 import { NotificationRepository } from './notification.repository';
 
+import { ClassroomService } from 'src/classroom/services/classroom.service';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+
 @Injectable()
 export class NotificationService {
   constructor(
     private readonly notificationRepository: NotificationRepository,
     private readonly notificationGateway: NotificationGateway,
     private readonly mailService: MailService,
+    private readonly classroomService: ClassroomService,
   ) {}
+
+  async findAll(query: PaginationQueryDto, userId: string, orgId: string) {
+    const classroomIds =
+      await this.classroomService.findUserClassroomIds(userId);
+
+    return this.notificationRepository.findAll(
+      query,
+      userId,
+      orgId,
+      classroomIds,
+    );
+  }
 
   @OnEvent(NotificationCreatedEvent.signature)
   async handleNotificationCreatedEvent(event: NotificationCreatedEvent) {
