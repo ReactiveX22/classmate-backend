@@ -1,7 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { AttachmentDto } from './create-classroom-post.dto';
+import { AttachmentDto } from '../../common/dto/attachment.dto';
 
 export class CreateSubmissionDto {
   @ApiPropertyOptional({
