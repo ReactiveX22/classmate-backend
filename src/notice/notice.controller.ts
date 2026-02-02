@@ -41,6 +41,14 @@ export class NoticeController {
     return this.noticeService.findAll(query, orgId);
   }
 
+  @Get(':id')
+  async getOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @OrganizationId() orgId: string,
+  ) {
+    return this.noticeService.findOne(id, orgId);
+  }
+
   @Roles([AppRole.Admin, AppRole.SuperAdmin])
   @Post()
   async createNotice(

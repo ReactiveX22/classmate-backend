@@ -36,6 +36,14 @@ export class NoticeRepository {
     );
   }
 
+  async findById(organizationId: string, id: string) {
+    const [result] = await this.db
+      .select()
+      .from(notice)
+      .where(and(eq(notice.id, id), eq(notice.organizationId, organizationId)));
+    return result;
+  }
+
   async update(
     organizationId: string,
     id: string,
