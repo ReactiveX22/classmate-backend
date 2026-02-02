@@ -10,6 +10,7 @@ import { type InsertNotice } from 'src/database/schema';
 import { NotificationCreatedEvent } from 'src/notification/notification-created.event';
 import { NotificationType } from 'src/notification/notification.constants';
 import { NotificationTemplate } from 'src/notification/template/notification.template';
+import { StorageService } from 'src/storage/storage.service';
 import { CreateNoticeDto } from './dto/create-notice.dto';
 import { UpdateNoticeDto } from './dto/update-notice.dto';
 import { NoticeRepository } from './notice.repository';
@@ -19,6 +20,7 @@ export class NoticeService {
   constructor(
     private readonly noticeRepository: NoticeRepository,
     private readonly eventEmitter: EventEmitter2,
+    private readonly storageService: StorageService,
   ) {}
 
   async findAll(query: PaginationQueryDto, orgId: string) {
@@ -91,5 +93,18 @@ export class NoticeService {
     }
 
     return deleted;
+  }
+
+  async uploadAttachment(file: Express.Multer.File, orgId: string) {
+    return await this.storageService.uploadFile(
+      file,
+      `notice-attachments/${orgId}`,
+    );
+  }
+
+  async deleteAttachment(orgId: string, attachmentId: string) {
+    await this.storageService.deleteFile(
+      `notice-attachments/${orgId}/${attachmentId}`,
+    );
   }
 }

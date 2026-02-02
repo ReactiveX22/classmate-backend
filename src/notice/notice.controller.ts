@@ -10,9 +10,12 @@ import {
   Patch,
   Post,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
 import { OrganizationId } from 'src/common/decorators';
+import { UploadAttachment } from 'src/common/decorators/upload-attachment.decorator';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
 import { type AppUserSession } from 'src/common/types/session.types';
@@ -66,5 +69,25 @@ export class NoticeController {
     @Session() session: AppUserSession,
   ) {
     await this.noticeService.delete(id, session.user);
+  }
+
+  @Post('upload')
+  @Roles([AppRole.Admin, AppRole.SuperAdmin])
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadAttachment() file: Express.Multer.File,
+    @OrganizationId() orgId: string,
+  ) {
+    return this.noticeService.uploadAttachment(file, orgId);
+  }
+
+  @Delete('upload/:attachmentId')
+  @Roles([AppRole.Admin, AppRole.SuperAdmin])
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteFile(
+    @Param('attachmentId') attachmentId: string,
+    @OrganizationId() orgId: string,
+  ) {
+    await this.noticeService.deleteAttachment(orgId, attachmentId);
   }
 }
