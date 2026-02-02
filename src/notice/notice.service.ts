@@ -27,6 +27,14 @@ export class NoticeService {
     return this.noticeRepository.findAll(query, orgId);
   }
 
+  async findOne(id: string, orgId: string) {
+    const notice = await this.noticeRepository.findById(orgId, id);
+    if (!notice) {
+      throw new ApplicationNotFoundException('Notice not found');
+    }
+    return notice;
+  }
+
   async create(dto: CreateNoticeDto, user: User) {
     if (!user.organizationId) {
       throw new ApplicationForbiddenException('Organization not found');

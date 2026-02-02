@@ -17,6 +17,7 @@ describe('NoticeController', () => {
 
   const mockNoticeService = {
     findAll: jest.fn(),
+    findOne: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -77,6 +78,21 @@ describe('NoticeController', () => {
 
       expect(service.findAll).toHaveBeenCalledWith(query, orgId);
       expect(result).toEqual(expectedResult);
+    });
+
+    describe('getOne', () => {
+      it('should return a notice', async () => {
+        const id = 'notice-id';
+        const orgId = 'org-id';
+        const expectedResult = { id, title: 'Notice' };
+
+        mockNoticeService.findOne.mockResolvedValue(expectedResult);
+
+        const result = await controller.getOne(id, orgId);
+
+        expect(service.findOne).toHaveBeenCalledWith(id, orgId);
+        expect(result).toEqual(expectedResult);
+      });
     });
   });
 
