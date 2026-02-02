@@ -20,6 +20,8 @@ describe('NoticeController', () => {
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    uploadAttachment: jest.fn(),
+    deleteAttachment: jest.fn(),
   };
 
   const mockSession: AppUserSession = {
@@ -121,6 +123,37 @@ describe('NoticeController', () => {
       await controller.deleteNotice(id, mockSession);
 
       expect(service.delete).toHaveBeenCalledWith(id, mockSession.user);
+    });
+  });
+
+  describe('uploadFile', () => {
+    it('should upload a file', async () => {
+      const file = { originalname: 'test.jpg' } as any;
+      const orgId = 'org-id';
+      const expectedResult = { id: 'file-id', url: 'http://test.com/file' };
+
+      mockNoticeService.uploadAttachment.mockResolvedValue(expectedResult);
+
+      const result = await controller.uploadFile(file, orgId);
+
+      expect(service.uploadAttachment).toHaveBeenCalledWith(file, orgId);
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('deleteFile', () => {
+    it('should delete a file', async () => {
+      const attachmentId = 'att-id';
+      const orgId = 'org-id';
+
+      mockNoticeService.deleteAttachment.mockResolvedValue(undefined);
+
+      await controller.deleteFile(attachmentId, orgId);
+
+      expect(service.deleteAttachment).toHaveBeenCalledWith(
+        orgId,
+        attachmentId,
+      );
     });
   });
 });
