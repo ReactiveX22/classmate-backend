@@ -31,7 +31,7 @@ export const options = buildOptions({
 });
 
 // Load admins for signin
-const admins = loadCsv('stress_admins', '../data/admins.csv');
+const admins = loadCsv('stress_admins', '../data/admins.csv').slice(0, 50);
 const teachers = loadCsv('stress_teachers', '../data/teachers.csv').slice(
   0,
   100,

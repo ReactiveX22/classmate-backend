@@ -27,7 +27,7 @@ export const options = buildOptions({
 });
 
 // Load seeded users
-const admins = loadCsv('spike_admins', '../data/admins.csv');
+const admins = loadCsv('spike_admins', '../data/admins.csv').slice(0, 50);
 
 /**
  * Spike test function - simulates sudden traffic burst

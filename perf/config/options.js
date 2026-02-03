@@ -57,7 +57,7 @@ export const scenarios = {
   onboarding: {
     executor: 'shared-iterations',
     vus: 25,
-    iterations: 100,
+    iterations: 50,
     maxDuration: '10m',
   },
 

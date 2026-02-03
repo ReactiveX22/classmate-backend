@@ -18,17 +18,17 @@ import { buildOptions } from '../config/options.js';
 import { AuthHelper } from '../lib/auth.js';
 import { loadCsv } from '../lib/data-loader.js';
 import * as metrics from '../lib/metrics.js';
+import { trackError } from '../lib/util.js';
 
 // Load data files
-// Load data files
-const admins = loadCsv('onboarding_admins', '../data/admins.csv');
+const admins = loadCsv('onboarding_admins', '../data/admins.csv').slice(0, 50);
 const teachers = loadCsv('onboarding_teachers', '../data/teachers.csv').slice(
   0,
   100,
 );
 const students = loadCsv('onboarding_students', '../data/students.csv').slice(
   0,
-  100,
+  200,
 );
 const courses = loadCsv('onboarding_courses', '../data/courses.csv');
 
@@ -252,6 +252,15 @@ export function fullOnboardingWorkflow() {
           `[Iter ${iterIndex}] Student creation failed for index ${globalStudentIndex}: ${studentRes.status}`,
         );
         success = false;
+      } else {
+        try {
+          const body = JSON.parse(studentRes.body);
+          if (body.id) {
+            createdStudentIds.push(body.id);
+          }
+        } catch (e) {
+          // Ignore
+        }
       }
 
       sleep(0.1);
@@ -309,7 +318,11 @@ export function fullOnboardingWorkflow() {
         try {
           const body = JSON.parse(courseRes.body);
           if (body.id) {
-            createdCourseIds.push(body.id);
+            // Capture course ID AND the assigned teacher index for future login
+            createdCourseIds.push({
+              id: body.id,
+              teacherIndex: i % createdTeacherIds.length,
+            });
           }
         } catch (e) {
           // Ignore parse errors
@@ -368,6 +381,92 @@ export function fullOnboardingWorkflow() {
     }
 
     sleep(0.2);
+    sleep(0.2);
+  });
+
+  // ================================================
+  // PHASE 7 & 8: Create Classrooms & Enroll Students
+  // ================================================
+  group('Phase 7 & 8: Classrooms & Enrollment', () => {
+    const stepStart = Date.now();
+
+    // For each course created, the assigned teacher creates a classroom and enrolls students
+    for (const courseInfo of createdCourseIds) {
+      // 1. Login as the assigned teacher
+      const teacherIndex = courseInfo.teacherIndex;
+      // Safety check for valid index
+      if (typeof teacherIndex !== 'number') continue;
+
+      const teacherCreds = teachers[teacherIndex % teachers.length];
+      if (!teacherCreds) continue;
+
+      // Sign in as teacher
+      const signinRes = auth.signin(teacherCreds.email, teacherCreds.password);
+      if (signinRes.status !== 200) {
+        console.error(`Failed to login teacher ${teacherCreds.email}`);
+        continue;
+      }
+
+      // 2. Create Classroom
+      const classroomRes = client.post(
+        '/api/v1/classrooms',
+        {
+          courseId: courseInfo.id,
+          name: `Classroom for ${teacherCreds.name}`,
+          section: 'Section A',
+          description: 'Automatically created during onboarding',
+        },
+        { tags: { endpoint: 'crud' } },
+      );
+
+      let classroomId = null;
+      if (classroomRes.status === 200 || classroomRes.status === 201) {
+        try {
+          const body = JSON.parse(classroomRes.body);
+          classroomId = body.id;
+        } catch (e) {}
+      } else {
+        console.warn(
+          `Failed to create classroom for course ${courseInfo.id}: ${classroomRes.status}`,
+        );
+      }
+
+      // 3. Enroll Random Students (if classroom created)
+      if (classroomId && createdStudentIds.length > 0) {
+        // Pick 5 random students
+        const studentCount = 5;
+        const selectedStudentIds = [];
+        for (let k = 0; k < studentCount; k++) {
+          // Random pick from created students
+          const randomStudentId =
+            createdStudentIds[
+              Math.floor(Math.random() * createdStudentIds.length)
+            ];
+          if (!selectedStudentIds.includes(randomStudentId)) {
+            selectedStudentIds.push(randomStudentId);
+          }
+        }
+
+        // Bulk add members
+        if (selectedStudentIds.length > 0) {
+          const addRes = client.post(
+            `/api/v1/classrooms/${classroomId}/members`,
+            {
+              studentIds: selectedStudentIds,
+            },
+            { tags: { endpoint: 'crud' } },
+          );
+
+          if (addRes.status !== 200 && addRes.status !== 201) {
+            console.warn(
+              `Failed to enroll students in classroom ${classroomId}: ${addRes.status}`,
+            );
+          }
+        }
+      }
+      sleep(0.1);
+    }
+    metrics.crudCreateDuration.add(Date.now() - stepStart);
   });
 
   // ================================================

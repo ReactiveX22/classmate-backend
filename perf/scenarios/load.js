@@ -36,7 +36,7 @@ export const options = buildOptions({
 });
 
 // Load existing test users (seeded by onboarding)
-const admins = loadCsv('load_admins', '../data/admins.csv');
+const admins = loadCsv('load_admins', '../data/admins.csv').slice(0, 50);
 const teachers = loadCsv('load_teachers', '../data/teachers.csv').slice(0, 100);
 const classroomTemplates = loadCsv('load_classrooms', '../data/classrooms.csv');
 const courses = loadCsv('load_courses', '../data/courses.csv');
