@@ -10,7 +10,7 @@ import {
 
 export class CreateCourseDto {
   @IsOptional()
-  @IsUUID()
+  @IsString()
   teacherId: string;
 
   @IsNotEmpty()

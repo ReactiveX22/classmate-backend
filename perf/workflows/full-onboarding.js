@@ -85,6 +85,7 @@ export function fullOnboardingWorkflow() {
 
   let success = true;
   let createdTeacherIds = [];
+  let createdStudentIds = [];
   let createdCourseIds = [];
 
   // ================================================
@@ -194,7 +195,9 @@ export function fullOnboardingWorkflow() {
       if (checkPassed) {
         try {
           const body = JSON.parse(res.body);
-          if (body.id) {
+          if (body.user && body.user.id) {
+            createdTeacherIds.push(body.user.id);
+          } else if (body.id) {
             createdTeacherIds.push(body.id);
           }
         } catch (e) {
@@ -255,7 +258,9 @@ export function fullOnboardingWorkflow() {
       } else {
         try {
           const body = JSON.parse(studentRes.body);
-          if (body.id) {
+          if (body.user && body.user.id) {
+            createdStudentIds.push(body.user.id);
+          } else if (body.id) {
             createdStudentIds.push(body.id);
           }
         } catch (e) {
@@ -400,6 +405,8 @@ export function fullOnboardingWorkflow() {
       const teacherCreds = teachers[teacherIndex % teachers.length];
       if (!teacherCreds) continue;
 
+      auth.clearCookies();
+
       // Sign in as teacher
       const signinRes = auth.signin(teacherCreds.email, teacherCreds.password);
       if (signinRes.status !== 200) {
@@ -480,7 +487,7 @@ export function fullOnboardingWorkflow() {
     workflowComplete.add(1);
     metrics.workflowSuccess.add(1);
     console.log(
-      `[VU ${__VU}][Iter ${iterIndex}] Onboarding complete: ${createdTeacherIds.length} teachers, ${studentsPerAdmin} students, ${createdCourseIds.length} courses`,
+      `[VU ${__VU}][Iter ${iterIndex}] Onboarding complete: ${createdTeacherIds.length} teachers, ${createdStudentIds.length} students, ${createdCourseIds.length} courses`,
     );
   } else {
     workflowFailed.add(1);

@@ -9,6 +9,7 @@
 export const config = {
   local: {
     baseUrl: __ENV.BASE_URL || 'http://localhost:3000',
+    origin: __ENV.ORIGIN || 'http://localhost:3001',
     apiPrefix: '/api/v1',
     authPrefix: '/api/v1/auth',
     timeout: '60s',
