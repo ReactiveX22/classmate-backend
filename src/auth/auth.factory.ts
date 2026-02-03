@@ -1,10 +1,6 @@
 import { betterAuth, InferSession, InferUser } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import {
-  admin,
-  createAccessControl,
-  InferAdminRolesFromOption,
-} from 'better-auth/plugins';
+import { admin, createAccessControl } from 'better-auth/plugins';
 import { AppRole } from 'src/common/enums/role.enum';
 import { UserStatus } from 'src/common/enums/user-status.enum';
 import { DB } from 'src/database/db.provider';
@@ -34,6 +30,10 @@ export const authFactory = (
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,
+      password: {
+        hash: hashPassword,
+        verify: verifyPassword,
+      },
     },
     trustedOrigins: [config.clientURL],
     hooks: {
@@ -70,6 +70,35 @@ export const authFactory = (
   });
 };
 
+import { hash, type Options, verify } from '@node-rs/argon2';
+
+const balancedArgon2Options: Options = {
+  memoryCost: 65536, // 64 MiB
+  timeCost: 3, // 3 iterations
+  parallelism: 2, // 2 lanes
+  outputLen: 32, // 32-byte hash (standard)
+  algorithm: 2, // Argon2id
+  version: 1, // Version 1.3
+};
+
+function getArgon2Options(): Options {
+  return balancedArgon2Options;
+}
+
+export async function hashPassword(password: string): Promise<string> {
+  const options = getArgon2Options();
+  return await hash(password, options);
+}
+
+export async function verifyPassword(data: {
+  password: string;
+  hash: string;
+}): Promise<boolean> {
+  const { password, hash } = data;
+
+  return await verify(hash, password);
+}
+
 export type AuthType = ReturnType<typeof authFactory>;
-export type Session = InferSession<AuthType>;
-export type User = InferUser<AuthType>;
+export type Session = InferSession<AuthType['options']>;
+export type User = InferUser<AuthType['options']>;
