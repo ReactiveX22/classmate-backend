@@ -26,7 +26,7 @@ export const dbProvider: FactoryProvider = {
 
     const pool = new Pool({
       connectionString,
-      max: 20,
+      max: 50,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
       //   ssl: true

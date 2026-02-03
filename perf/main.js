@@ -1,66 +1,117 @@
-import papaparse from 'https://jslib.k6.io/papaparse/5.1.1/index.js';
-import { htmlReport } from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
+/**
+ * ClassMate k6 Performance Test Suite
+ *
+ * Main entry point for running performance tests.
+ *
+ * Usage:
+ *   k6 run perf/main.js                          # Default smoke test
+ *   k6 run perf/main.js --env SCENARIO=load      # Load test
+ *   k6 run perf/main.js --env SCENARIO=stress    # Stress test
+ *   k6 run perf/main.js --env SCENARIO=spike     # Spike test
+ *   k6 run perf/main.js --env SCENARIO=soak      # Soak test (1h)
+ *   k6 run perf/main.js --env ENV=staging        # Use staging thresholds
+ *
+ * Run specific scenarios directly:
+ *   k6 run perf/scenarios/smoke.js
+ *   k6 run perf/scenarios/load.js
+ *   k6 run perf/workflows/full-onboarding.js
+ */
 
-// 1. Load your CSV (using SharedArray so it's memory efficient)
-const csvData = new SharedArray('admin_users', function () {
-  return papaparse.parse(open('./data/admins.csv'), { header: true }).data;
-});
+import { getThresholds } from './config/thresholds.js';
+import { getScenario } from './config/options.js';
+import { currentEnv, currentConfig } from './config/env.js';
 
-export const options = {
-  scenarios: {
-    smoke_test: {
-      executor: 'constant-arrival-rate',
-      rate: 2, // 2 users per second
-      timeUnit: '1s',
-      duration: '10s',
-      preAllocatedVUs: 5,
-      maxVUs: 20,
-    },
-  },
-  thresholds: {
-    http_req_duration: ['p(95)<300'], // The test "fails" if 95% of reqs are > 300ms
-  },
+// Import scenarios
+import { smokeTest } from './scenarios/smoke.js';
+import { loadTest } from './scenarios/load.js';
+import { stressTest } from './scenarios/stress.js';
+import { spikeTest } from './scenarios/spike.js';
+import { soakTest } from './scenarios/soak.js';
+
+// Import workflows
+import { fullOnboardingWorkflow } from './workflows/full-onboarding.js';
+import { teacherDayWorkflow } from './workflows/teacher-day.js';
+import { studentDayWorkflow } from './workflows/student-day.js';
+
+// Configuration from environment
+const SCENARIO = __ENV.SCENARIO || 'smoke';
+const ENV = __ENV.ENV || currentEnv;
+
+// Map scenario names to functions
+const scenarioMap = {
+  smoke: smokeTest,
+  load: loadTest,
+  stress: stressTest,
+  spike: spikeTest,
+  soak: soakTest,
+  onboarding: fullOnboardingWorkflow,
+  teacher: teacherDayWorkflow,
+  student: studentDayWorkflow,
 };
 
-export default function () {
-  // Serial selection using built-in globals:
-  // This ensures different VUs pick different starting points in the CSV
-  const userIndex = (__ITER * 5 + (__VU - 1)) % csvData.length;
-  const user = csvData[userIndex];
+// Build options dynamically
+export const options = {
+  scenarios: {
+    default: getScenario(SCENARIO),
+  },
+  thresholds: getThresholds(ENV),
+};
 
-  const payload = JSON.stringify({
-    name: user.name,
-    email: user.email,
-    password: user.password,
-    organizationName: user.organizationName,
-  });
+/**
+ * Setup function - runs once before test
+ */
+export function setup() {
+  console.log('═'.repeat(50));
+  console.log('ClassMate Performance Test Suite');
+  console.log('═'.repeat(50));
+  console.log(`Scenario: ${SCENARIO}`);
+  console.log(`Environment: ${ENV}`);
+  console.log(`Base URL: ${currentConfig.baseUrl}`);
+  console.log('═'.repeat(50));
 
-  const params = {
-    headers: { 'Content-Type': 'application/json' },
+  return {
+    scenario: SCENARIO,
+    env: ENV,
+    baseUrl: currentConfig.baseUrl,
+    startTime: new Date().toISOString(),
   };
+}
 
-  const res = http.post(
-    'http://localhost:3000/api/v1/auth/sign-up/email',
-    payload,
-    params,
-  );
+/**
+ * Default test function
+ */
+export default function (data) {
+  const testFn = scenarioMap[SCENARIO];
 
-  // Success check for 200 or 201
-  const isSuccess = res.status === 200 || res.status === 201;
-
-  if (!isSuccess) {
-    console.log(`❌ Error ${res.status}: ${res.body}`);
+  if (!testFn) {
+    console.error(`Unknown scenario: ${SCENARIO}`);
+    console.log('Available scenarios:', Object.keys(scenarioMap).join(', '));
+    return;
   }
 
-  check(res, {
-    'is success': (r) => isSuccess,
-  });
+  testFn();
 }
-// 2. This hook runs at the very end to save your local report
-export function handleSummary(data) {
-  return {
-    'summary.html': htmlReport(data),
-    'summary.json': JSON.stringify(data),
-    stdout: `\n✨ Test complete! View your report at: summary.html\n`,
-  };
+
+/**
+ * Teardown function - runs once after test
+ */
+export function teardown(data) {
+  console.log('═'.repeat(50));
+  console.log('Test Complete');
+  console.log('═'.repeat(50));
+  console.log(`Started: ${data.startTime}`);
+  console.log(`Ended: ${new Date().toISOString()}`);
+  console.log('═'.repeat(50));
 }
+
+// Named exports for direct imports
+export {
+  smokeTest,
+  loadTest,
+  stressTest,
+  spikeTest,
+  soakTest,
+  fullOnboardingWorkflow,
+  teacherDayWorkflow,
+  studentDayWorkflow,
+};
