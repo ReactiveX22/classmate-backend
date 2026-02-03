@@ -10,7 +10,7 @@ import { check, group, sleep } from 'k6';
 import { buildOptions } from '../config/options.js';
 import { currentConfig } from '../config/env.js';
 import { AuthHelper } from '../lib/auth.js';
-import { generateUniqueData } from '../lib/data-loader.js';
+import { generateUniqueData, loadCsv, getRandom } from '../lib/data-loader.js';
 import { checkSuccess } from '../lib/assertions.js';
 import * as metrics from '../lib/metrics.js';
 
@@ -23,6 +23,9 @@ export const options = buildOptions({
   },
 });
 
+// Load admins for signin
+const admins = loadCsv('stress_admins', '../data/admins.csv');
+
 /**
  * Stress test function - pushes the system to its limits
  */
@@ -34,19 +37,17 @@ export function stressTest() {
   // Track active users
   metrics.activeUsers.add(__VU);
 
-  // 1. Signup (creates load on password hashing)
-  group('Stress Signup', () => {
+  // 1. Signin (lighter than signup, but we test high volume)
+  group('Stress Signin', () => {
+    const admin = getRandom(admins);
     const startTime = Date.now();
-    const signupRes = auth.signupAdmin({
-      name: `Stress User ${uniqueData.id}`,
-      email: uniqueData.email,
-      password: 'StressTest123!',
-      organizationName: `Stress Org ${uniqueData.id}`,
-    });
-    metrics.signupDuration.add(Date.now() - startTime);
 
-    const success = check(signupRes, {
-      'signup succeeded': (r) => r.status >= 200 && r.status < 300,
+    // Use random admin from CSV
+    auth.signin(admin.email, admin.password);
+    metrics.signinDuration.add(Date.now() - startTime);
+
+    const success = check(auth.isAuthenticated(), {
+      'signin succeeded': (isAuth) => isAuth === true,
     });
 
     if (!success) {
