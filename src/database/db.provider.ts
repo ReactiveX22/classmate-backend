@@ -26,10 +26,10 @@ export const dbProvider: FactoryProvider = {
 
     const pool = new Pool({
       connectionString,
-      max: 50,
+      max: 100,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
-      //   ssl: true
+      connectionTimeoutMillis: 10000,
+      maxUses: 7500,
     });
 
     pool.on('error', (err) => {

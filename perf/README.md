@@ -21,24 +21,27 @@ k6 run perf/main.js --env SCENARIO=load --env ENV=staging
 
 ## Scenarios
 
-| Scenario   | Command                 | Purpose                               |
-| ---------- | ----------------------- | ------------------------------------- |
-| **Smoke**  | `--env SCENARIO=smoke`  | Quick sanity check (1 VU, 30s)        |
-| **Load**   | `--env SCENARIO=load`   | Normal load (ramp to 50 VUs, 5m)      |
-| **Stress** | `--env SCENARIO=stress` | Find breaking point (200 VUs, 14m)    |
-| **Spike**  | `--env SCENARIO=spike`  | Sudden traffic burst (100 VUs in 10s) |
-| **Soak**   | `--env SCENARIO=soak`   | Memory leak detection (30 VUs, 1h)    |
+| Scenario   | Command                 | Purpose                                      |
+| ---------- | ----------------------- | -------------------------------------------- |
+| **Smoke**  | `--env SCENARIO=smoke`  | Quick sanity check (1 VU, 30s)               |
+| **Load**   | `--env SCENARIO=load`   | Normal load (ramp to 50 VUs, 5m)             |
+| **Stress** | `--env SCENARIO=stress` | Find breaking point (Requires seeded users)  |
+| **Spike**  | `--env SCENARIO=spike`  | Sudden traffic burst (Requires seeded users) |
+| **Soak**   | `--env SCENARIO=soak`   | Memory leak detection (30 VUs, 1h)           |
 
 ## Workflows
 
 ```bash
-# Full onboarding workflow
-k6 run perf/workflows/full-onboarding.js
+# Full onboarding workflow (Seeding)
+# Use this to seed the database with users before running spike/stress tests
+k6 run perf/main.js --env SCENARIO=onboarding
 
 # Role-specific workflows
 k6 run perf/main.js --env SCENARIO=teacher
 k6 run perf/main.js --env SCENARIO=student
 ```
+
+> **Note:** Spike and Stress tests rely on existing users. Run the `onboarding` scenario first to seed the database.
 
 ## Folder Structure
 

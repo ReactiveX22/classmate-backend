@@ -21,40 +21,21 @@ export const options = buildOptions({
   },
 });
 
-// Try to load existing users for faster signin
-let existingAdmins = [];
-try {
-  existingAdmins = loadCsv('spike_admins', '../data/admins.csv');
-} catch (e) {
-  // Will create new users
-}
+const admins = loadCsv('spike_admins', '../data/admins.csv');
 
 /**
  * Spike test function - simulates sudden traffic burst
  */
 export function spikeTest() {
   const auth = new AuthHelper(currentConfig.baseUrl);
-  const uniqueData = generateUniqueData('spike', __VU, __ITER);
-
-  // Mix of signin (fast) and signup (slow) to simulate real spike
-  const useExisting = existingAdmins.length > 0 && Math.random() > 0.3;
 
   group('Spike Authentication', () => {
-    if (useExisting) {
-      const admin = getRandom(existingAdmins);
-      const startTime = Date.now();
-      auth.signin(admin.email, admin.password);
-      metrics.signinDuration.add(Date.now() - startTime);
-    } else {
-      const startTime = Date.now();
-      auth.signupAdmin({
-        name: `Spike User ${uniqueData.id}`,
-        email: uniqueData.email,
-        password: 'SpikeTest123!',
-        organizationName: `Spike Org ${uniqueData.id}`,
-      });
-      metrics.signupDuration.add(Date.now() - startTime);
-    }
+    const admin = getRandom(admins);
+    const startTime = Date.now();
+
+    // Always use existing users (signin is much lighter than signup)
+    auth.signin(admin.email, admin.password);
+    metrics.signinDuration.add(Date.now() - startTime);
   });
 
   if (!auth.isAuthenticated()) {
