@@ -31,9 +31,10 @@
     "db:introspect": "drizzle-kit introspect",
     "db:seed": "ts-node -r tsconfig-paths/register src/database/seed.ts",
     "auth:generate": "pnpx @better-auth/cli generate --config ./src/auth/auth-schema-gen.ts",
-    "perf:onboarding": "k6 run perf/main.js --env SCENARIO=onboarding",
-    "perf:stress": "k6 run perf/main.js --env SCENARIO=stress",
-    "perf:spike": "k6 run perf/main.js --env SCENARIO=spike"
+    "perf:onboarding": "k6 run perf/perf.js --env SCENARIO=onboarding",
+    "perf:stress": "k6 run perf/perf.js --env SCENARIO=stress",
+    "perf:spike": "k6 run perf/perf.js --env SCENARIO=spike",
+    "perf:smoke": "k6 run perf/perf.js --env SCENARIO=smoke"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.12",

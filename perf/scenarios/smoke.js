@@ -12,6 +12,7 @@ import { buildOptions } from '../config/options.js';
 import { checkSuccess } from '../lib/assertions.js';
 import { AuthHelper } from '../lib/auth.js';
 import { generateUniqueData } from '../lib/data-loader.js';
+import { trackError } from '../lib/util.js';
 
 export const options = buildOptions({
   scenario: 'smoke',
@@ -33,9 +34,11 @@ export function smokeTest() {
   group('Health Check', () => {
     const res = client.get('/api/v1/health');
 
-    check(res, {
+    const checkPassed = check(res, {
       'API is reachable': (r) => r.status < 500,
     });
+
+    if (!checkPassed) trackError(res);
 
     sleep(0.5);
   });
@@ -54,7 +57,8 @@ export function smokeTest() {
     });
 
     if (!signupSuccess) {
-      console.error(`Signup failed: ${signupRes.status} - ${signupRes.body}`);
+      console.error(`Signup failed: ${signupRes.status}`);
+      trackError(signupRes, { tags: { phase: 'signup' } });
       return;
     }
 
