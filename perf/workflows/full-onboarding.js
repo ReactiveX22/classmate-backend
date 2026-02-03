@@ -9,13 +9,23 @@
  * 5. Verify Created Data
  */
 
+import exec from 'k6/execution';
 import { check, group, sleep } from 'k6';
 import { Trend, Counter } from 'k6/metrics';
 import { buildOptions } from '../config/options.js';
 import { currentConfig } from '../config/env.js';
 import { AuthHelper } from '../lib/auth.js';
-import { generateUniqueData } from '../lib/data-loader.js';
+import { loadCsv, getByVuIndex } from '../lib/data-loader.js';
 import * as metrics from '../lib/metrics.js';
+
+// Load data files
+const admins = loadCsv('onboarding_admins', '../data/admins.csv');
+const teachers = loadCsv('onboarding_teachers', '../data/teachers.csv');
+const students = loadCsv('onboarding_students', '../data/students.csv');
+
+// Calculate ratios
+const teachersPerAdmin = Math.floor(teachers.length / admins.length);
+const studentsPerAdmin = Math.floor(students.length / admins.length);
 
 // Workflow-specific metrics
 const workflowTotalDuration = new Trend(
@@ -45,7 +55,12 @@ export function fullOnboardingWorkflow() {
   const workflowStart = Date.now();
   const auth = new AuthHelper(currentConfig.baseUrl);
   const client = auth.getClient();
-  const uniqueData = generateUniqueData('onboard', __VU, __ITER);
+
+  // Use global iteration index prevents collisions in shared-iterations
+  const iterIndex = exec.scenario.iterationInTest;
+
+  // Get Admin (1 per iteration)
+  const adminData = admins[iterIndex % admins.length];
 
   let success = true;
   let createdTeacherId = null;
@@ -58,10 +73,10 @@ export function fullOnboardingWorkflow() {
     const stepStart = Date.now();
 
     const signupRes = auth.signupAdmin({
-      name: `Admin ${uniqueData.id}`,
-      email: uniqueData.email,
-      password: 'Workflow123!',
-      organizationName: `Workflow Org ${uniqueData.id}`,
+      name: adminData.name,
+      email: adminData.email,
+      password: adminData.password,
+      organizationName: adminData.organizationName,
     });
 
     stepSignupDuration.add(Date.now() - stepStart);
@@ -127,48 +142,44 @@ export function fullOnboardingWorkflow() {
   }
 
   // ================================================
-  // PHASE 3: Create Teacher
+  // PHASE 3: Create Teachers (Loop)
   // ================================================
-  group('Phase 3: Create Teacher', () => {
-    const stepStart = Date.now();
+  group(`Phase 3: Create Teachers (${teachersPerAdmin}x)`, () => {
+    for (let i = 0; i < teachersPerAdmin; i++) {
+      const globalTeacherIndex = iterIndex * teachersPerAdmin + i;
+      const teacherData = teachers[globalTeacherIndex % teachers.length];
 
-    const teacherRes = client.post(
-      '/api/v1/teachers',
-      {
-        name: `Teacher ${uniqueData.id}`,
-        email: `teacher-${uniqueData.id}@test.local`,
-        password: 'Teacher123!',
-        title: 'Professor',
-        joinDate: new Date().toISOString().split('T')[0],
-      },
-      {
-        tags: { endpoint: 'crud' },
-      },
-    );
+      const stepStart = Date.now();
 
-    stepTeacherDuration.add(Date.now() - stepStart);
-    metrics.crudCreateDuration.add(Date.now() - stepStart);
-
-    const stepSuccess = check(teacherRes, {
-      'teacher created': (r) => r.status === 200 || r.status === 201,
-      'teacher has user id': (r) => {
-        try {
-          const body = JSON.parse(r.body);
-          createdTeacherId = body.user?.id || body.id;
-          return createdTeacherId !== undefined;
-        } catch (e) {
-          return false;
-        }
-      },
-    });
-
-    if (!stepSuccess) {
-      console.error(
-        `[VU ${__VU}] Teacher creation failed: ${teacherRes.status}`,
+      const teacherRes = client.post(
+        '/api/v1/teachers',
+        {
+          name: teacherData.name,
+          email: teacherData.email,
+          password: teacherData.password,
+          title: teacherData.title || 'Lecturer',
+          joinDate:
+            teacherData.joinDate || new Date().toISOString().split('T')[0],
+        },
+        {
+          tags: { endpoint: 'crud' },
+        },
       );
-      success = false;
-    }
 
+      stepTeacherDuration.add(Date.now() - stepStart);
+      metrics.crudCreateDuration.add(Date.now() - stepStart);
+
+      const stepSuccess = check(teacherRes, {
+        'teacher created': (r) => r.status === 200 || r.status === 201,
+      });
+
+      if (!stepSuccess) {
+        console.error(
+          `[Iter ${iterIndex}] Teacher creation failed for index ${globalTeacherIndex}: ${teacherRes.status}`,
+        );
+        success = false;
+      }
+    }
     sleep(0.3);
   });
 
@@ -178,47 +189,43 @@ export function fullOnboardingWorkflow() {
   }
 
   // ================================================
-  // PHASE 4: Create Student
+  // PHASE 4: Create Students (Loop)
   // ================================================
-  group('Phase 4: Create Student', () => {
-    const stepStart = Date.now();
+  group(`Phase 4: Create Students (${studentsPerAdmin}x)`, () => {
+    for (let i = 0; i < studentsPerAdmin; i++) {
+      const globalStudentIndex = iterIndex * studentsPerAdmin + i;
+      const studentData = students[globalStudentIndex % students.length];
 
-    const studentRes = client.post(
-      '/api/v1/students',
-      {
-        name: `Student ${uniqueData.id}`,
-        email: `student-${uniqueData.id}@test.local`,
-        password: 'Student123!',
-        studentId: `STU-${uniqueData.id}`,
-      },
-      {
-        tags: { endpoint: 'crud' },
-      },
-    );
+      const stepStart = Date.now();
 
-    stepStudentDuration.add(Date.now() - stepStart);
-    metrics.crudCreateDuration.add(Date.now() - stepStart);
-
-    const stepSuccess = check(studentRes, {
-      'student created': (r) => r.status === 200 || r.status === 201,
-      'student has id': (r) => {
-        try {
-          const body = JSON.parse(r.body);
-          createdStudentId = body.user?.id || body.id;
-          return createdStudentId !== undefined;
-        } catch (e) {
-          return false;
-        }
-      },
-    });
-
-    if (!stepSuccess) {
-      console.error(
-        `[VU ${__VU}] Student creation failed: ${studentRes.status}`,
+      const studentRes = client.post(
+        '/api/v1/students',
+        {
+          name: studentData.name,
+          email: studentData.email,
+          password: studentData.password,
+          studentId:
+            studentData.studentId || `STU-${Date.now()}-${globalStudentIndex}`,
+        },
+        {
+          tags: { endpoint: 'crud' },
+        },
       );
-      success = false;
-    }
 
+      stepStudentDuration.add(Date.now() - stepStart);
+      metrics.crudCreateDuration.add(Date.now() - stepStart);
+
+      const stepSuccess = check(studentRes, {
+        'student created': (r) => r.status === 200 || r.status === 201,
+      });
+
+      if (!stepSuccess) {
+        console.error(
+          `[Iter ${iterIndex}] Student creation failed for index ${globalStudentIndex}: ${studentRes.status}`,
+        );
+        success = false;
+      }
+    }
     sleep(0.3);
   });
 
@@ -278,7 +285,7 @@ export function fullOnboardingWorkflow() {
     duration: totalDuration,
     createdTeacherId,
     createdStudentId,
-    adminEmail: uniqueData.email,
+    adminEmail: adminData.email,
   };
 }
 

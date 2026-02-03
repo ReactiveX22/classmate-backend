@@ -54,6 +54,13 @@ export const scenarios = {
     duration: '1h',
   },
 
+  onboarding: {
+    executor: 'shared-iterations',
+    vus: 10,
+    iterations: 100,
+    maxDuration: '10m',
+  },
+
   // Per-VU iterations (useful for workflows)
   workflow: {
     executor: 'per-vu-iterations',
