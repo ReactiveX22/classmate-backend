@@ -17,16 +17,16 @@
  *   k6 run perf/workflows/full-onboarding.js
  */
 
-import { getThresholds } from './config/thresholds.js';
+import { currentConfig, currentEnv } from './config/env.js';
 import { getScenario } from './config/options.js';
-import { currentEnv, currentConfig } from './config/env.js';
+import { getThresholds } from './config/thresholds.js';
 
 // Import scenarios
-import { smokeTest } from './scenarios/smoke.js';
 import { loadTest } from './scenarios/load.js';
-import { stressTest } from './scenarios/stress.js';
-import { spikeTest } from './scenarios/spike.js';
+import { smokeTest } from './scenarios/smoke.js';
 import { soakTest } from './scenarios/soak.js';
+import { spikeTest } from './scenarios/spike.js';
+import { stressTest } from './scenarios/stress.js';
 
 // Import workflows
 import { fullOnboardingWorkflow } from './workflows/full-onboarding.js';
@@ -102,18 +102,22 @@ export function teardown(data) {
 
 // Named exports for direct imports
 export {
-  smokeTest,
-  loadTest,
-  stressTest,
-  spikeTest,
-  soakTest,
   fullOnboardingWorkflow,
+  loadTest,
+  smokeTest,
+  soakTest,
+  spikeTest,
+  stressTest,
 };
 
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.2/index.js';
 
 export function handleSummary(data) {
-  // Filter out metrics with no data to keep the output clean
+  // 1. Capture full data for JSON report BEFORE filtering
+  const jsonFile = `perf/results/${SCENARIO}_summary.json`;
+  const jsonContent = JSON.stringify(data);
+
+  // 2. Filter out metrics with no data to keep the CLI output clean
   for (const key in data.metrics) {
     const metric = data.metrics[key];
 
@@ -142,5 +146,6 @@ export function handleSummary(data) {
 
   return {
     stdout: textSummary(data, { indent: ' ', enableColors: true }),
+    [jsonFile]: jsonContent,
   };
 }
