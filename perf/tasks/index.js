@@ -10,9 +10,18 @@ import * as classroomTasks from './classroom.tasks.js';
 import * as postTasks from './post.tasks.js';
 import * as uploadTasks from './upload.tasks.js';
 import * as attendanceTasks from './attendance.tasks.js';
+import * as courseTasks from './course.tasks.js';
+import * as userTasks from './user.tasks.js';
 
 // Re-export all tasks
-export { classroomTasks, postTasks, uploadTasks, attendanceTasks };
+export {
+  classroomTasks,
+  postTasks,
+  uploadTasks,
+  attendanceTasks,
+  courseTasks,
+  userTasks,
+};
 
 /**
  * Unified task registry
@@ -42,6 +51,13 @@ export const allTasks = {
   // Attendance tasks
   markAttendance: attendanceTasks.markAttendance,
   listAttendance: attendanceTasks.listAttendance,
+
+  // Course tasks
+  listCourses: courseTasks.listCourses,
+
+  // User tasks
+  listTeachers: userTasks.listTeachers,
+  listStudents: userTasks.listStudents,
 };
 
 /**
@@ -89,4 +105,7 @@ export const readTasks = getTasksByName([
   'getPost',
   'downloadFile',
   'listAttendance',
+  'listCourses',
+  'listTeachers',
+  'listStudents',
 ]);

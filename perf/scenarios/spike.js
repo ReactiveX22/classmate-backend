@@ -15,6 +15,7 @@ import { buildOptions } from '../config/options.js';
 import { AuthHelper } from '../lib/auth.js';
 import { getRandom, loadCsv } from '../lib/data-loader.js';
 import * as metrics from '../lib/metrics.js';
+import { trackError } from '../lib/util.js';
 import { selectTask, weights } from '../lib/task-selector.js';
 import { allTasks } from '../tasks/index.js';
 
@@ -27,7 +28,10 @@ export const options = buildOptions({
 });
 
 // Load seeded users
-const admins = loadCsv('spike_admins', '../data/admins.csv').slice(0, 50);
+const teachers = loadCsv('spike_teachers', '../data/teachers.csv').slice(
+  0,
+  100,
+);
 
 /**
  * Spike test function - simulates sudden traffic burst
@@ -38,16 +42,20 @@ export function spikeTest() {
 
   // Authentication with existing users
   group('Spike Authentication', () => {
-    const admin = getRandom(admins);
+    const teacher = getRandom(teachers);
     const startTime = Date.now();
 
     // Always use existing users (signin is much lighter than signup)
-    auth.signin(admin.email, admin.password);
+    const res = auth.signin(teacher.email, teacher.password);
     metrics.signinDuration.add(Date.now() - startTime);
 
-    check(auth.isAuthenticated(), {
+    const success = check(auth.isAuthenticated(), {
       authenticated: (isAuth) => isAuth === true,
     });
+
+    if (!success) {
+      trackError(res);
+    }
   });
 
   if (!auth.isAuthenticated()) {
@@ -79,10 +87,11 @@ export function spikeTest() {
         selectedTaskName === 'joinClassroom' // Requires classroomCode
       ) {
         // Use simple list operations instead
-        const res = client.get('/api/v1/teachers?page=1&limit=5', {
+        const res = client.get('/api/v1/courses?page=1&limit=5', {
           tags: { endpoint: 'spike_fallback' },
         });
-        check(res, { 'spike list ok': (r) => r.status < 500 });
+        const success = check(res, { 'spike list ok': (r) => r.status < 500 });
+        if (!success) trackError(res);
         sleep(0.05);
         continue;
       }
@@ -104,14 +113,17 @@ export function spikeTest() {
   // Quick API checks
   group('Spike API Access', () => {
     const startTime = Date.now();
-    const res = client.get('/api/v1/teachers', {
-      tags: { endpoint: 'spike_teachers' },
+    // Using listStudents allowed for instructors
+    const res = client.get('/api/v1/students?page=1&limit=5', {
+      tags: { endpoint: 'spike_students' },
     });
     metrics.crudReadDuration.add(Date.now() - startTime);
 
-    check(res, {
+    const success = check(res, {
       'API responded': (r) => r.status < 500,
     });
+
+    if (!success) trackError(res);
 
     sleep(0.05);
 
@@ -120,9 +132,11 @@ export function spikeTest() {
       tags: { endpoint: 'spike_courses' },
     });
 
-    check(coursesRes, {
+    const coursesSuccess = check(coursesRes, {
       'courses API responded': (r) => r.status < 500,
     });
+
+    if (!coursesSuccess) trackError(coursesRes);
   });
 
   // Minimal sleep during spike

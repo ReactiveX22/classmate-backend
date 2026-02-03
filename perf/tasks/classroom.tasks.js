@@ -6,7 +6,8 @@
  */
 
 import { check } from 'k6';
-import { Trend, Counter } from 'k6/metrics';
+import { Counter, Trend } from 'k6/metrics';
+import { trackError } from '../lib/util.js';
 
 // Metrics
 const classroomCreateDuration = new Trend(
@@ -34,9 +35,11 @@ export function listClassrooms(client, context) {
 
   classroomListDuration.add(Date.now() - startTime);
 
-  check(res, {
+  const success = check(res, {
     'classrooms listed': (r) => r.status === 200,
   });
+
+  if (!success) trackError(res);
 
   return res;
 }
@@ -90,6 +93,7 @@ export function createClassroom(client, context) {
     }
   } else {
     classroomCreateFailure.add(1);
+    trackError(res);
     console.error(`[createClassroom] Failed: ${res.status} - ${res.body}`);
   }
 
@@ -123,9 +127,11 @@ export function joinClassroom(client, context) {
 
   classroomJoinDuration.add(Date.now() - startTime);
 
-  check(res, {
+  const success = check(res, {
     'classroom joined': (r) => r.status === 200 || r.status === 201,
   });
+
+  if (!success) trackError(res);
 
   return res;
 }
@@ -149,9 +155,11 @@ export function getClassroom(client, context) {
     tags: { endpoint: 'classrooms_get', task: 'getClassroom' },
   });
 
-  check(res, {
+  const success = check(res, {
     'classroom retrieved': (r) => r.status === 200,
   });
+
+  if (!success) trackError(res);
 
   return res;
 }
@@ -179,9 +187,11 @@ export function leaveClassroom(client, context) {
     },
   );
 
-  check(res, {
+  const success = check(res, {
     'left classroom': (r) => r.status === 204 || r.status === 200,
   });
+
+  if (!success) trackError(res);
 
   return res;
 }
