@@ -1,31 +1,50 @@
 /**
  * Full Onboarding Workflow
  *
- * Complete multi-step workflow testing the entire user onboarding flow:
+ * Complete multi-step workflow for database seeding:
  * 1. Admin Signup (creates organization)
  * 2. Session Validation
- * 3. Create Teacher
- * 4. Create Student
- * 5. Verify Created Data
+ * 3. Create Teachers
+ * 4. Create Students
+ * 5. Create Courses (with teacher assignment)
+ * 6. Verify Created Data
  */
 
-import exec from 'k6/execution';
 import { check, group, sleep } from 'k6';
-import { Trend, Counter } from 'k6/metrics';
-import { buildOptions } from '../config/options.js';
+import exec from 'k6/execution';
+import { Counter, Trend } from 'k6/metrics';
 import { currentConfig } from '../config/env.js';
+import { buildOptions } from '../config/options.js';
 import { AuthHelper } from '../lib/auth.js';
-import { loadCsv, getByVuIndex } from '../lib/data-loader.js';
+import { loadCsv } from '../lib/data-loader.js';
 import * as metrics from '../lib/metrics.js';
 
 // Load data files
+// Load data files
 const admins = loadCsv('onboarding_admins', '../data/admins.csv');
-const teachers = loadCsv('onboarding_teachers', '../data/teachers.csv');
-const students = loadCsv('onboarding_students', '../data/students.csv');
+const teachers = loadCsv('onboarding_teachers', '../data/teachers.csv').slice(
+  0,
+  100,
+);
+const students = loadCsv('onboarding_students', '../data/students.csv').slice(
+  0,
+  100,
+);
+const courses = loadCsv('onboarding_courses', '../data/courses.csv');
 
-// Calculate ratios
-const teachersPerAdmin = Math.floor(teachers.length / admins.length);
-const studentsPerAdmin = Math.floor(students.length / admins.length);
+// Calculate ratios based on 100 admins, 100 teachers, 100 students
+const teachersPerAdmin = Math.max(
+  1,
+  Math.floor(teachers.length / admins.length),
+);
+const studentsPerAdmin = Math.max(
+  1,
+  Math.floor(students.length / admins.length),
+);
+const coursesPerAdmin = Math.min(
+  3,
+  Math.max(1, Math.floor(courses.length / admins.length)),
+);
 
 // Workflow-specific metrics
 const workflowTotalDuration = new Trend(
@@ -35,16 +54,18 @@ const workflowTotalDuration = new Trend(
 const stepSignupDuration = new Trend('workflow_step_signup_duration', true);
 const stepTeacherDuration = new Trend('workflow_step_teacher_duration', true);
 const stepStudentDuration = new Trend('workflow_step_student_duration', true);
+const stepCourseDuration = new Trend('workflow_step_course_duration', true);
 const workflowComplete = new Counter('workflow_onboarding_complete');
 const workflowFailed = new Counter('workflow_onboarding_failed');
 
 export const options = buildOptions({
   scenario: 'workflow',
   extraThresholds: {
-    workflow_onboarding_total_duration: ['p(95)<30000'],
+    workflow_onboarding_total_duration: ['p(95)<60000'], // Increased for course creation
     workflow_step_signup_duration: ['p(95)<8000'],
     workflow_step_teacher_duration: ['p(95)<5000'],
     workflow_step_student_duration: ['p(95)<5000'],
+    workflow_step_course_duration: ['p(95)<5000'],
   },
 });
 
@@ -63,8 +84,8 @@ export function fullOnboardingWorkflow() {
   const adminData = admins[iterIndex % admins.length];
 
   let success = true;
-  let createdTeacherId = null;
-  let createdStudentId = null;
+  let createdTeacherIds = [];
+  let createdCourseIds = [];
 
   // ================================================
   // PHASE 1: Admin Signup with Organization
@@ -142,16 +163,16 @@ export function fullOnboardingWorkflow() {
   }
 
   // ================================================
-  // PHASE 3: Create Teachers (Loop)
+  // PHASE 3: Create Teachers (Sequential Loop)
   // ================================================
   group(`Phase 3: Create Teachers (${teachersPerAdmin}x)`, () => {
+    const stepStart = Date.now();
+
     for (let i = 0; i < teachersPerAdmin; i++) {
       const globalTeacherIndex = iterIndex * teachersPerAdmin + i;
       const teacherData = teachers[globalTeacherIndex % teachers.length];
 
-      const stepStart = Date.now();
-
-      const teacherRes = client.post(
+      const res = client.post(
         '/api/v1/teachers',
         {
           name: teacherData.name,
@@ -166,21 +187,31 @@ export function fullOnboardingWorkflow() {
         },
       );
 
-      stepTeacherDuration.add(Date.now() - stepStart);
-      metrics.crudCreateDuration.add(Date.now() - stepStart);
-
-      const stepSuccess = check(teacherRes, {
+      const checkPassed = check(res, {
         'teacher created': (r) => r.status === 200 || r.status === 201,
       });
 
-      if (!stepSuccess) {
+      if (checkPassed) {
+        try {
+          const body = JSON.parse(res.body);
+          if (body.id) {
+            createdTeacherIds.push(body.id);
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      } else {
         console.error(
-          `[Iter ${iterIndex}] Teacher creation failed for index ${globalTeacherIndex}: ${teacherRes.status}`,
+          `[VU ${__VU}][Iter ${iterIndex}] Teacher ${i} failed: ${res.status}`,
         );
         success = false;
+        if (res.status === 504 || res.status === 408) break;
       }
+
+      sleep(0.1);
     }
-    sleep(0.3);
+
+    stepTeacherDuration.add(Date.now() - stepStart);
   });
 
   if (!success) {
@@ -192,11 +223,11 @@ export function fullOnboardingWorkflow() {
   // PHASE 4: Create Students (Loop)
   // ================================================
   group(`Phase 4: Create Students (${studentsPerAdmin}x)`, () => {
+    const stepStart = Date.now();
+
     for (let i = 0; i < studentsPerAdmin; i++) {
       const globalStudentIndex = iterIndex * studentsPerAdmin + i;
       const studentData = students[globalStudentIndex % students.length];
-
-      const stepStart = Date.now();
 
       const studentRes = client.post(
         '/api/v1/students',
@@ -212,9 +243,6 @@ export function fullOnboardingWorkflow() {
         },
       );
 
-      stepStudentDuration.add(Date.now() - stepStart);
-      metrics.crudCreateDuration.add(Date.now() - stepStart);
-
       const stepSuccess = check(studentRes, {
         'student created': (r) => r.status === 200 || r.status === 201,
       });
@@ -225,8 +253,12 @@ export function fullOnboardingWorkflow() {
         );
         success = false;
       }
+
+      sleep(0.1);
     }
-    sleep(0.3);
+
+    stepStudentDuration.add(Date.now() - stepStart);
+    metrics.crudCreateDuration.add(Date.now() - stepStart);
   });
 
   if (!success) {
@@ -235,9 +267,71 @@ export function fullOnboardingWorkflow() {
   }
 
   // ================================================
-  // PHASE 5: Verify Created Data
+  // PHASE 5: Create Courses with Teacher Assignment
   // ================================================
-  group('Phase 5: Verify Data', () => {
+  group(`Phase 5: Create Courses (${coursesPerAdmin}x)`, () => {
+    const stepStart = Date.now();
+
+    for (let i = 0; i < coursesPerAdmin; i++) {
+      const globalCourseIndex = iterIndex * coursesPerAdmin + i;
+      const courseData = courses[globalCourseIndex % courses.length];
+
+      // Assign a teacher to the course (round-robin from created teachers)
+      const teacherId =
+        createdTeacherIds.length > 0
+          ? createdTeacherIds[i % createdTeacherIds.length]
+          : undefined;
+
+      const coursePayload = {
+        code: `${courseData.code}-${iterIndex}-${i}`, // Unique code per iteration
+        title: courseData.title,
+        description:
+          courseData.description || `Course created during onboarding`,
+        credits: parseInt(courseData.credits) || 3,
+        semester: courseData.semester || 'Fall 2025',
+        maxStudents: parseInt(courseData.maxStudents) || 50,
+      };
+
+      // Add teacherId if we have one
+      if (teacherId) {
+        coursePayload.teacherId = teacherId;
+      }
+
+      const courseRes = client.post('/api/v1/courses', coursePayload, {
+        tags: { endpoint: 'crud' },
+      });
+
+      const courseSuccess = check(courseRes, {
+        'course created': (r) => r.status === 200 || r.status === 201,
+      });
+
+      if (courseSuccess) {
+        try {
+          const body = JSON.parse(courseRes.body);
+          if (body.id) {
+            createdCourseIds.push(body.id);
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      } else {
+        console.error(
+          `[VU ${__VU}][Iter ${iterIndex}] Course ${i} failed: ${courseRes.status} - ${courseRes.body}`,
+        );
+        // Don't fail the entire workflow for course creation failures
+        // success = false;
+      }
+
+      sleep(0.1);
+    }
+
+    stepCourseDuration.add(Date.now() - stepStart);
+  });
+
+  // ================================================
+  // PHASE 6: Verify Created Data
+  // ================================================
+  group('Phase 6: Verify Data', () => {
     // List teachers
     const teachersRes = client.get('/api/v1/teachers', {
       tags: { endpoint: 'classrooms_list' },
@@ -254,8 +348,19 @@ export function fullOnboardingWorkflow() {
       tags: { endpoint: 'classrooms_list' },
     });
 
-    const verified = check(studentsRes, {
+    check(studentsRes, {
       'students list accessible': (r) => r.status === 200,
+    });
+
+    sleep(0.2);
+
+    // List courses
+    const coursesRes = client.get('/api/v1/courses', {
+      tags: { endpoint: 'crud' },
+    });
+
+    const verified = check(coursesRes, {
+      'courses list accessible': (r) => r.status === 200,
     });
 
     if (!verified) {
@@ -275,6 +380,9 @@ export function fullOnboardingWorkflow() {
   if (success) {
     workflowComplete.add(1);
     metrics.workflowSuccess.add(1);
+    console.log(
+      `[VU ${__VU}][Iter ${iterIndex}] Onboarding complete: ${createdTeacherIds.length} teachers, ${studentsPerAdmin} students, ${createdCourseIds.length} courses`,
+    );
   } else {
     workflowFailed.add(1);
     metrics.workflowFailure.add(1);
@@ -283,8 +391,8 @@ export function fullOnboardingWorkflow() {
   return {
     success,
     duration: totalDuration,
-    createdTeacherId,
-    createdStudentId,
+    createdTeacherIds,
+    createdCourseIds,
     adminEmail: adminData.email,
   };
 }

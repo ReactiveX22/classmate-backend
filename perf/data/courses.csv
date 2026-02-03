@@ -1,0 +1,21 @@
+code,title,description,credits,semester,maxStudents
+CS101,Introduction to Computer Science,Fundamentals of programming and computational thinking,3,Fall 2025,50
+CS201,Data Structures and Algorithms,Study of fundamental data structures and algorithm design,4,Fall 2025,45
+CS301,Database Systems,Relational databases and SQL fundamentals,3,Fall 2025,40
+CS401,Software Engineering,Software development methodologies and practices,3,Fall 2025,35
+MATH101,Calculus I,Differential calculus and introduction to integral calculus,4,Fall 2025,60
+MATH201,Linear Algebra,Vector spaces matrices and linear transformations,3,Fall 2025,50
+MATH301,Discrete Mathematics,Logic sets relations and graph theory,3,Fall 2025,45
+PHYS101,Physics I,Mechanics thermodynamics and waves,4,Fall 2025,55
+PHYS201,Physics II,Electricity magnetism and optics,4,Fall 2025,50
+ENG101,English Composition,Academic writing and critical thinking,3,Fall 2025,40
+ENG201,Technical Writing,Technical documentation and communication,3,Fall 2025,35
+BIO101,Introduction to Biology,Cell biology genetics and evolution,4,Fall 2025,60
+CHEM101,General Chemistry,Atomic structure bonding and reactions,4,Fall 2025,55
+ECON101,Principles of Economics,Microeconomics and macroeconomics fundamentals,3,Fall 2025,65
+PSY101,Introduction to Psychology,Human behavior and mental processes,3,Fall 2025,70
+HIST101,World History,Major events and civilizations in world history,3,Fall 2025,50
+ART101,Art Appreciation,Introduction to visual arts and art history,3,Fall 2025,40
+MUS101,Music Theory,Fundamentals of music theory and notation,3,Fall 2025,35
+PHIL101,Introduction to Philosophy,Major philosophical concepts and thinkers,3,Fall 2025,45
+SOC101,Introduction to Sociology,Social structures and human society,3,Fall 2025,50

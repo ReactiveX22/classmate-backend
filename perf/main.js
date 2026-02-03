@@ -30,8 +30,6 @@ import { soakTest } from './scenarios/soak.js';
 
 // Import workflows
 import { fullOnboardingWorkflow } from './workflows/full-onboarding.js';
-import { teacherDayWorkflow } from './workflows/teacher-day.js';
-import { studentDayWorkflow } from './workflows/student-day.js';
 
 // Configuration from environment
 const SCENARIO = __ENV.SCENARIO || 'smoke';
@@ -45,8 +43,6 @@ const scenarioMap = {
   spike: spikeTest,
   soak: soakTest,
   onboarding: fullOnboardingWorkflow,
-  teacher: teacherDayWorkflow,
-  student: studentDayWorkflow,
 };
 
 // Build options dynamically
@@ -54,7 +50,7 @@ export const options = {
   scenarios: {
     default: getScenario(SCENARIO),
   },
-  thresholds: getThresholds(ENV),
+  thresholds: getThresholds(ENV, SCENARIO),
 };
 
 /**
@@ -112,6 +108,4 @@ export {
   spikeTest,
   soakTest,
   fullOnboardingWorkflow,
-  teacherDayWorkflow,
-  studentDayWorkflow,
 };
