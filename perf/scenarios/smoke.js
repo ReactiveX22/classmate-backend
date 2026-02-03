@@ -7,12 +7,11 @@
  */
 
 import { check, group, sleep } from 'k6';
-import { buildOptions } from '../config/options.js';
 import { currentConfig } from '../config/env.js';
-import { createClient } from '../lib/http-client.js';
+import { buildOptions } from '../config/options.js';
+import { checkSuccess } from '../lib/assertions.js';
 import { AuthHelper } from '../lib/auth.js';
 import { generateUniqueData } from '../lib/data-loader.js';
-import { checkSuccess, checkJson } from '../lib/assertions.js';
 
 export const options = buildOptions({
   scenario: 'smoke',

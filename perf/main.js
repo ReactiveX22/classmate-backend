@@ -109,3 +109,38 @@ export {
   soakTest,
   fullOnboardingWorkflow,
 };
+
+import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.2/index.js';
+
+export function handleSummary(data) {
+  // Filter out metrics with no data to keep the output clean
+  for (const key in data.metrics) {
+    const metric = data.metrics[key];
+
+    // Check if metric has any recorded values
+    // For Trends/Counters/Gauges check 'count', for Rates check 'rate'
+    const hasValues =
+      metric.values.count > 0 ||
+      (metric.values.rate !== undefined && metric.values.rate > 0) ||
+      metric.values.value !== undefined;
+
+    // If it's a custom metric (not builtin) and has no values, remove it
+    // We keep builtins like iterations, vus, etc. even if 0 for context
+    if (!hasValues && !key.includes('iterations') && !key.includes('vus')) {
+      delete data.metrics[key];
+    }
+
+    // Specifically remove custom metrics with 0 count even if they are technically "present"
+    if (
+      metric.values.count === 0 &&
+      !key.startsWith('http') &&
+      !key.startsWith('iteration')
+    ) {
+      delete data.metrics[key];
+    }
+  }
+
+  return {
+    stdout: textSummary(data, { indent: ' ', enableColors: true }),
+  };
+}
