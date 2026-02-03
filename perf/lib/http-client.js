@@ -18,12 +18,16 @@ const httpErrors = new Counter('http_req_custom_errors');
  * @param {string} baseUrl - Base URL for requests
  * @returns {Object} HTTP client with get, post, patch, delete methods
  */
-export function createClient(baseUrl = currentConfig.baseUrl) {
+export function createClient(
+  baseUrl = currentConfig.baseUrl,
+  origin = currentConfig.origin,
+) {
   const jar = http.cookieJar();
 
   const defaultHeaders = {
     'Content-Type': 'application/json',
     Accept: 'application/json',
+    Origin: origin,
   };
 
   /**

@@ -49,7 +49,7 @@ export class TeacherRepository {
       .select()
       .from(teacher)
       .innerJoin(user, eq(teacher.userId, user.id))
-      .where(eq(teacher.id, id))
+      .where(eq(user.id, id))
       .limit(1);
 
     return result[0] || null;

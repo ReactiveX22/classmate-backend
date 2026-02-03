@@ -37,11 +37,6 @@ export const teacherRelations = relations(teacher, ({ one, many }) => ({
     fields: [teacher.userId],
     references: [user.id],
   }),
-  courses: many(course),
-  classroom: one(classroom, {
-    fields: [teacher.id],
-    references: [classroom.teacherId],
-  }),
 }));
 
 export type SelectTeacher = typeof teacher.$inferSelect;

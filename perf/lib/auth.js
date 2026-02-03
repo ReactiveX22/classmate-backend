@@ -159,6 +159,16 @@ export class AuthHelper {
     return res;
   }
 
+  clearCookies() {
+    // Clear all cookies from the current jar
+    this.client.jar.clear(this.baseUr);
+
+    this.currentUser = null;
+    this.currentSession = null;
+
+    console.log(`[AuthHelper] Cleared all cookies and reset client`);
+  }
+
   /**
    * Get the underlying HTTP client
    * @returns {Object} HTTP client
