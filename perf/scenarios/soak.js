@@ -16,15 +16,17 @@ import {
   loadCsv,
 } from '../lib/data-loader.js';
 import * as metrics from '../lib/metrics.js';
+import { trackError } from '../lib/util.js';
+import { allTasks } from '../tasks/index.js';
 
 export const options = buildOptions({
   scenario: 'soak',
 });
 
 // Load existing users for soak test
-let existingAdmins = [];
+let existingTeachers = [];
 try {
-  existingAdmins = loadCsv('soak_admins', '../data/admins.csv');
+  existingTeachers = loadCsv('soak_teachers', '../data/teachers.csv');
 } catch (e) {
   // Will create new users if needed
 }
@@ -37,28 +39,36 @@ export function soakTest() {
   const client = auth.getClient();
 
   // Prefer existing users for soak test (avoid creating too many)
-  if (existingAdmins.length > 0) {
+  if (existingTeachers.length > 0) {
     group('Soak Signin', () => {
-      const admin = getByVuIndex(existingAdmins, __VU);
+      const teacher = getByVuIndex(existingTeachers, __VU);
       const startTime = Date.now();
-      const res = auth.signin(admin.email, admin.password);
+      const res = auth.signin(teacher.email, teacher.password);
       metrics.signinDuration.add(Date.now() - startTime);
 
-      check(res, {
+      const success = check(res, {
         'signin succeeded': (r) => r.status === 200,
       });
+
+      if (!success) trackError(res);
     });
   } else {
     const uniqueData = generateUniqueData('soak', __VU, __ITER);
     group('Soak Signup', () => {
       const startTime = Date.now();
-      auth.signupAdmin({
+      const res = auth.signupAdmin({
         name: `Soak User ${uniqueData.id}`,
         email: uniqueData.email,
         password: 'SoakTest123!',
         organizationName: `Soak Org ${uniqueData.id}`,
       });
       metrics.signupDuration.add(Date.now() - startTime);
+
+      const success = check(res, {
+        'signup succeeded': (r) => r.status >= 200 && r.status < 300,
+      });
+
+      if (!success) trackError(res, { tags: { phase: 'signup' } });
     });
   }
 
@@ -74,20 +84,16 @@ export function soakTest() {
     const sessionRes = auth.validateSession();
     metrics.sessionDuration.add(Date.now() - sessionStart);
 
-    check(sessionRes, {
+    const success = check(sessionRes, {
       'session valid': (r) => r.status === 200,
     });
 
+    if (!success) trackError(sessionRes);
+
     sleep(0.5);
 
-    // API calls
-    const apiStart = Date.now();
-    const res = client.get('/api/v1/teachers');
-    metrics.crudReadDuration.add(Date.now() - apiStart);
-
-    check(res, {
-      'API responded': (r) => r.status < 500,
-    });
+    // API calls (using listCourses as instructors allowed)
+    allTasks.listCourses(client, context);
 
     sleep(0.5);
   });

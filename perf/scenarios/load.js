@@ -14,7 +14,6 @@ import { check, group, sleep } from 'k6';
 import { open } from 'k6/experimental/fs';
 import { currentConfig } from '../config/env.js';
 import { buildOptions } from '../config/options.js';
-import { checkSuccess } from '../lib/assertions.js';
 import { AuthHelper } from '../lib/auth.js';
 import {
   generateUniqueData,
@@ -24,6 +23,7 @@ import {
 } from '../lib/data-loader.js';
 import * as metrics from '../lib/metrics.js';
 import { selectTask, weights } from '../lib/task-selector.js';
+import { trackError } from '../lib/util.js';
 import { allTasks } from '../tasks/index.js';
 
 export const options = buildOptions({
@@ -36,7 +36,6 @@ export const options = buildOptions({
 });
 
 // Load existing test users (seeded by onboarding)
-const admins = loadCsv('load_admins', '../data/admins.csv').slice(0, 50);
 const teachers = loadCsv('load_teachers', '../data/teachers.csv').slice(0, 100);
 const classroomTemplates = loadCsv('load_classrooms', '../data/classrooms.csv');
 const courses = loadCsv('load_courses', '../data/courses.csv');
@@ -59,10 +58,10 @@ export function loadTest() {
 
   // Always use existing users (seeded data) for load tests
   group('Authentication', () => {
-    const admin = getByVuIndex(admins, __VU);
+    const teacher = getByVuIndex(teachers, __VU);
 
     const startTime = Date.now();
-    const signinRes = auth.signin(admin.email, admin.password);
+    const signinRes = auth.signin(teacher.email, teacher.password);
     metrics.signinDuration.add(Date.now() - startTime);
 
     const success = check(signinRes, {
@@ -70,7 +69,8 @@ export function loadTest() {
     });
 
     if (!success) {
-      console.error(`[VU ${__VU}] Signin failed for ${admin.email}`);
+      trackError(signinRes);
+      console.error(`[VU ${__VU}] Signin failed for ${teacher.email}`);
       metrics.workflowFailure.add(1);
     }
 
@@ -111,9 +111,7 @@ export function loadTest() {
   group('Hydrate Context', () => {
     // 1. Get Courses (needed to create classrooms)
     try {
-      const coursesRes = client.get('/api/v1/courses', {
-        tags: { endpoint: 'courses_list', task: 'hydrate' },
-      });
+      const coursesRes = allTasks.listCourses(client, context);
       if (coursesRes.status === 200) {
         const courses = JSON.parse(coursesRes.body);
         if (courses.length > 0) {
@@ -127,9 +125,7 @@ export function loadTest() {
 
     // 2. Get Classrooms (needed for posts, uploads, etc.)
     try {
-      const classroomsRes = client.get('/api/v1/classrooms', {
-        tags: { endpoint: 'classrooms_list', task: 'hydrate' },
-      });
+      const classroomsRes = allTasks.listClassrooms(client, context);
       if (classroomsRes.status === 200) {
         const classrooms = JSON.parse(classroomsRes.body);
         if (classrooms.length > 0) {
@@ -156,9 +152,8 @@ export function loadTest() {
         selectedTaskName = 'createClassroom';
       } else if (!context.classroomId && !context.courseId) {
         // If we have neither, we can't do much - fallback to a read-only op that needs nothing
-        const listRes = client.get('/api/v1/teachers?page=1&limit=10', {
-          tags: { endpoint: 'fallback_list', task: 'fallback' },
-        });
+        // using listCourses instead of listTeachers as the latter is admin-only
+        allTasks.listCourses(client, context);
         sleep(0.2);
         continue;
       }
@@ -186,10 +181,7 @@ export function loadTest() {
         (selectedTaskName === 'uploadFile' && !context.classroomId)
       ) {
         // Fall back to list operations
-        const listRes = client.get('/api/v1/teachers?page=1&limit=10', {
-          tags: { endpoint: 'fallback_list', task: 'fallback' },
-        });
-        check(listRes, { 'fallback list succeeded': (r) => r.status === 200 });
+        allTasks.listCourses(client, context);
         sleep(0.2);
         continue;
       }
@@ -212,34 +204,12 @@ export function loadTest() {
 
   // Additional API operations (legacy compatibility)
   group('API Operations', () => {
-    // List teachers
-    const startTeachers = Date.now();
-    const teachersRes = client.get('/api/v1/teachers', {
-      tags: { endpoint: 'teachers_list' },
-    });
-    metrics.crudReadDuration.add(Date.now() - startTeachers);
-    checkSuccess(teachersRes, 'teachers list');
-
+    // List students with pagination (Instructors allowed)
+    allTasks.listStudents(client, context);
     sleep(0.3);
 
-    // List students with pagination
-    const startStudents = Date.now();
-    const studentsRes = client.get('/api/v1/students?page=1&limit=10', {
-      tags: { endpoint: 'students_list' },
-    });
-    metrics.crudReadDuration.add(Date.now() - startStudents);
-    checkSuccess(studentsRes, 'students list');
-
-    sleep(0.3);
-
-    // List courses
-    const startCourses = Date.now();
-    const coursesRes = client.get('/api/v1/courses?page=1&limit=10', {
-      tags: { endpoint: 'courses_list' },
-    });
-    metrics.crudReadDuration.add(Date.now() - startCourses);
-    checkSuccess(coursesRes, 'courses list');
-
+    // List courses (Instructors allowed)
+    allTasks.listCourses(client, context);
     sleep(0.2);
   });
 

@@ -69,7 +69,7 @@ export function smokeTest() {
   group('Session Validation', () => {
     const sessionRes = auth.validateSession();
 
-    check(sessionRes, {
+    const success = check(sessionRes, {
       'session is valid': (r) => r.status === 200,
       'has user data': (r) => {
         try {
@@ -79,6 +79,8 @@ export function smokeTest() {
         }
       },
     });
+
+    if (!success) trackError(sessionRes);
 
     sleep(0.5);
   });

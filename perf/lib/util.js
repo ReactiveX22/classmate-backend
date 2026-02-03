@@ -25,6 +25,7 @@ export function trackError(res, context = {}) {
       try {
         const body = JSON.parse(res.body);
         if (body.code) errorCode = body.code;
+        else if (body.errorCode) errorCode = body.errorCode;
         else if (body.message)
           errorCode = 'MESSAGE_ONLY'; // Message is variable, don't use as tag
         else if (body.error)

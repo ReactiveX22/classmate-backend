@@ -17,21 +17,31 @@ export class DrizzleExceptionFilter implements ExceptionFilter {
   catch(exception: DrizzleQueryError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const cause = exception.cause as DatabaseError;
 
     this.logger.error('Drizzle Query Error', {
       message: exception.message,
-      cause: exception.cause,
-      query: exception.query,
-      params: exception.params,
+      code: cause?.code,
+      causeMessage: cause?.message,
     });
 
     if (
-      (exception.cause as DatabaseError)?.code === '23505' ||
-      exception.cause?.message?.includes('duplicate key value')
+      cause?.code === '23505' ||
+      cause?.message?.includes('duplicate key value')
     ) {
       return response.status(HttpStatus.CONFLICT).json({
         errorCode: ERROR_CODES.INFRA.DUPLICATE_KEY,
         message: 'A record with this unique value already exists.',
+      });
+    }
+
+    if (
+      cause?.message?.includes('Connection terminated') ||
+      cause?.message?.includes('timeout')
+    ) {
+      return response.status(HttpStatus.SERVICE_UNAVAILABLE).json({
+        errorCode: ERROR_CODES.INFRA.DB_CONNECTION_TIMEOUT,
+        message: 'Database is overloaded. Please try again later.',
       });
     }
 

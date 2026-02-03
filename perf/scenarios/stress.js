@@ -18,6 +18,7 @@ import { AuthHelper } from '../lib/auth.js';
 import { generateUniqueData, getRandom, loadCsv } from '../lib/data-loader.js';
 import * as metrics from '../lib/metrics.js';
 import { selectTask, weights } from '../lib/task-selector.js';
+import { trackError } from '../lib/util.js';
 import { allTasks } from '../tasks/index.js';
 
 export const options = buildOptions({
@@ -30,8 +31,7 @@ export const options = buildOptions({
   },
 });
 
-// Load admins for signin
-const admins = loadCsv('stress_admins', '../data/admins.csv').slice(0, 50);
+// Load teachers for signin
 const teachers = loadCsv('stress_teachers', '../data/teachers.csv').slice(
   0,
   100,
@@ -62,11 +62,11 @@ export function stressTest() {
 
   // 1. Signin (lighter than signup, but we test high volume)
   group('Stress Signin', () => {
-    const admin = getRandom(admins);
+    const teacher = getRandom(teachers);
     const startTime = Date.now();
 
-    // Use random admin from CSV
-    auth.signin(admin.email, admin.password);
+    // Use random teacher from CSV
+    const signinRes = auth.signin(teacher.email, teacher.password);
     metrics.signinDuration.add(Date.now() - startTime);
 
     const success = check(auth.isAuthenticated(), {
@@ -74,6 +74,7 @@ export function stressTest() {
     });
 
     if (!success) {
+      trackError(signinRes);
       metrics.workflowFailure.add(1);
     }
 
@@ -117,9 +118,7 @@ export function stressTest() {
     if (Math.random() < 0.2) {
       // Only 20% of VUs do this in stress to avoid storming
       try {
-        const coursesRes = client.get('/api/v1/courses', {
-          tags: { endpoint: 'courses_list' },
-        });
+        const coursesRes = allTasks.listCourses(client, context);
         if (coursesRes.status === 200) {
           const courses = JSON.parse(coursesRes.body);
           if (courses.length > 0) context.courseId = getRandom(courses).id;
@@ -130,9 +129,7 @@ export function stressTest() {
     // 2. Get Classrooms
     if (Math.random() < 0.2) {
       try {
-        const classroomsRes = client.get('/api/v1/classrooms', {
-          tags: { endpoint: 'classrooms_list' },
-        });
+        const classroomsRes = allTasks.listClassrooms(client, context);
         if (classroomsRes.status === 200) {
           const classrooms = JSON.parse(classroomsRes.body);
           if (classrooms.length > 0)
@@ -160,22 +157,8 @@ export function stressTest() {
         (selectedTaskName === 'uploadFile' ||
           selectedTaskName === 'createPostWithAttachment')
       ) {
-        // Fall back to create teacher operation
-        const teacherData = {
-          name: `Teacher ${uniqueData.id}-${i}`,
-          email: `teacher-${uniqueData.id}-${i}@test.local`,
-          password: 'Teacher123!',
-          title: 'Professor',
-        };
-
-        const res = client.post('/api/v1/teachers', teacherData, {
-          tags: { endpoint: 'stress_create_teacher' },
-        });
-
-        check(res, {
-          'stress teacher created or conflict': (r) => r.status < 500,
-        });
-
+        // Fall back to list operation (using listCourses instead of admin-only listTeachers)
+        allTasks.listCourses(client, context);
         sleep(0.1);
         continue;
       }
@@ -193,16 +176,7 @@ export function stressTest() {
         (selectedTaskName === 'joinClassroom' && !context.classroomCode)
       ) {
         // Fall back to list operations
-        const endpoints = [
-          '/api/v1/teachers?page=1&limit=5',
-          '/api/v1/students?page=1&limit=5',
-          '/api/v1/courses?page=1&limit=5',
-        ];
-        const endpoint = endpoints[i % endpoints.length];
-        const res = client.get(endpoint, {
-          tags: { endpoint: 'stress_fallback' },
-        });
-        check(res, { 'stress fallback ok': (r) => r.status < 500 });
+        allTasks.listCourses(client, context);
         sleep(0.05);
         continue;
       }
@@ -225,51 +199,20 @@ export function stressTest() {
 
   // 4. API bombardment
   group('API Stress', () => {
-    // Multiple rapid requests
-    const endpoints = [
-      '/api/v1/teachers',
-      '/api/v1/students',
-      '/api/v1/courses',
-      '/api/v1/teachers?page=1&limit=5',
-      '/api/v1/students?page=1&limit=5',
-    ];
-
-    for (const endpoint of endpoints) {
-      const startTime = Date.now();
-      const res = client.get(endpoint, {
-        tags: { endpoint: 'stress_api' },
-      });
-      metrics.crudReadDuration.add(Date.now() - startTime);
-
-      check(res, {
-        'endpoint responded': (r) => r.status < 500,
-      });
-
-      sleep(0.05);
-    }
+    // Multiple rapid requests using tasks
+    allTasks.listStudents(client, context);
+    sleep(0.05);
+    allTasks.listCourses(client, context);
+    sleep(0.05);
+    allTasks.listClassrooms(client, context);
+    sleep(0.05);
   });
 
   // 5. Create operations (if still authenticated)
-  if (auth.isAuthenticated()) {
+  if (auth.isAuthenticated() && context.courseId) {
     group('Create Operations', () => {
-      // Try to create a teacher
-      const startTime = Date.now();
-      const teacherData = {
-        name: `Teacher ${uniqueData.id}`,
-        email: `teacher-${uniqueData.id}@test.local`,
-        password: 'Teacher123!',
-        title: 'Professor',
-      };
-
-      const res = client.post('/api/v1/teachers', teacherData, {
-        tags: { endpoint: 'stress_create' },
-      });
-      metrics.crudCreateDuration.add(Date.now() - startTime);
-
-      check(res, {
-        'teacher created or conflict': (r) => r.status < 500,
-      });
-
+      // Try to create a classroom (Instructor allowed)
+      allTasks.createClassroom(client, context);
       sleep(0.1);
     });
   }
