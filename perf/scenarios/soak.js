@@ -7,13 +7,13 @@
  */
 
 import { check, group, sleep } from 'k6';
-import { buildOptions } from '../config/options.js';
 import { currentConfig } from '../config/env.js';
+import { buildOptions } from '../config/options.js';
 import { AuthHelper } from '../lib/auth.js';
 import {
   generateUniqueData,
-  loadCsv,
   getByVuIndex,
+  loadCsv,
 } from '../lib/data-loader.js';
 import * as metrics from '../lib/metrics.js';
 
