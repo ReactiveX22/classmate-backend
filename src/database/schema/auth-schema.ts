@@ -19,28 +19,32 @@ export const userStatusEnum = pgEnum(
   Object.values(UserStatus) as [string, ...string[]],
 );
 
-export const user = pgTable('user', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  email: text('email').notNull().unique(),
-  emailVerified: boolean('email_verified').default(false).notNull(),
-  image: text('image'),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .defaultNow()
-    .$onUpdate(() => /* @__PURE__ */ new Date())
-    .notNull(),
-  role: text('role'),
-  status: userStatusEnum('status').default('pending').notNull(),
-  organizationId: uuid('organization_id').references(() => organization.id, {
-    onDelete: 'set null',
-  }),
-  banned: boolean('banned').default(false),
-  banReason: text('ban_reason'),
-  banExpires: timestamp('ban_expires', { withTimezone: true }),
-});
+export const user = pgTable(
+  'user',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    email: text('email').notNull().unique(),
+    emailVerified: boolean('email_verified').default(false).notNull(),
+    image: text('image'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+    role: text('role'),
+    status: userStatusEnum('status').default('pending').notNull(),
+    organizationId: uuid('organization_id').references(() => organization.id, {
+      onDelete: 'set null',
+    }),
+    banned: boolean('banned').default(false),
+    banReason: text('ban_reason'),
+    banExpires: timestamp('ban_expires', { withTimezone: true }),
+  },
+  (table) => [index('user_organizationId_idx').on(table.organizationId)],
+);
 
 export const session = pgTable(
   'session',
@@ -61,7 +65,10 @@ export const session = pgTable(
       .references(() => user.id, { onDelete: 'cascade' }),
     impersonatedBy: text('impersonated_by'),
   },
-  (table) => [index('session_userId_idx').on(table.userId)],
+  (table) => [
+    index('session_userId_idx').on(table.userId),
+    index('session_token_idx').on(table.token),
+  ],
 );
 
 export const account = pgTable(
