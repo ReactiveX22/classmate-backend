@@ -3,8 +3,8 @@ import {
   PaginatedResponse,
   PaginationQueryDto,
 } from 'src/common/dto/pagination.dto';
-import { createPaginatedResponse } from 'src/common/helpers/pagination.helper';
 import { type DB, InjectDb } from 'src/database/db.provider';
+import { user } from 'src/database/schema';
 import {
   StudentRepository,
   StudentWithProfile,
@@ -15,7 +15,6 @@ import {
 } from '../repositories/teacher.repository';
 import { UserProfileRepository } from '../repositories/user-profile.repository';
 import { UserRepository } from '../repositories/user.repository';
-import { user } from 'src/database/schema';
 
 @Injectable()
 export class UserService {
@@ -114,5 +113,9 @@ export class UserService {
 
   async remove(userId: string) {
     await this.userRepository.delete(userId);
+  }
+
+  async findUserWithRelationships(userId: string) {
+    return this.userRepository.findUserWithRelationships(userId);
   }
 }
