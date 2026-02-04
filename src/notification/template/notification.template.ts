@@ -40,6 +40,10 @@ export class NotificationTemplate {
       title: 'New Question',
       content: `A new question "${data.entityTitle}" has been posted`,
     }),
+    CLASSROOM_GRADE: (data) => ({
+      title: 'Assignment Graded',
+      content: `Your submission for "${data.entityTitle}" has been graded`,
+    }),
   };
 
   static format(
