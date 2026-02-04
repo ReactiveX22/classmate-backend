@@ -108,9 +108,10 @@ export class SubmissionService {
       studentId,
     );
 
-    const submission = await this.fetchOne(studentId, postId);
+    const { assignment_submission: submission, user: student } =
+      await this.submissionRepository.fetchOneWithUser(studentId, postId);
 
-    if (!submission) {
+    if (!submission || !student) {
       throw new NotFoundException('Submission not found');
     }
 
@@ -136,7 +137,8 @@ export class SubmissionService {
         content: formatted.content,
         type: NotificationType.CLASSROOM.GRADE,
         organizationId: orgId,
-        recipientId: studentId,
+        recipientId: student.id,
+        recipientEmail: student.email,
         actorId: teacher.id,
         entityId: classroomId,
         meta: { postId, submissionId: submission.id },

@@ -2,7 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { MailService } from 'src/mail/mail.service';
 import { NotificationCreatedEvent } from './notification-created.event';
-import { isClassroomType, isOrganizationType } from './notification.constants';
+import {
+  NotificationType,
+  isClassroomType,
+  isOrganizationType,
+} from './notification.constants';
 import { NotificationGateway } from './notification.gateway';
 import { NotificationRepository } from './notification.repository';
 
@@ -19,6 +23,15 @@ export class NotificationService {
     private readonly mailService: MailService,
     private readonly classroomService: ClassroomService,
   ) {}
+
+  private readonly logger = new Logger(NotificationService.name);
+
+  private readonly emailEligibleTypes = [
+    NotificationType.CLASSROOM.ASSIGNMENT,
+    NotificationType.CLASSROOM.GRADE,
+    NotificationType.CLASSROOM.ANNOUNCEMENT,
+    NotificationType.ORGANIZATION.NOTICE,
+  ];
 
   async findAll(query: PaginationQueryDto, userId: string, orgId: string) {
     const classroomIds =
@@ -67,21 +80,24 @@ export class NotificationService {
         isRead: false,
       };
 
-      if (payload.recipientEmail) {
+      if (
+        payload.recipientEmail &&
+        this.emailEligibleTypes.includes(payload.type as any)
+      ) {
         this.mailService
-          .sendMail(
-            payload.recipientEmail,
-            payload.title,
-            payload.content || '',
-          )
+          .sendTemplate(payload.recipientEmail, payload.title, 'notification', {
+            recipientName: payload.recipientName,
+            subject: payload.title,
+            content: payload.content || '',
+          })
           .catch((err) =>
-            Logger.error('Failed to send notification email', err),
+            this.logger.error('Failed to send notification email', err),
           );
       }
 
       if (isClassroomType(payload.type)) {
         if (!payload.entityId) {
-          Logger.error(
+          this.logger.error(
             `Notification type is ${payload.type} but entityId is missing`,
           );
           return;
@@ -95,7 +111,7 @@ export class NotificationService {
 
       if (isOrganizationType(payload.type)) {
         if (!payload.organizationId) {
-          Logger.error(
+          this.logger.error(
             `Notification type is ${payload.type} but organizationId is missing`,
           );
           return;
@@ -107,7 +123,7 @@ export class NotificationService {
         );
       }
     } catch (error) {
-      Logger.error('Failed to process notification event', error);
+      this.logger.error('Failed to process notification event', error);
     }
   }
 }
