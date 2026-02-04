@@ -32,6 +32,27 @@ export class NotificationService {
     );
   }
 
+  async markAsRead(notificationId: string, userId: string) {
+    await this.notificationRepository.markAsRead(notificationId, userId);
+    return { success: true };
+  }
+
+  async markAllAsRead(userId: string, orgId: string) {
+    const classroomIds =
+      await this.classroomService.findUserClassroomIds(userId);
+
+    const result = await this.notificationRepository.markAllAsRead(
+      userId,
+      orgId,
+      classroomIds,
+    );
+
+    return {
+      success: true,
+      count: result.rowCount,
+    };
+  }
+
   @OnEvent(NotificationCreatedEvent.signature)
   async handleNotificationCreatedEvent(event: NotificationCreatedEvent) {
     const { payload } = event;
