@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
 import { OrganizationId } from 'src/common/decorators';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
@@ -23,5 +23,33 @@ export class NotificationController {
     @OrganizationId() orgId: string,
   ) {
     return this.notificationService.findAll(query, session.user.id, orgId);
+  }
+
+  @Roles([
+    AppRole.Admin,
+    AppRole.SuperAdmin,
+    AppRole.Instructor,
+    AppRole.Student,
+  ])
+  @Patch(':id/read')
+  async markAsRead(
+    @Param('id') id: string,
+    @Session() session: AppUserSession,
+  ) {
+    return this.notificationService.markAsRead(id, session.user.id);
+  }
+
+  @Roles([
+    AppRole.Admin,
+    AppRole.SuperAdmin,
+    AppRole.Instructor,
+    AppRole.Student,
+  ])
+  @Patch('read-all')
+  async markAllAsRead(
+    @Session() session: AppUserSession,
+    @OrganizationId() orgId: string,
+  ) {
+    return this.notificationService.markAllAsRead(session.user.id, orgId);
   }
 }
