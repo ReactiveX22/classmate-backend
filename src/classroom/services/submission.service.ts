@@ -139,6 +139,7 @@ export class SubmissionService {
         organizationId: orgId,
         recipientId: student.id,
         recipientEmail: student.email,
+        recipientName: student.name,
         actorId: teacher.id,
         entityId: classroomId,
         meta: { postId, submissionId: submission.id },

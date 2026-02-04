@@ -15,8 +15,10 @@ export class MailtrapStrategy implements MailTransporter {
     private readonly from: string,
   ) {
     this.transporter = nodemailer.createTransport({
-      host: 'sandbox.smtp.mailtrap.io',
-      port: 2525,
+      // host: 'sandbox.smtp.mailtrap.io',
+      // port: 2525,
+      host: '127.0.0.1',
+      port: 1025,
       auth: {
         user: this.user,
         pass: this.pass,
