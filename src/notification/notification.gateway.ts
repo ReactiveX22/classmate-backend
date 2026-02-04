@@ -43,8 +43,6 @@ export class NotificationGateway implements OnGatewayConnection {
       client.data.user = session.user as User;
 
       await this.joinRooms(client);
-
-      console.log(`Connected: ${session.user.email}`);
     } catch (error) {
       console.error('WebSocket Auth Error:', error);
       client.disconnect();
@@ -79,7 +77,5 @@ export class NotificationGateway implements OnGatewayConnection {
     }
 
     client.join(`org_${user.organizationId}`);
-
-    Logger.log('Client rooms: ', client.rooms);
   }
 }

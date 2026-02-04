@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { user } from './auth-schema';
 import { organization } from './organization-schema';
@@ -14,6 +14,7 @@ export const notification = pgTable('notification', {
   recipientId: text('recipient_id'),
   actorId: text('actor_id'),
   entityId: text('entity_id'),
+  meta: jsonb('meta'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()
     .notNull(),
