@@ -7,6 +7,7 @@ import {
   Attachment,
   InsertSubmission,
   SUBMISSION_STATUS,
+  user,
 } from 'src/database/schema';
 import { PaginationService } from 'src/lib/pagination/pagination.service';
 import { SubmissionPaginationConfig } from '../classroom.config';
@@ -99,6 +100,22 @@ export class SubmissionRepository {
           eq(assignmentSubmission.postId, postId),
         ),
       )
+      .limit(1);
+
+    return results[0] ?? null;
+  }
+
+  async fetchOneWithUser(userId: string, postId: string) {
+    const results = await this.db
+      .select()
+      .from(assignmentSubmission)
+      .where(
+        and(
+          eq(assignmentSubmission.studentId, userId),
+          eq(assignmentSubmission.postId, postId),
+        ),
+      )
+      .leftJoin(user, eq(assignmentSubmission.studentId, user.id))
       .limit(1);
 
     return results[0] ?? null;
