@@ -1,4 +1,9 @@
-import { betterAuth, InferSession, InferUser } from 'better-auth';
+import {
+  betterAuth,
+  BetterAuthOptions,
+  InferSession,
+  InferUser,
+} from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import {
   admin,
@@ -27,7 +32,7 @@ export const authFactory = (
     authResponseHook: AuthResponseHook;
   },
 ) => {
-  return betterAuth({
+  const authOptions = {
     basePath: '/api/v1/auth',
     baseURL: config.baseURL,
     database: drizzleAdapter(db, { provider: 'pg' }),
@@ -67,9 +72,11 @@ export const authFactory = (
         },
       },
     },
-  });
+  } satisfies BetterAuthOptions;
+
+  return betterAuth(authOptions);
 };
 
 export type AuthType = ReturnType<typeof authFactory>;
-export type Session = InferSession<AuthType>;
-export type User = InferUser<AuthType>;
+export type Session = AuthType['$Infer']['Session'];
+export type User = AuthType['$Infer']['Session']['user'];

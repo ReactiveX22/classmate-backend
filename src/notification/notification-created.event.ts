@@ -7,12 +7,22 @@ export class NotificationCreatedEvent {
   public readonly payload: InsertNotification & {
     recipientEmail?: string;
     recipientName?: string;
+    actor?: {
+      id: string;
+      name: string;
+      image: string | null;
+    };
   };
 
   constructor(
     data: InsertNotification & {
       recipientEmail?: string;
       recipientName?: string;
+      actor?: {
+        id: string;
+        name: string;
+        image: string | null;
+      };
     },
   ) {
     this.payload = data;
