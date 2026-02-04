@@ -10,9 +10,15 @@ import { User } from 'src/auth/auth.factory';
 import { ClassroomService } from 'src/classroom/services/classroom.service';
 import { AppRole } from 'src/common/enums/role.enum';
 import { type AuthenticatedSocket } from 'src/common/types/socket.types';
-import { AppNotification } from 'src/database/schema';
+import { NotificationResponse } from './types/notification-response.type';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: {
+    origin: process.env.CLIENT_URL || 'http://localhost:3001',
+    methods: ['GET'],
+    credentials: true,
+  },
+})
 export class NotificationGateway implements OnGatewayConnection {
   constructor(
     private readonly authService: AuthService,
@@ -47,14 +53,14 @@ export class NotificationGateway implements OnGatewayConnection {
 
   async sendNotificationToClassroom(
     classroomId: string,
-    notification: AppNotification,
+    notification: NotificationResponse,
   ) {
     this.server.to(`class_${classroomId}`).emit('notification', notification);
   }
 
   async sendNotificationToOrganization(
     organizationId: string,
-    notification: AppNotification,
+    notification: NotificationResponse,
   ) {
     this.server.to(`org_${organizationId}`).emit('notification', notification);
   }

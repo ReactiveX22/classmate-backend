@@ -65,6 +65,11 @@ export class NoticeService {
         recipientId: null,
         actorId: user.id,
         entityId: newNotice.id,
+        actor: {
+          id: user.id,
+          name: user.name || '',
+          image: user.image || null,
+        },
       }),
     );
 

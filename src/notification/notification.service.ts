@@ -9,6 +9,8 @@ import { NotificationRepository } from './notification.repository';
 import { ClassroomService } from 'src/classroom/services/classroom.service';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
+import { NotificationResponse } from './types/notification-response.type';
+
 @Injectable()
 export class NotificationService {
   constructor(
@@ -37,6 +39,13 @@ export class NotificationService {
     try {
       const notification = await this.notificationRepository.create(payload);
 
+      const response: NotificationResponse = {
+        notification,
+        actor: payload.actor || null,
+        readAt: null,
+        isRead: false,
+      };
+
       if (payload.recipientEmail) {
         this.mailService
           .sendMail(
@@ -59,7 +68,7 @@ export class NotificationService {
 
         this.notificationGateway.sendNotificationToClassroom(
           payload.entityId,
-          notification,
+          response,
         );
       }
 
@@ -73,7 +82,7 @@ export class NotificationService {
 
         this.notificationGateway.sendNotificationToOrganization(
           payload.organizationId,
-          notification,
+          response,
         );
       }
     } catch (error) {
