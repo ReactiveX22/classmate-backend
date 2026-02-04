@@ -9,12 +9,11 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
-  IsUUID,
   Max,
   Min,
   ValidateNested,
 } from 'class-validator';
+import { AttachmentDto } from '../../common/dto/attachment.dto';
 
 export enum PostType {
   ANNOUNCEMENT = 'announcement',
@@ -23,53 +22,11 @@ export enum PostType {
   QUESTION = 'question',
 }
 
-export enum AttachmentType {
-  FILE = 'file',
-  LINK = 'link',
-  VIDEO = 'video',
-  IMAGE = 'image',
-}
-
 export enum SubmissionType {
   FILE = 'file',
   TEXT = 'text',
   LINK = 'link',
   MULTIPLE = 'multiple',
-}
-
-export class AttachmentDto {
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
-  id: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty()
-  @IsUrl({
-    require_tld: false, // This allows 'localhost' which has no TLD
-    require_protocol: true, // Ensures http:// or https:// is present
-  })
-  @IsNotEmpty()
-  url: string;
-
-  @ApiProperty({ enum: AttachmentType })
-  @IsEnum(AttachmentType)
-  type: AttachmentType;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  size?: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  mimeType?: string;
 }
 
 export class AssignmentDataDto {
