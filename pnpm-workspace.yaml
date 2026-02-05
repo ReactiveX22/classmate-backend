@@ -1,6 +1,9 @@
 onlyBuiltDependencies:
   - '@nestjs/core'
+  - '@playwright/browser-chromium'
   - '@scarf/scarf'
   - '@swc/core'
   - esbuild
+  - protobufjs
+  - unix-dgram
   - unrs-resolver
