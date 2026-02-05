@@ -40,4 +40,4 @@ export const ERROR_CODES = {
     FUTURE_DATE: 'ATTENDANCE_FUTURE_DATE',
     NOT_AUTHORIZED: 'ATTENDANCE_NOT_AUTHORIZED',
   },
-};
+} as const;

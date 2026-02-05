@@ -1,0 +1,10 @@
+services:
+  test-db:
+    image: postgres:16-alpine
+    container_name: classmate-test-db
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: classmate_test
+    ports:
+      - '5433:5432'

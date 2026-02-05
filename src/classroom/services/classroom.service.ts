@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
 import { User } from 'src/auth/auth.factory';
 import { CreateClassroomPostDto } from 'src/classroom/dto/create-classroom-post.dto';
@@ -9,6 +10,9 @@ import {
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
 import { CourseRepository } from 'src/course/repositories/course.repository';
+import { NotificationCreatedEvent } from 'src/notification/notification-created.event';
+import { NotificationType } from 'src/notification/notification.constants';
+import { NotificationTemplate } from 'src/notification/template/notification.template';
 import { StorageService } from 'src/storage/storage.service';
 import { ClassroomRepository } from '../classroom.repository';
 import { AddMembersClassroomDto } from '../dto/addMembers-classroom.dto';
@@ -25,6 +29,7 @@ export class ClassroomService {
     private readonly classroomRepository: ClassroomRepository,
     private readonly storageService: StorageService,
     private readonly classroomPostRepository: ClassroomPostRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async findAll(
@@ -200,33 +205,89 @@ export class ClassroomService {
 
   async createPost(
     id: string,
-    authorId: string,
+    user: User,
     body: CreateClassroomPostDto,
     orgId: string,
   ) {
     const classroom = await this.findOne(id, orgId);
-    return await this.classroomPostRepository.runInTransaction(async (tx) => {
-      const post = await this.classroomPostRepository.create(
-        tx,
-        body,
-        classroom.id,
-        authorId,
-      );
-
-      if (body.type === 'assignment') {
-        const members = await this.classroomPostRepository.getClassroomMembers(
+    const newPost = await this.classroomPostRepository.runInTransaction(
+      async (tx) => {
+        const post = await this.classroomPostRepository.create(
           tx,
+          body,
           classroom.id,
+          user.id,
         );
-        await this.classroomPostRepository.createSubmissions(
-          tx,
-          post[0].id,
-          members.map((m) => m.studentId),
-        );
-      }
 
-      return post;
+        if (body.type === 'assignment') {
+          const members =
+            await this.classroomPostRepository.getClassroomMembers(
+              tx,
+              classroom.id,
+            );
+          await this.classroomPostRepository.createSubmissions(
+            tx,
+            post.id,
+            members.map((m) => m.studentId),
+          );
+        }
+
+        return post;
+      },
+    );
+
+    const notificationMapping: Record<
+      string,
+      { type: string; template: string }
+    > = {
+      announcement: {
+        type: NotificationType.CLASSROOM.ANNOUNCEMENT,
+        template: 'CLASSROOM_ANNOUNCEMENT',
+      },
+      assignment: {
+        type: NotificationType.CLASSROOM.ASSIGNMENT,
+        template: 'CLASSROOM_ASSIGNMENT',
+      },
+      material: {
+        type: NotificationType.CLASSROOM.MATERIAL,
+        template: 'CLASSROOM_MATERIAL',
+      },
+      question: {
+        type: NotificationType.CLASSROOM.QUESTION,
+        template: 'CLASSROOM_QUESTION',
+      },
+    };
+
+    const mapping = notificationMapping[body.type] || {
+      type: NotificationType.CLASSROOM.POST,
+      template: 'CLASSROOM_POST',
+    };
+
+    const formatted = NotificationTemplate.format(mapping.template, {
+      entityTitle: newPost.title || 'New Classroom Post',
+      entityContent: newPost.content ?? undefined,
     });
+
+    this.eventEmitter.emit(
+      NotificationCreatedEvent.signature,
+      new NotificationCreatedEvent({
+        title: formatted.title,
+        content: formatted.content,
+        type: mapping.type as any,
+        organizationId: classroom.course.organizationId,
+        recipientId: null,
+        actorId: user.id,
+        entityId: classroom.id,
+        meta: { postId: newPost.id },
+        actor: {
+          id: user.id,
+          name: user.name || '',
+          image: user.image || null,
+        },
+      }),
+    );
+
+    return newPost;
   }
 
   async updatePost(
@@ -324,6 +385,12 @@ export class ClassroomService {
       userId,
       role === AppRole.Student,
     );
+  }
+
+  async findUserClassroomIds(userId: string): Promise<string[]> {
+    const classrooms =
+      await this.classroomRepository.findJoinedClassrooms(userId);
+    return classrooms.map((c) => c.id);
   }
 
   private generateClassCode(): string {

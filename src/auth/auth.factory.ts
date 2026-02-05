@@ -1,4 +1,9 @@
-import { betterAuth, InferSession, InferUser } from 'better-auth';
+import {
+  betterAuth,
+  BetterAuthOptions,
+  InferSession,
+  InferUser,
+} from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin, createAccessControl } from 'better-auth/plugins';
 import { AppRole } from 'src/common/enums/role.enum';
@@ -23,7 +28,7 @@ export const authFactory = (
     authResponseHook: AuthResponseHook;
   },
 ) => {
-  return betterAuth({
+  const authOptions = {
     basePath: '/api/v1/auth',
     baseURL: config.baseURL,
     database: drizzleAdapter(db, { provider: 'pg' }),
@@ -67,7 +72,9 @@ export const authFactory = (
         },
       },
     },
-  });
+  } satisfies BetterAuthOptions;
+
+  return betterAuth(authOptions);
 };
 
 import { hash, type Options, verify } from '@node-rs/argon2';
@@ -100,5 +107,5 @@ export async function verifyPassword(data: {
 }
 
 export type AuthType = ReturnType<typeof authFactory>;
-export type Session = InferSession<AuthType['options']>;
-export type User = InferUser<AuthType['options']>;
+export type Session = AuthType['$Infer']['Session'];
+export type User = AuthType['$Infer']['Session']['user'];

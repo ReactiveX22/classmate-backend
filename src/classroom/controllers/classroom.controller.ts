@@ -152,7 +152,7 @@ export class ClassroomController {
   ) {
     return await this.classroomService.createPost(
       id,
-      session.user.id,
+      session.user,
       body,
       orgId,
     );

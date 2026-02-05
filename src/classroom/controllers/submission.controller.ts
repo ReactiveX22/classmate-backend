@@ -68,11 +68,14 @@ export class SubmissionsController {
     @Param('studentId') studentId: string,
     @Body() body: GradeSubmissionDto,
     @Session() session: AppUserSession,
+    @OrganizationId() orgId: string,
   ) {
     return await this.submissionService.grade(
+      classroomId,
       postId,
       studentId,
-      session.user.id,
+      session.user,
+      orgId,
       body,
     );
   }

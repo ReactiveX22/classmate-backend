@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #eee;
+        border-radius: 10px;
+      }
+      .header {
+        background: #9336ea;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        border-radius: 10px 10px 0 0;
+      }
+      .content {
+        padding: 20px;
+      }
+      .footer {
+        text-align: center;
+        padding: 20px;
+        font-size: 0.8em;
+        color: #777;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Welcome to Classmate!</h1>
+      </div>
+      <div class="content">
+        <p>Hi <%= name %>,</p>
+        <p>
+          We're thrilled to have you join our platform. Classmate is designed to
+          make your academic life easier and more organized.
+        </p>
+        <p>Ready to get started?</p>
+        <div style="text-align: center; margin-top: 30px">
+          <a
+            href="<%= url %>"
+            style="
+              background-color: #9336ea;
+              color: white;
+              padding: 12px 25px;
+              text-decoration: none;
+              border-radius: 5px;
+              font-weight: bold;
+            "
+            >Get Started</a
+          >
+        </div>
+      </div>
+      <div class="footer">
+        <p>&copy; 2026 Classmate. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+</html>
