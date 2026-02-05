@@ -275,4 +275,27 @@ export class ClassroomRepository {
 
     return posts;
   }
+
+  async findJoinedClassrooms(userId: string) {
+    const classrooms = await this.db.query.classroom.findMany({
+      where: and(
+        or(
+          eq(classroom.teacherId, userId),
+          exists(
+            this.db
+              .select()
+              .from(classroomMembers)
+              .where(
+                and(
+                  eq(classroomMembers.classroomId, classroom.id),
+                  eq(classroomMembers.studentId, userId),
+                ),
+              ),
+          ),
+        ),
+      ),
+    });
+
+    return classrooms;
+  }
 }

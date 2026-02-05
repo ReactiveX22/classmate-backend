@@ -3,13 +3,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { User } from 'src/auth/auth.factory';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { SUBMISSION_STATUS } from 'src/database/schema';
+import { NotificationCreatedEvent } from 'src/notification/notification-created.event';
+import { NotificationType } from 'src/notification/notification.constants';
+import { NotificationTemplate } from 'src/notification/template/notification.template';
 import { StorageService } from 'src/storage/storage.service';
 import { CreateSubmissionDto } from '../dto/create-assignment-submission.dto';
+import { GradeSubmissionDto } from '../dto/grade-submission.dto';
 import { SubmissionRepository } from '../repositories/submission.repository';
 import { ClassroomService } from './classroom.service';
-import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
-import { GradeSubmissionDto } from '../dto/grade-submission.dto';
-import { SUBMISSION_STATUS } from 'src/database/schema';
 
 @Injectable()
 export class SubmissionService {
@@ -17,6 +22,7 @@ export class SubmissionService {
     private readonly submissionRepository: SubmissionRepository,
     private readonly classroomService: ClassroomService,
     private readonly storageService: StorageService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async submit(
@@ -88,14 +94,24 @@ export class SubmissionService {
   }
 
   async grade(
+    classroomId: string,
     postId: string,
     studentId: string,
-    teacherId: string,
+    teacher: User,
+    orgId: string,
     dto: GradeSubmissionDto,
   ) {
-    const submission = await this.fetchOne(studentId, postId);
+    const post = await this.classroomService.findPost(
+      classroomId,
+      orgId,
+      postId,
+      studentId,
+    );
 
-    if (!submission) {
+    const { assignment_submission: submission, user: student } =
+      await this.submissionRepository.fetchOneWithUser(studentId, postId);
+
+    if (!submission || !student) {
       throw new NotFoundException('Submission not found');
     }
 
@@ -103,11 +119,38 @@ export class SubmissionService {
       throw new BadRequestException('Submission is not turned in');
     }
 
-    return await this.submissionRepository.grade(
+    const gradedSubmission = await this.submissionRepository.grade(
       studentId,
       postId,
-      teacherId,
+      teacher.id,
       dto,
     );
+
+    const formatted = NotificationTemplate.format('CLASSROOM_GRADE', {
+      entityTitle: post.title || 'Assignment',
+    });
+
+    this.eventEmitter.emit(
+      NotificationCreatedEvent.signature,
+      new NotificationCreatedEvent({
+        title: formatted.title,
+        content: formatted.content,
+        type: NotificationType.CLASSROOM.GRADE,
+        organizationId: orgId,
+        recipientId: student.id,
+        recipientEmail: student.email,
+        recipientName: student.name,
+        actorId: teacher.id,
+        entityId: classroomId,
+        meta: { postId, submissionId: submission.id },
+        actor: {
+          id: teacher.id,
+          name: teacher.name || '',
+          image: teacher.image || null,
+        },
+      }),
+    );
+
+    return gradedSubmission;
   }
 }

@@ -27,7 +27,7 @@ export class ClassroomPostRepository {
       .insert(classroomPost)
       .values({ ...data, authorId, classroomId })
       .returning();
-    return post;
+    return post[0];
   }
 
   async getClassroomMembers(tx: Transaction, classroomId: string) {

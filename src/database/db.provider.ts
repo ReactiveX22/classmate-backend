@@ -1,15 +1,13 @@
-import { FactoryProvider, Inject, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { FactoryProvider, Inject } from '@nestjs/common';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { PgQueryResultHKT, PgTransaction } from 'drizzle-orm/pg-core';
-import { Pool } from 'pg';
+import { DatabaseService } from './database.service';
 import * as schema from './schema';
 
 export const DB_PROVIDER = 'DB_PROVIDER';
-
 export const InjectDb = () => Inject(DB_PROVIDER);
 
-export type DB = ReturnType<typeof drizzle<typeof schema>>;
+export type DB = NodePgDatabase<typeof schema>;
 
 export const dbProvider: FactoryProvider = {
   provide: DB_PROVIDER,
