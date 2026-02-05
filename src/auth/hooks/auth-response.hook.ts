@@ -16,65 +16,61 @@ export class AuthResponseHook {
   createHook() {
     return createAuthMiddleware(async (ctx) => {
       if (
-        ['/sign-in/email', '/sign-up/email', '/get-session'].includes(ctx.path)
+        !['/sign-in/email', '/sign-up/email', '/get-session'].includes(ctx.path)
       ) {
-        const originalResponse = ctx.context.returned as any;
-        if (!originalResponse || !originalResponse.user) {
-          return;
-        }
-
-        const userId = originalResponse.user.id;
-        const userStatus = originalResponse.user.status;
-
-        if (userStatus === UserStatus.Pending) {
-          return new Response(
-            JSON.stringify({
-              message: 'Role pending approval',
-              errorCode: ERROR_CODES.AUTH.ROLE_PENDING,
-            }),
-            {
-              status: 403,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          );
-        }
-
-        const userWithProfile = await this.userService.getUserWithProfile(
-          userId,
-          userStatus,
-        );
-        let mergedProfile = {};
-
-        if (userWithProfile.profile) {
-          mergedProfile = { ...userWithProfile.profile };
-
-          if (userWithProfile.teacher) {
-            mergedProfile = { ...mergedProfile, ...userWithProfile.teacher };
-          }
-
-          if (userWithProfile.student) {
-            mergedProfile = { ...mergedProfile, ...userWithProfile.student };
-          }
-        }
-
-        const rawEnrichedUser = {
-          ...originalResponse.user,
-          profile: mergedProfile,
-        };
-
-        const enrichedResponse = plainToInstance(
-          AuthResponseDto,
-          {
-            ...originalResponse,
-            user: rawEnrichedUser,
-          },
-          {
-            excludeExtraneousValues: true,
-          },
-        );
-
-        return ctx.json(instanceToPlain(enrichedResponse));
+        return;
       }
+
+      const originalResponse = ctx.context.returned as any;
+      if (!originalResponse?.user) return;
+
+      const userId = originalResponse.user.id;
+      const userStatus = originalResponse.user.status;
+
+      if (userStatus === UserStatus.Pending) {
+        return new Response(
+          JSON.stringify({
+            message: 'Role pending approval',
+            errorCode: ERROR_CODES.AUTH.ROLE_PENDING,
+          }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } },
+        );
+      }
+
+      const userWithRelationships =
+        await this.userService.findUserWithRelationships(userId);
+
+      if (!userWithRelationships) {
+        return ctx.json(originalResponse);
+      }
+
+      let mergedProfile = {};
+
+      if (userWithRelationships.profile) {
+        mergedProfile = { ...userWithRelationships.profile };
+      }
+
+      if (userWithRelationships.teacher) {
+        mergedProfile = { ...mergedProfile, ...userWithRelationships.teacher };
+      }
+
+      if (userWithRelationships.student) {
+        mergedProfile = { ...mergedProfile, ...userWithRelationships.student };
+      }
+
+      const enrichedResponse = plainToInstance(
+        AuthResponseDto,
+        {
+          ...originalResponse,
+          user: {
+            ...originalResponse.user,
+            profile: mergedProfile,
+          },
+        },
+        { excludeExtraneousValues: true },
+      );
+
+      return ctx.json(instanceToPlain(enrichedResponse));
     });
   }
 }

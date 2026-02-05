@@ -8,9 +8,9 @@ import {
   unique,
   uuid,
 } from 'drizzle-orm/pg-core';
+import { user } from './auth-schema';
 import { enrollment } from './enrollment-schema';
 import { organization } from './organization-schema';
-import { teacher } from './teacher-schema';
 
 export const courseStatusEnum = pgEnum('course_status', [
   'active',
@@ -27,7 +27,7 @@ export const course = pgTable(
         onDelete: 'cascade',
       })
       .notNull(),
-    teacherId: uuid('teacher_id').references(() => teacher.id, {
+    teacherId: text('teacher_id').references(() => user.id, {
       onDelete: 'set null',
     }),
     code: text('code').notNull(),
@@ -55,9 +55,9 @@ export const courseRelations = relations(course, ({ one, many }) => ({
     fields: [course.organizationId],
     references: [organization.id],
   }),
-  teacher: one(teacher, {
+  teacher: one(user, {
     fields: [course.teacherId],
-    references: [teacher.id],
+    references: [user.id],
   }),
   enrollment: many(enrollment),
 }));

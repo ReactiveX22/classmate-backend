@@ -11,9 +11,42 @@ export type DB = NodePgDatabase<typeof schema>;
 
 export const dbProvider: FactoryProvider = {
   provide: DB_PROVIDER,
-  inject: [DatabaseService],
-  useFactory: (databaseService: DatabaseService): DB => {
-    return databaseService.db;
+  inject: [ConfigService],
+  useFactory: async (configService: ConfigService): Promise<DB> => {
+    const logger = new Logger('Database');
+
+    const connectionString = configService.get<string>('DATABASE_URL');
+
+    if (!connectionString) {
+      logger.error('DATABASE_URL is not defined in environment variables');
+      throw new Error('DATABASE_URL is required');
+    }
+
+    const pool = new Pool({
+      connectionString,
+      max: 100,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+      maxUses: 7500,
+    });
+
+    pool.on('error', (err) => {
+      logger.error('Unexpected error on database client', err.stack);
+    });
+
+    try {
+      const client = await pool.connect();
+      logger.log('Database connected successfully');
+      client.release();
+    } catch (error) {
+      logger.error('Database connection failed at startup.');
+      logger.debug(error.message);
+    }
+
+    return drizzle(pool, {
+      schema,
+      logger: false,
+    });
   },
 };
 

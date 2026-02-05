@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { type DB, InjectDb } from 'src/database/db.provider';
-import { user } from 'src/database/schema';
+import { student, teacher, user, userProfile } from 'src/database/schema';
 
 @Injectable()
 export class UserRepository {
@@ -31,5 +31,32 @@ export class UserRepository {
 
   async delete(id: string) {
     await this.db.delete(user).where(eq(user.id, id));
+  }
+
+  async findUserWithRelationships(userId: string) {
+    const result = await this.db
+      .select({
+        userData: user,
+        profileData: userProfile,
+        teacherData: teacher,
+        studentData: student,
+      })
+      .from(user)
+      .leftJoin(userProfile, eq(user.id, userProfile.userId))
+      .leftJoin(teacher, eq(user.id, teacher.userId))
+      .leftJoin(student, eq(user.id, student.userId))
+      .where(eq(user.id, userId))
+      .limit(1);
+
+    if (!result[0]) return null;
+
+    const { userData, profileData, teacherData, studentData } = result[0];
+
+    return {
+      ...userData,
+      profile: profileData || null,
+      teacher: teacherData || null,
+      student: studentData || null,
+    };
   }
 }
