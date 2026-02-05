@@ -1,9 +1,5 @@
-import {
-  betterAuth,
-  BetterAuthOptions,
-  InferSession,
-  InferUser,
-} from 'better-auth';
+import { hash, type Options, verify } from '@node-rs/argon2';
+import { betterAuth, BetterAuthOptions } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin, createAccessControl } from 'better-auth/plugins';
 import { AppRole } from 'src/common/enums/role.enum';
@@ -76,8 +72,6 @@ export const authFactory = (
 
   return betterAuth(authOptions);
 };
-
-import { hash, type Options, verify } from '@node-rs/argon2';
 
 const balancedArgon2Options: Options = {
   memoryCost: 65536, // 64 MiB
