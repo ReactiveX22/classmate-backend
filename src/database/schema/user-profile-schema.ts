@@ -1,6 +1,20 @@
 import { InferSelectModel, relations } from 'drizzle-orm';
-import { index, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
+
+export interface Achievement {
+  title: string;
+  issuer?: string;
+  date?: string;
+  description?: string;
+}
 
 export const userProfile = pgTable(
   'user_profile',
@@ -12,6 +26,11 @@ export const userProfile = pgTable(
       .references(() => user.id, { onDelete: 'cascade' }),
     phone: text('phone'),
     bio: text('bio'),
+    skills: text('skills').array().notNull().default([]),
+    achievements: jsonb('achievements')
+      .$type<Achievement[]>()
+      .notNull()
+      .default([]),
     createdAt: timestamp('created_at', { withTimezone: true })
       .defaultNow()
       .notNull(),
