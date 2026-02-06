@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuthModule as BetterAuthModule } from '@thallesp/nestjs-better-auth';
 import { ConfigModule } from 'src/config/config.module';
 import { DatabaseModule } from 'src/database/database.module';
@@ -19,11 +20,12 @@ import { SignUpHook } from './hooks/signup.hook';
     OrganizationModule,
     BetterAuthModule.forRootAsync({
       imports: [ConfigModule, DatabaseModule, UserModule, AuthHooksModule],
-      inject: [ConfigService, DB_PROVIDER, AuthResponseHook],
+      inject: [ConfigService, DB_PROVIDER, AuthResponseHook, EventEmitter2],
       useFactory: (
         configService: ConfigService,
         db: DB,
         authResponseHook: AuthResponseHook,
+        eventEmitter: EventEmitter2,
       ) => ({
         auth: authFactory(db, {
           baseURL: configService.get(
@@ -32,6 +34,7 @@ import { SignUpHook } from './hooks/signup.hook';
           ),
           clientURL: configService.get('CLIENT_URL', 'http://localhost:3001'),
           authResponseHook,
+          eventEmitter,
         }),
         middleware: (req, _res, next) => {
           req.url = req.originalUrl;
