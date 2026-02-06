@@ -1,11 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MailService } from './mail.service';
-import type {
-  MailTransporter,
-  SendMailOptions,
-} from './interfaces/mail-transporter.interface';
 import { MAIL_TRANSPORTER } from './interfaces/mail-transporter.interface';
+import { MailEventListener } from './listeners/mail-event.listener';
+import { MailService } from './mail.service';
 import { GmailStrategy } from './strategies/gmail.strategy';
 import { MailtrapStrategy } from './strategies/mailtrap.strategy';
 import { NullMailStrategy } from './strategies/null-mail.strategy';
@@ -13,6 +10,7 @@ import { NullMailStrategy } from './strategies/null-mail.strategy';
 @Module({
   providers: [
     MailService,
+    MailEventListener,
     {
       provide: MAIL_TRANSPORTER,
       useFactory: (configService: ConfigService) => {
