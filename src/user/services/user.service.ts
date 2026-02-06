@@ -15,6 +15,7 @@ import {
 } from '../repositories/teacher.repository';
 import { UserProfileRepository } from '../repositories/user-profile.repository';
 import { UserRepository } from '../repositories/user.repository';
+import { SaveProfileDto } from '../dto/save-profile.dto';
 
 @Injectable()
 export class UserService {
@@ -117,5 +118,9 @@ export class UserService {
 
   async findUserWithRelationships(userId: string) {
     return this.userRepository.findUserWithRelationships(userId);
+  }
+
+  async updateProfile(userId: string, data: SaveProfileDto) {
+    return this.userProfileRepository.save({ userId, ...data });
   }
 }

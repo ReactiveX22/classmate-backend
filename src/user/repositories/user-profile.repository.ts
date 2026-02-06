@@ -25,20 +25,29 @@ export class UserProfileRepository {
     return result[0] || null;
   }
 
-  async create(data: {
-    id: string;
-    userId: string;
-    firstName: string;
-    lastName: string;
-    displayName: string;
-    phone?: string;
-    bio?: string;
-  }) {
+  async create(data: typeof userProfile.$inferInsert) {
     const [created] = await this.db
       .insert(userProfile)
       .values(data)
       .returning();
     return created;
+  }
+
+  async save(data: typeof userProfile.$inferInsert) {
+    const [result] = await this.db
+      .insert(userProfile)
+      .values(data)
+      .onConflictDoUpdate({
+        target: userProfile.userId,
+        set: {
+          phone: data.phone,
+          bio: data.bio,
+          skills: data.skills,
+          achievements: data.achievements,
+        },
+      })
+      .returning();
+    return result;
   }
 
   async update(id: string, data: Partial<typeof userProfile.$inferInsert>) {
@@ -60,4 +69,3 @@ export class UserProfileRepository {
     return updated || null;
   }
 }
-
