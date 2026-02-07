@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { nanoid } from 'nanoid';
 import {
   PaginatedResponse,
   PaginationQueryDto,
 } from 'src/common/dto/pagination.dto';
-import { type DB, InjectDb } from 'src/database/db.provider';
 import { user } from 'src/database/schema';
+import { StorageService } from 'src/storage/storage.service';
+import { SaveProfileDto } from '../dto/save-profile.dto';
 import {
   StudentRepository,
   StudentWithProfile,
@@ -15,7 +17,6 @@ import {
 } from '../repositories/teacher.repository';
 import { UserProfileRepository } from '../repositories/user-profile.repository';
 import { UserRepository } from '../repositories/user.repository';
-import { SaveProfileDto } from '../dto/save-profile.dto';
 
 @Injectable()
 export class UserService {
@@ -24,7 +25,7 @@ export class UserService {
     private readonly userProfileRepository: UserProfileRepository,
     private readonly teacherRepository: TeacherRepository,
     private readonly studentRepository: StudentRepository,
-    @InjectDb() private readonly db: DB,
+    private readonly storageService: StorageService,
   ) {}
 
   async createTeacher(data: {
@@ -120,7 +121,63 @@ export class UserService {
     return this.userRepository.findUserWithRelationships(userId);
   }
 
-  async updateProfile(userId: string, data: SaveProfileDto) {
-    return this.userProfileRepository.save({ userId, ...data });
+  async updateProfile(
+    userId: string,
+    data: SaveProfileDto,
+    image?: Express.Multer.File,
+  ) {
+    // Handle image upload if provided
+    if (image) {
+      const uploadResult = await this.storageService.uploadFile(
+        image,
+        'profiles',
+      );
+
+      await this.userRepository.update(userId, {
+        image: uploadResult.url,
+      });
+    }
+
+    // Parse skills and achievements if they are strings (sent via form-data)
+    let { skills, achievements, phone, bio } = data;
+
+    if (typeof (skills as any) === 'string') {
+      try {
+        skills = JSON.parse(skills as any);
+      } catch {
+        skills = (skills as any).split(',').map((s: string) => s.trim());
+      }
+    }
+    if (typeof (achievements as any) === 'string') {
+      try {
+        achievements = JSON.parse(achievements as any);
+      } catch {
+        achievements = [];
+      }
+    }
+
+    const processedAchievements = achievements?.map((achievement) => ({
+      ...achievement,
+      id: achievement.id || nanoid(),
+    }));
+
+    // Collect profile data to update
+    const profileUpdateData: any = {};
+    if (phone !== undefined) profileUpdateData.phone = phone;
+    if (bio !== undefined) profileUpdateData.bio = bio;
+    if (skills !== undefined) profileUpdateData.skills = skills;
+    if (processedAchievements !== undefined) {
+      profileUpdateData.achievements = processedAchievements;
+    }
+
+    // Only call repository if there's data to save
+    if (Object.keys(profileUpdateData).length > 0) {
+      await this.userProfileRepository.save({
+        userId,
+        ...profileUpdateData,
+      });
+    }
+
+    return this.getUserWithProfile(userId);
   }
 }

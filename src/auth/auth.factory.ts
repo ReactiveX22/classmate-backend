@@ -79,6 +79,10 @@ export const authFactory = (
           defaultValue: null,
           required: false,
         },
+        image: {
+          type: 'string',
+          returned: true,
+        },
       },
     },
   } satisfies BetterAuthOptions;

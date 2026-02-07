@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Patch } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Session } from '@thallesp/nestjs-better-auth';
 import { ApplicationBadRequestException } from 'src/common/exceptions/application.exception';
 import { type AppUserSession } from 'src/common/types/session.types';
@@ -19,16 +27,22 @@ export class ProfileController {
   }
 
   @Patch()
+  @UseInterceptors(FileInterceptor('image'))
   async updateProfile(
     @Session() session: AppUserSession,
     @Body() data: SaveProfileDto,
+    @UploadedFile() image?: Express.Multer.File,
   ) {
-    if (!data || Object.keys(data).length === 0) {
+    if ((!data || Object.keys(data).length === 0) && !image) {
       throw new ApplicationBadRequestException(
         'At least one field must be provided',
       );
     }
-    const user = await this.userService.updateProfile(session.user.id, data);
+    const user = await this.userService.updateProfile(
+      session.user.id,
+      data,
+      image,
+    );
     return user;
   }
 }
