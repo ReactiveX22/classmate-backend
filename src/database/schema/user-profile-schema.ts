@@ -10,6 +10,7 @@ import {
 import { user } from './auth-schema';
 
 export interface Achievement {
+  id: string;
   title: string;
   issuer?: string;
   date?: string;

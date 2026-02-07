@@ -9,6 +9,10 @@ import {
 
 export class AchievementDto {
   @IsString()
+  @IsOptional()
+  id?: string;
+
+  @IsString()
   @IsNotEmpty()
   title: string;
 

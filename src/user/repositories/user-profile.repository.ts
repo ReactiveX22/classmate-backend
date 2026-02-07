@@ -34,17 +34,34 @@ export class UserProfileRepository {
   }
 
   async save(data: typeof userProfile.$inferInsert) {
+    const { userId, ...updateData } = data;
+
+    // Filter out undefined values to avoid "No values to set" error in Drizzle
+    const set = Object.fromEntries(
+      Object.entries({
+        phone: updateData.phone,
+        bio: updateData.bio,
+        skills: updateData.skills,
+        achievements: updateData.achievements,
+      }).filter(([_, v]) => v !== undefined),
+    );
+
+    if (Object.keys(set).length === 0) {
+      // If nothing to update, just ensure it exists
+      const [result] = await this.db
+        .insert(userProfile)
+        .values(data)
+        .onConflictDoNothing()
+        .returning();
+      return result || (await this.findByUserId(userId));
+    }
+
     const [result] = await this.db
       .insert(userProfile)
       .values(data)
       .onConflictDoUpdate({
         target: userProfile.userId,
-        set: {
-          phone: data.phone,
-          bio: data.bio,
-          skills: data.skills,
-          achievements: data.achievements,
-        },
+        set,
       })
       .returning();
     return result;
