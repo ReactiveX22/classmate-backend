@@ -1,14 +1,21 @@
-import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Inject, Param, Res, UseGuards } from '@nestjs/common';
 import { Session } from '@thallesp/nestjs-better-auth';
 import { type Response } from 'express';
-import * as fs from 'fs';
-import { join } from 'path';
 import { ClassroomMemberGuard } from 'src/classroom/guard/classroom-member.guard';
 import { ApplicationNotFoundException } from 'src/common/exceptions/application.exception';
 import { type AppUserSession } from 'src/common/types/session.types';
+import {
+  STORAGE_STRATEGY,
+  type StorageStrategy,
+} from './interfaces/storage-strategy.interface';
 
 @Controller('uploads')
 export class StorageController {
+  constructor(
+    @Inject(STORAGE_STRATEGY)
+    private readonly strategy: StorageStrategy,
+  ) {}
+
   @Get('classroom-attachments/:classroomId/:fileName')
   @UseGuards(ClassroomMemberGuard)
   async serveClassroomFile(
@@ -16,22 +23,11 @@ export class StorageController {
     @Param('fileName') fileName: string,
     @Res() res: Response,
   ) {
-    const filePath = join(
-      process.cwd(),
-      'uploads',
-      'classroom-attachments',
-      classroomId,
+    await this.strategy.serveFile(
+      `classroom-attachments/${classroomId}`,
       fileName,
+      res,
     );
-
-    // 1. Check if file exists
-    if (!fs.existsSync(filePath)) {
-      throw new ApplicationNotFoundException('File not found');
-    }
-
-    // 2. Stream the file to the browser
-    // This handles headers (Content-Type, etc.) automatically
-    return res.sendFile(filePath);
   }
 
   @Get('profiles/:fileName')
@@ -39,12 +35,7 @@ export class StorageController {
     @Param('fileName') fileName: string,
     @Res() res: Response,
   ) {
-    const filePath = join(process.cwd(), 'uploads', 'profiles', fileName);
-
-    if (!fs.existsSync(filePath)) {
-      throw new ApplicationNotFoundException('File not found');
-    }
-    return res.sendFile(filePath);
+    await this.strategy.serveFile('profiles', fileName, res);
   }
 
   @Get('notice-attachments/:orgId/:fileName')
@@ -58,17 +49,6 @@ export class StorageController {
       throw new ApplicationNotFoundException('File not found');
     }
 
-    const filePath = join(
-      process.cwd(),
-      'uploads',
-      'notice-attachments',
-      orgId,
-      fileName,
-    );
-
-    if (!fs.existsSync(filePath)) {
-      throw new ApplicationNotFoundException('File not found');
-    }
-    return res.sendFile(filePath);
+    await this.strategy.serveFile(`notice-attachments/${orgId}`, fileName, res);
   }
 }
