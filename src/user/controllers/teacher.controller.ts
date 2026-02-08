@@ -77,10 +77,7 @@ export class TeacherController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles([AppRole.Admin])
-  async remove(
-    @Param('id', ParseUUIDPipe) id: string,
-    @OrganizationId() orgId: string,
-  ) {
+  async remove(@Param('id') id: string, @OrganizationId() orgId: string) {
     await this.teacherService.remove(orgId, id);
   }
 
@@ -88,7 +85,7 @@ export class TeacherController {
   @HttpCode(HttpStatus.OK)
   @Roles([AppRole.Admin])
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @OrganizationId() orgId: string,
     @Body() dto: UpdateTeacherDto,
   ) {

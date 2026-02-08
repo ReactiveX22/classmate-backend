@@ -31,7 +31,7 @@ export class StudentController {
   ) {}
 
   @Get()
-  @Roles([AppRole.Admin, AppRole.Instructor]) // TODO: remove instructor
+  @Roles([AppRole.Admin, AppRole.Instructor])
   async getAll(
     @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
@@ -51,10 +51,7 @@ export class StudentController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles([AppRole.Admin])
-  async remove(
-    @Param('id', ParseUUIDPipe) id: string,
-    @OrganizationId() orgId: string,
-  ) {
+  async remove(@Param('id') id: string, @OrganizationId() orgId: string) {
     await this.studentService.remove(orgId, id);
   }
 
@@ -62,7 +59,7 @@ export class StudentController {
   @HttpCode(HttpStatus.OK)
   @Roles([AppRole.Admin])
   async update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @OrganizationId() orgId: string,
     @Body() dto: UpdateStudentDto,
   ) {
