@@ -11,8 +11,9 @@ import {
 import { UserStatus } from 'src/common/enums/user-status.enum';
 import { classroomMembers } from './classroom-members-schema';
 import { organization } from './organization-schema';
-import { userProfile } from './user-profile-schema';
 import { student } from './student-schema';
+import { teacher } from './teacher-schema';
+import { userProfile } from './user-profile-schema';
 
 export const userStatusEnum = pgEnum(
   'user_status',
@@ -125,6 +126,10 @@ export const userRelations = relations(user, ({ many, one }) => ({
   userProfile: one(userProfile, {
     fields: [user.id],
     references: [userProfile.userId],
+  }),
+  teacher: one(teacher, {
+    fields: [user.id],
+    references: [teacher.userId],
   }),
   student: one(student, {
     fields: [user.id],
