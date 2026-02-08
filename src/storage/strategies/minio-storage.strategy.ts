@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import {
   DeleteObjectCommand,
   DeleteObjectsCommand,
@@ -9,9 +8,11 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { Response } from 'express';
 import * as path from 'path';
+import { ApplicationNotFoundException } from '../../common/exceptions/application.exception';
 import type {
   StorageStrategy,
   UploadResult,
@@ -194,6 +195,14 @@ export class MinioStorageStrategy implements StorageStrategy {
     fileName: string,
     res: Response,
   ): Promise<void> {
+    const exists = await this.fileExists(folder, fileName);
+    if (!exists) {
+      throw new ApplicationNotFoundException(
+        'File not found',
+        'RESOURCE_NOT_FOUND',
+      );
+    }
+
     const key = `${folder}/${fileName}`;
     const signedUrl = await getSignedUrl(
       this.s3Client,
