@@ -64,7 +64,7 @@ export class TeacherRepository {
     const [updated] = await this.db
       .update(teacher)
       .set(data)
-      .where(eq(teacher.id, id))
+      .where(eq(teacher.userId, id))
       .returning();
     return updated || null;
   }

@@ -1,3 +1,4 @@
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { hash, type Options, verify } from '@node-rs/argon2';
 import { betterAuth, BetterAuthOptions } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
@@ -5,6 +6,7 @@ import { admin, createAccessControl } from 'better-auth/plugins';
 import { AppRole } from 'src/common/enums/role.enum';
 import { UserStatus } from 'src/common/enums/user-status.enum';
 import { DB } from 'src/database/db.provider';
+import { ResetPasswordEvent } from 'src/mail/events/reset-password.event';
 import { AuthResponseHook } from './hooks/auth-response.hook';
 
 const appStatements = {
@@ -22,6 +24,7 @@ export const authFactory = (
     baseURL: string;
     clientURL: string;
     authResponseHook: AuthResponseHook;
+    eventEmitter: EventEmitter2;
   },
 ) => {
   const authOptions = {
@@ -34,6 +37,16 @@ export const authFactory = (
       password: {
         hash: hashPassword,
         verify: verifyPassword,
+      },
+      sendResetPassword: async ({ user, url, token }) => {
+        const resetUrl = `${config.clientURL}/reset-password?token=${token}`;
+        config.eventEmitter.emit(
+          ResetPasswordEvent.signature,
+          new ResetPasswordEvent(user, resetUrl, token),
+        );
+      },
+      onPasswordReset: async ({ user }) => {
+        console.log(`Password for user ${user.email} has been reset.`);
       },
     },
     trustedOrigins: [config.clientURL],
@@ -65,6 +78,10 @@ export const authFactory = (
           input: true,
           defaultValue: null,
           required: false,
+        },
+        image: {
+          type: 'string',
+          returned: true,
         },
       },
     },

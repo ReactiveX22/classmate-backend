@@ -47,11 +47,7 @@ export class CourseRepository {
     const result = await this.db.query.course.findFirst({
       where: and(eq(course.id, courseId), eq(course.organizationId, orgId)),
       with: {
-        teacher: {
-          with: {
-            user: true,
-          },
-        },
+        teacher: true,
         enrollment: {
           with: {
             student: {

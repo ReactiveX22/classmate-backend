@@ -52,7 +52,7 @@ export class StudentRepository {
       .select()
       .from(student)
       .innerJoin(user, eq(student.userId, user.id))
-      .where(eq(student.id, id))
+      .where(eq(user.id, id))
       .limit(1);
 
     return result[0] || null;
@@ -62,7 +62,7 @@ export class StudentRepository {
     const [updated] = await this.db
       .update(student)
       .set(data)
-      .where(eq(student.id, id))
+      .where(eq(student.userId, id))
       .returning();
     return updated || null;
   }
