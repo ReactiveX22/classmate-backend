@@ -89,7 +89,7 @@ export class NoticeController {
     return this.noticeService.uploadAttachment(file, orgId);
   }
 
-  @Delete('upload/:attachmentId')
+  @Delete('attachments/:attachmentId')
   @Roles([AppRole.Admin, AppRole.SuperAdmin])
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteFile(
