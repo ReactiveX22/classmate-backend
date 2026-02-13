@@ -37,13 +37,13 @@ export class CacheService {
     const pattern = `cache:${orgId}:${resource}:*`;
     this.logger.log(`Invalidating cache pattern: ${pattern}`);
 
-    const store = this.cacheManager.store;
+    const store = this.cacheManager.stores[0].store;
 
     // 1. Redis Store (SCAN + DEL)
-    if ('client' in store || (store as any).name === 'redis') {
+    if ('client' in store || store.name === 'redis') {
       try {
         // cache-manager-redis-yet gives access to the client
-        const client = (store as any).client;
+        const client = store.client;
         if (client) {
           let cursor = '0';
           do {
@@ -70,7 +70,7 @@ export class CacheService {
     // 2. In-Memory Store
     if ('keys' in store) {
       try {
-        const allKeys = await (store as any).keys();
+        const allKeys = await store.keys();
         const matchingKeys = allKeys.filter((key: string) =>
           this.wildcardMatch(pattern, key),
         );

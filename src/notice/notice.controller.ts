@@ -14,6 +14,9 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
+import { CacheResource } from 'src/cache/decorators/cache-resource.decorator';
+import { InvalidateCache } from 'src/cache/decorators/invalidate-cache.decorator';
+import { TenantCacheInterceptor } from 'src/cache/interceptors/tenant-cache.interceptor';
 import { OrganizationId } from 'src/common/decorators';
 import { UploadAttachment } from 'src/common/decorators/upload-attachment.decorator';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
@@ -24,6 +27,7 @@ import { UpdateNoticeDto } from './dto/update-notice.dto';
 import { NoticeService } from './notice.service';
 
 @Controller('notices')
+@UseInterceptors(TenantCacheInterceptor)
 export class NoticeController {
   constructor(private readonly noticeService: NoticeService) {}
 
@@ -34,6 +38,7 @@ export class NoticeController {
     AppRole.Student,
   ])
   @Get()
+  @CacheResource('notices')
   async findAll(
     @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
@@ -42,6 +47,7 @@ export class NoticeController {
   }
 
   @Get(':id')
+  @CacheResource('notices')
   async getOne(
     @Param('id', ParseUUIDPipe) id: string,
     @OrganizationId() orgId: string,
@@ -51,6 +57,7 @@ export class NoticeController {
 
   @Roles([AppRole.Admin, AppRole.SuperAdmin])
   @Post()
+  @InvalidateCache('notices')
   async createNotice(
     @Body() dto: CreateNoticeDto,
     @Session() session: AppUserSession,
@@ -60,6 +67,7 @@ export class NoticeController {
 
   @Roles([AppRole.Admin, AppRole.SuperAdmin])
   @Patch(':id')
+  @InvalidateCache('notices')
   @HttpCode(HttpStatus.OK)
   async updateNotice(
     @Param('id', ParseUUIDPipe) id: string,
@@ -71,6 +79,7 @@ export class NoticeController {
 
   @Roles([AppRole.Admin, AppRole.SuperAdmin])
   @Delete(':id')
+  @InvalidateCache('notices')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteNotice(
     @Param('id', ParseUUIDPipe) id: string,
@@ -81,6 +90,7 @@ export class NoticeController {
 
   @Post('upload')
   @Roles([AppRole.Admin, AppRole.SuperAdmin])
+  @InvalidateCache('notices')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadAttachment() file: Express.Multer.File,
@@ -91,6 +101,7 @@ export class NoticeController {
 
   @Delete('attachments/:attachmentId')
   @Roles([AppRole.Admin, AppRole.SuperAdmin])
+  @InvalidateCache('notices')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteFile(
     @Param('attachmentId') attachmentId: string,
