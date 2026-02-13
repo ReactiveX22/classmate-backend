@@ -1,12 +1,16 @@
 import { CacheModule } from '@nestjs/cache-manager';
 import { type DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CacheService } from './cache.service';
+import { TenantCacheInterceptor } from './interceptors/tenant-cache.interceptor';
+import { CacheInvalidationListener } from './listeners/cache-invalidation.listener';
 
 @Module({})
 export class AppCacheModule {
   static register(): DynamicModule {
     return {
       module: AppCacheModule,
+      global: true,
       imports: [
         CacheModule.registerAsync({
           isGlobal: true,
@@ -36,7 +40,12 @@ export class AppCacheModule {
           inject: [ConfigService],
         }),
       ],
-      exports: [CacheModule],
+      providers: [
+        CacheService,
+        TenantCacheInterceptor,
+        CacheInvalidationListener,
+      ],
+      exports: [CacheModule, CacheService, TenantCacheInterceptor],
     };
   }
 }
