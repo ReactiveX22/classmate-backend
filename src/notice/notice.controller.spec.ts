@@ -3,7 +3,10 @@ jest.mock('@thallesp/nestjs-better-auth', () => ({
   Session: () => jest.fn(),
 }));
 
+import { Reflector } from '@nestjs/core';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test, TestingModule } from '@nestjs/testing';
+import { CacheService } from 'src/cache/cache.service';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppUserSession } from 'src/common/types/session.types';
 import { CreateNoticeDto } from './dto/create-notice.dto';
@@ -17,12 +20,23 @@ describe('NoticeController', () => {
 
   const mockNoticeService = {
     findAll: jest.fn(),
+    getOne: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
     uploadAttachment: jest.fn(),
     deleteAttachment: jest.fn(),
+  };
+
+  const mockCacheService = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+  };
+
+  const mockEventEmitter = {
+    emit: jest.fn(),
   };
 
   const mockSession: AppUserSession = {
@@ -45,6 +59,15 @@ describe('NoticeController', () => {
           provide: NoticeService,
           useValue: mockNoticeService,
         },
+        {
+          provide: CacheService,
+          useValue: mockCacheService,
+        },
+        {
+          provide: EventEmitter2,
+          useValue: mockEventEmitter,
+        },
+        Reflector,
       ],
     }).compile();
 

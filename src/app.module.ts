@@ -3,6 +3,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { AppCacheModule } from './cache/cache.module';
 import { ClassroomModule } from './classroom/classroom.module';
 import { ConfigModule } from './config/config.module';
 import { CourseModule } from './course/course.module';
@@ -18,6 +19,7 @@ import { UserModule } from './user/user.module';
 @Module({
   imports: [
     ConfigModule,
+    AppCacheModule.register(),
     EventEmitterModule.forRoot(),
     DatabaseModule,
     AuthModule,
