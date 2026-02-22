@@ -24,6 +24,11 @@ export const envSchema = z
     STORAGE_SECRET_KEY: z.string().optional(),
     STORAGE_BUCKET: z.string().optional(),
     STORAGE_PUBLIC_URL: z.string().url().optional(),
+
+    CACHE_STORE: z.enum(['null', 'memory', 'redis']).default('null'),
+    CACHE_TTL: z.coerce.number().positive().default(30),
+    CACHE_MAX_ITEMS: z.coerce.number().positive().default(100),
+    CACHE_REDIS_URL: z.string().url().optional(),
   })
   .refine(
     (data) => {
@@ -56,6 +61,18 @@ export const envSchema = z
       message:
         "STORAGE_ENDPOINT, STORAGE_REGION, STORAGE_ACCESS_KEY, STORAGE_SECRET_KEY, STORAGE_BUCKET and STORAGE_PUBLIC_URL are required when STORAGE_SERVICE is not 'local'",
       path: ['STORAGE_SERVICE'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.CACHE_STORE === 'redis') {
+        return !!data.CACHE_REDIS_URL;
+      }
+      return true;
+    },
+    {
+      message: "CACHE_REDIS_URL is required when CACHE_STORE is 'redis'",
+      path: ['CACHE_STORE'],
     },
   );
 

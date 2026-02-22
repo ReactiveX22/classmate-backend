@@ -11,8 +11,12 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Roles } from '@thallesp/nestjs-better-auth';
+import { CacheResource } from 'src/cache/decorators/cache-resource.decorator';
+import { InvalidateCache } from 'src/cache/decorators/invalidate-cache.decorator';
+import { TenantCacheInterceptor } from 'src/cache/interceptors/tenant-cache.interceptor';
 import { OrganizationId } from 'src/common/decorators';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
@@ -24,6 +28,7 @@ import { UserService } from '../services/user.service';
 
 @Controller('students')
 @UseGuards(OrganizationGuard)
+@UseInterceptors(TenantCacheInterceptor)
 export class StudentController {
   constructor(
     private readonly userService: UserService,
@@ -31,6 +36,7 @@ export class StudentController {
   ) {}
 
   @Get()
+  @CacheResource('students')
   @Roles([AppRole.Admin, AppRole.Instructor])
   async getAll(
     @Query() query: PaginationQueryDto,
@@ -40,6 +46,7 @@ export class StudentController {
   }
 
   @Post()
+  @InvalidateCache('students')
   @Roles([AppRole.Admin])
   async create(
     @Body() body: CreateStudentDto,
@@ -49,6 +56,7 @@ export class StudentController {
   }
 
   @Delete(':id')
+  @InvalidateCache('students')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles([AppRole.Admin])
   async remove(@Param('id') id: string, @OrganizationId() orgId: string) {
@@ -56,6 +64,7 @@ export class StudentController {
   }
 
   @Patch(':id')
+  @InvalidateCache('students')
   @HttpCode(HttpStatus.OK)
   @Roles([AppRole.Admin])
   async update(
