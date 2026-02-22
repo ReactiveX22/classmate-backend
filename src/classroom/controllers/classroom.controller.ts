@@ -14,6 +14,9 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
+import { CacheResource } from 'src/cache/decorators/cache-resource.decorator';
+import { InvalidateCache } from 'src/cache/decorators/invalidate-cache.decorator';
+import { TenantCacheInterceptor } from 'src/cache/interceptors/tenant-cache.interceptor';
 import { CreateClassroomPostDto } from 'src/classroom/dto/create-classroom-post.dto';
 import { OrganizationId } from 'src/common/decorators';
 import { UploadAttachment } from 'src/common/decorators/upload-attachment.decorator';
@@ -28,11 +31,13 @@ import { UpdateClassroomDto } from '../dto/update-classroom.dto';
 import { ClassroomService } from '../services/classroom.service';
 
 @Controller('classrooms')
+@UseInterceptors(TenantCacheInterceptor)
 export class ClassroomController {
   constructor(private readonly classroomService: ClassroomService) {}
 
   @Roles([AppRole.Instructor, AppRole.Student])
   @Get()
+  @CacheResource('classrooms')
   async findAll(
     @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
@@ -48,12 +53,14 @@ export class ClassroomController {
 
   @Roles([AppRole.Instructor, AppRole.Student])
   @Get(':id')
+  @CacheResource('classrooms')
   async findOne(@Param('id') id: string, @OrganizationId() orgId: string) {
     return this.classroomService.findOne(id, orgId);
   }
 
   @Roles([AppRole.Instructor, AppRole.Student])
   @Get(':id/upcoming-posts')
+  @CacheResource('classrooms')
   async getUpcomingPosts(
     @Param('id', ParseUUIDPipe) id: string,
     @OrganizationId() orgId: string,
@@ -69,6 +76,7 @@ export class ClassroomController {
 
   @Roles([AppRole.Instructor])
   @Post()
+  @InvalidateCache('classrooms')
   async create(
     @Body() dto: CreateClassroomDto,
     @Session() session: AppUserSession,
@@ -79,6 +87,7 @@ export class ClassroomController {
 
   @Roles([AppRole.Instructor])
   @Patch(':id')
+  @InvalidateCache('classrooms')
   async update(
     @Body() dto: UpdateClassroomDto,
     @Param('id') id: string,
@@ -90,6 +99,7 @@ export class ClassroomController {
 
   @Roles([AppRole.Instructor])
   @Delete(':id')
+  @InvalidateCache('classrooms')
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(
     @Param('id') id: string,
@@ -101,6 +111,7 @@ export class ClassroomController {
 
   @Roles([AppRole.Instructor])
   @Post(':id/members')
+  @InvalidateCache('classrooms')
   async addMembers(
     @Param('id') id: string,
     @Body() dto: AddMembersClassroomDto,
@@ -112,6 +123,7 @@ export class ClassroomController {
 
   @Roles([AppRole.Instructor])
   @Delete(':id/members')
+  @InvalidateCache('classrooms')
   @HttpCode(HttpStatus.NO_CONTENT)
   async bulkRemoveMembers(
     @Param('id', ParseUUIDPipe) id: string,
@@ -124,6 +136,7 @@ export class ClassroomController {
 
   @Roles([AppRole.Student])
   @Post(':id/members/leave')
+  @InvalidateCache('classrooms')
   @HttpCode(HttpStatus.NO_CONTENT)
   async leaveClassroom(
     @Param('id', ParseUUIDPipe) id: string,
@@ -134,6 +147,7 @@ export class ClassroomController {
   }
 
   @Post(':id/posts/upload')
+  @InvalidateCache('classrooms')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadAttachment() file: Express.Multer.File,
@@ -144,6 +158,7 @@ export class ClassroomController {
   }
 
   @Post(':id/posts/')
+  @InvalidateCache('classrooms')
   async createPost(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: CreateClassroomPostDto,
@@ -159,6 +174,7 @@ export class ClassroomController {
   }
 
   @Patch(':id/posts/:postId')
+  @InvalidateCache('classrooms')
   async updatePost(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('postId', ParseUUIDPipe) postId: string,
@@ -176,6 +192,7 @@ export class ClassroomController {
   }
 
   @Get(':id/posts/:postId')
+  @CacheResource('classrooms')
   async findPost(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('postId', ParseUUIDPipe) postId: string,
@@ -191,6 +208,7 @@ export class ClassroomController {
   }
 
   @Delete(':id/posts/:postId')
+  @InvalidateCache('classrooms')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deletePost(
     @Param('id', ParseUUIDPipe) id: string,
@@ -201,6 +219,7 @@ export class ClassroomController {
   }
 
   @Delete(':id/posts/upload/:attachmentId')
+  @InvalidateCache('classrooms')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteFile(
     @Param('id', ParseUUIDPipe) id: string,
@@ -212,6 +231,7 @@ export class ClassroomController {
 
   @Roles([AppRole.Student])
   @Post('join')
+  @InvalidateCache('classrooms')
   async joinClassroom(
     @Body() dto: JoinClassroomDto,
     @Session() session: AppUserSession,
@@ -226,6 +246,7 @@ export class ClassroomController {
 
   @Roles([AppRole.Instructor])
   @Get(':classroomId/students/:studentId/grade-stats')
+  @CacheResource('classrooms')
   async getStudentGradeStats(
     @Param('studentId') studentId: string,
     @Param('classroomId') classroomId: string,
