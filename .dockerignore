@@ -1,6 +1,12 @@
 node_modules
-.git
-.gitignore
-*.md
 dist
+.git
 .env
+npm-debug.log
+pnpm-debug.log*
+
+test/
+perf/
+.vscode/
+
+uploads/*
