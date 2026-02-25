@@ -4,7 +4,7 @@ import { MAIL_TRANSPORTER } from './interfaces/mail-transporter.interface';
 import { MailEventListener } from './listeners/mail-event.listener';
 import { MailService } from './mail.service';
 import { GmailStrategy } from './strategies/gmail.strategy';
-import { MailtrapStrategy } from './strategies/mailtrap.strategy';
+import { SmtpStrategy } from './strategies/smtp.strategy';
 import { NullMailStrategy } from './strategies/null-mail.strategy';
 
 @Module({
@@ -26,8 +26,14 @@ import { NullMailStrategy } from './strategies/null-mail.strategy';
           case 'google':
           case 'gmail':
             return new GmailStrategy(user, pass, from);
-          case 'mailtrap':
-            return new MailtrapStrategy(user, pass, from);
+          case 'smtp':
+            return new SmtpStrategy({
+              host: configService.get<string>('SMTP_HOST', 'localhost'),
+              port: configService.get<number>('SMTP_PORT', 1025),
+              user,
+              pass,
+              from,
+            });
           case 'null':
           default:
             return new NullMailStrategy();

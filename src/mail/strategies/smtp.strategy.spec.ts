@@ -1,10 +1,10 @@
 import * as nodemailer from 'nodemailer';
-import { MailtrapStrategy } from './mailtrap.strategy';
+import { SmtpStrategy } from './smtp.strategy';
 
 jest.mock('nodemailer');
 
-describe('MailtrapStrategy', () => {
-  let strategy: MailtrapStrategy;
+describe('SmtpStrategy', () => {
+  let strategy: SmtpStrategy;
   let mockTransporter: any;
 
   beforeEach(() => {
@@ -13,13 +13,19 @@ describe('MailtrapStrategy', () => {
     };
     (nodemailer.createTransport as jest.Mock).mockReturnValue(mockTransporter);
 
-    strategy = new MailtrapStrategy('user', 'pass', 'noreply@test.com');
+    strategy = new SmtpStrategy({
+      host: 'localhost',
+      port: 1025,
+      user: 'user',
+      pass: 'pass',
+      from: 'noreply@test.com',
+    });
   });
 
   it('should call nodemailer with correct config', () => {
     expect(nodemailer.createTransport).toHaveBeenCalledWith({
-      host: 'sandbox.smtp.mailtrap.io',
-      port: 2525,
+      host: 'localhost',
+      port: 1025,
       auth: {
         user: 'user',
         pass: 'pass',
