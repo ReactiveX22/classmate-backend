@@ -19,15 +19,16 @@ describe('MailService Integration', () => {
       module.get<ConfigService<EnvironmentVariables, true>>(ConfigService);
   });
 
-  it('should send a real email via Mailtrap if configured', async () => {
-    const isConfigured =
-      configService.get('MAIL_SERVICE') === 'mailtrap' &&
-      !!configService.get('MAIL_USER') &&
-      !!configService.get('MAIL_PASS');
+  it('should send a real email via SMTP if configured', async () => {
+    const isSmtp = configService.get('MAIL_SERVICE') === 'smtp';
+    const hasCreds =
+      !!configService.get('MAIL_USER') && !!configService.get('MAIL_PASS');
 
-    if (!isConfigured) {
+    if (!isSmtp) return; // Silent if not the active service
+
+    if (!hasCreds) {
       console.warn(
-        'Integration test for Mailtrap skipped: MAIL_SERVICE is not set to "mailtrap"',
+        'Integration test for SMTP skipped: MAIL_USER or MAIL_PASS is missing in env',
       );
       return;
     }
@@ -43,14 +44,15 @@ describe('MailService Integration', () => {
   });
 
   it('should send a real email via Google if configured', async () => {
-    const isConfigured =
-      configService.get('MAIL_SERVICE') === 'google' &&
-      !!configService.get('MAIL_USER') &&
-      !!configService.get('MAIL_PASS');
+    const isGoogle = configService.get('MAIL_SERVICE') === 'google';
+    const hasCreds =
+      !!configService.get('MAIL_USER') && !!configService.get('MAIL_PASS');
 
-    if (!isConfigured) {
+    if (!isGoogle) return; // Silent if not the active service
+
+    if (!hasCreds) {
       console.warn(
-        'Integration test for Mailtrap skipped: MAIL_SERVICE is not set to "google"',
+        'Integration test for Google skipped: MAIL_USER or MAIL_PASS is missing in env',
       );
       return;
     }

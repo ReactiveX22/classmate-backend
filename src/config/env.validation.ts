@@ -12,10 +12,13 @@ export const envSchema = z
     BETTER_AUTH_URL: z.string().url(),
     CLIENT_URL: z.string().url(),
 
-    MAIL_SERVICE: z.enum(['google', 'mailtrap', 'null']).default('null'),
+    MAIL_SERVICE: z.enum(['google', 'smtp', 'null']).default('null'),
     MAIL_USER: z.string().optional(),
     MAIL_PASS: z.string().optional(),
     MAIL_FROM: z.string().email(),
+
+    SMTP_HOST: z.string().optional(),
+    SMTP_PORT: z.coerce.number().positive().optional(),
 
     STORAGE_SERVICE: z.enum(['local', 'minio', 's3']).default('local'),
     STORAGE_ENDPOINT: z.string().url().optional(),
@@ -40,6 +43,19 @@ export const envSchema = z
     {
       message:
         "MAIL_USER, MAIL_PASS and MAIL_FROM are required when MAIL_SERVICE is not 'null'",
+      path: ['MAIL_SERVICE'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.MAIL_SERVICE === 'smtp') {
+        return !!data.SMTP_HOST && !!data.SMTP_PORT;
+      }
+      return true;
+    },
+    {
+      message:
+        "SMTP_HOST and SMTP_PORT are required when MAIL_SERVICE is 'smtp'",
       path: ['MAIL_SERVICE'],
     },
   )

@@ -5,23 +5,27 @@ import {
   SendMailOptions,
 } from '../interfaces/mail-transporter.interface';
 
-export class MailtrapStrategy implements MailTransporter {
-  private transporter: nodemailer.Transporter;
-  private readonly logger = new Logger(MailtrapStrategy.name);
+export interface SmtpOptions {
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  from: string;
+}
 
-  constructor(
-    private readonly user: string,
-    private readonly pass: string,
-    private readonly from: string,
-  ) {
+export class SmtpStrategy implements MailTransporter {
+  private transporter: nodemailer.Transporter;
+  private readonly logger = new Logger(SmtpStrategy.name);
+  private readonly from: string;
+
+  constructor(private readonly options: SmtpOptions) {
+    this.from = options.from;
     this.transporter = nodemailer.createTransport({
-      // host: 'sandbox.smtp.mailtrap.io',
-      // port: 2525,
-      host: '127.0.0.1',
-      port: 1025,
+      host: options.host,
+      port: options.port,
       auth: {
-        user: this.user,
-        pass: this.pass,
+        user: options.user,
+        pass: options.pass,
       },
     });
   }
@@ -35,10 +39,12 @@ export class MailtrapStrategy implements MailTransporter {
         text: options.body,
         html: options.html,
       });
-      this.logger.log(`Email sent to ${options.to} via Mailtrap`);
+      this.logger.log(
+        `Email sent to ${options.to} via SMTP (${this.options.host}:${this.options.port})`,
+      );
     } catch (error) {
       this.logger.error(
-        `Failed to send email to ${options.to} via Mailtrap`,
+        `Failed to send email to ${options.to} via SMTP`,
         error.stack,
       );
       throw error;
