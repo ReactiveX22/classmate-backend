@@ -25,12 +25,12 @@ import { MinioStorageStrategy } from './strategies/minio-storage.strategy';
               configService.get('STORAGE_ACCESS_KEY') || '',
               configService.get('STORAGE_SECRET_KEY') || '',
               configService.get('STORAGE_BUCKET') || 'classmate',
-              configService.get('APP_URL', 'http://localhost:3000'),
+              configService.get('CLIENT_URL', 'http://localhost:3000'),
             );
           case 'local':
           default:
             return new LocalStorageStrategy(
-              configService.get('APP_URL', 'http://localhost:3000'),
+              configService.get('CLIENT_URL', 'http://localhost:3000'),
             );
         }
       },
