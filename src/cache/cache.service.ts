@@ -5,6 +5,7 @@ import { type Cache } from 'cache-manager';
 @Injectable()
 export class CacheService {
   private readonly logger = new Logger(CacheService.name);
+  private readonly trackedKeys = new Set<string>();
 
   constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {}
 
@@ -20,6 +21,7 @@ export class CacheService {
    */
   async set(key: string, value: any, ttl?: number): Promise<void> {
     await this.cacheManager.set(key, value, ttl);
+    this.trackedKeys.add(key);
   }
 
   /**
@@ -27,79 +29,35 @@ export class CacheService {
    */
   async del(key: string): Promise<void> {
     await this.cacheManager.del(key);
+    this.trackedKeys.delete(key);
   }
 
   /**
-   * Invalidate multiple resources for an organization by pattern.
-   * Pattern: cache:{orgId}:{resource}:*
+   * Invalidate all cached keys matching cache:{orgId}:{resource}:*
+   * Also matches the exact key cache:{orgId}:{resource} (no trailing params).
    */
   async invalidateByPattern(orgId: string, resource: string): Promise<void> {
-    const pattern = `cache:${orgId}:${resource}:*`;
-    this.logger.log(`Invalidating cache pattern: ${pattern}`);
+    const prefix = `cache:${orgId}:${resource}`;
+    this.logger.log(`Invalidating cache keys with prefix: ${prefix}`);
 
-    const store = this.cacheManager.stores[0].store;
-
-    // 1. Redis Store (SCAN + DEL)
-    if ('client' in store || store.name === 'redis') {
-      try {
-        // cache-manager-redis-yet gives access to the client
-        const client = store.client;
-        if (client) {
-          let cursor = '0';
-          do {
-            const reply = await client.scan(cursor, {
-              MATCH: pattern,
-              COUNT: 100,
-            });
-            cursor = reply.cursor;
-            const keys = reply.keys;
-            if (keys.length > 0) {
-              await client.del(keys);
-            }
-          } while (cursor !== '0');
-          return;
-        }
-      } catch (error) {
-        this.logger.error(
-          `Failed to invalidate Redis cache with pattern ${pattern}`,
-          error,
-        );
-      }
-    }
-
-    // 2. In-Memory Store
-    if ('keys' in store) {
-      try {
-        const allKeys = await store.keys();
-        const matchingKeys = allKeys.filter((key: string) =>
-          this.wildcardMatch(pattern, key),
-        );
-
-        if (matchingKeys.length > 0) {
-          await Promise.all(
-            matchingKeys.map((key: string) => this.cacheManager.del(key)),
-          );
-        }
-        return;
-      } catch (error) {
-        this.logger.error(
-          `Failed to invalidate in-memory cache with pattern ${pattern}`,
-          error,
-        );
-      }
-    }
-
-    this.logger.warn(
-      `Store type does not support pattern invalidation or is 'null' store.`,
+    const keysToDelete = [...this.trackedKeys].filter(
+      (key) => key === prefix || key.startsWith(`${prefix}:`),
     );
-  }
 
-  /**
-   * Simple wildcard matching for in-memory keys
-   */
-  private wildcardMatch(pattern: string, key: string): boolean {
-    const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`^${escaped.replace(/\*/g, '.*')}$`);
-    return regex.test(key);
+    if (keysToDelete.length === 0) {
+      this.logger.debug(`No tracked keys matched prefix: ${prefix}`);
+      return;
+    }
+
+    this.logger.debug(
+      `Deleting ${keysToDelete.length} cached key(s): ${keysToDelete.join(', ')}`,
+    );
+
+    await Promise.all(
+      keysToDelete.map(async (key) => {
+        await this.cacheManager.del(key);
+        this.trackedKeys.delete(key);
+      }),
+    );
   }
 }

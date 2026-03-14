@@ -1,4 +1,4 @@
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -21,9 +21,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
     get: jest.fn(),
     set: jest.fn(),
     del: jest.fn(),
-    store: {
-      keys: jest.fn(),
-    },
+    stores: [],
   };
 
   beforeEach(async () => {
@@ -147,6 +145,84 @@ describe('TenantCacheInterceptor (Integration)', () => {
         organizationId: 'org-1',
         resources: ['courses'],
       });
+    });
+  });
+});
+
+describe('CacheService Invalidation', () => {
+  let cacheService: CacheService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [CacheModule.register({ ttl: 60_000 })],
+      providers: [CacheService],
+    }).compile();
+
+    cacheService = module.get<CacheService>(CacheService);
+  });
+
+  it('should invalidate only matching keys by prefix', async () => {
+    // Seed cache with multiple keys
+    await cacheService.set('cache:org-1:teachers', { page: 'default' });
+    await cacheService.set('cache:org-1:teachers:page=1', { page: 1 });
+    await cacheService.set('cache:org-1:teachers:page=2', { page: 2 });
+    await cacheService.set('cache:org-1:courses:page=1', { page: 1 });
+
+    // Verify all values are cached
+    expect(await cacheService.get('cache:org-1:teachers')).toEqual({
+      page: 'default',
+    });
+    expect(await cacheService.get('cache:org-1:teachers:page=1')).toEqual({
+      page: 1,
+    });
+    expect(await cacheService.get('cache:org-1:courses:page=1')).toEqual({
+      page: 1,
+    });
+
+    // Invalidate teachers
+    await cacheService.invalidateByPattern('org-1', 'teachers');
+
+    // Teachers keys should be gone
+    expect(await cacheService.get('cache:org-1:teachers')).toBeUndefined();
+    expect(
+      await cacheService.get('cache:org-1:teachers:page=1'),
+    ).toBeUndefined();
+    expect(
+      await cacheService.get('cache:org-1:teachers:page=2'),
+    ).toBeUndefined();
+
+    // Courses key should remain
+    expect(await cacheService.get('cache:org-1:courses:page=1')).toEqual({
+      page: 1,
+    });
+  });
+
+  it('should not fail when no keys match', async () => {
+    await cacheService.set('cache:org-1:courses:page=1', { page: 1 });
+
+    // Invalidate a resource with no matching keys
+    await expect(
+      cacheService.invalidateByPattern('org-1', 'teachers'),
+    ).resolves.toBeUndefined();
+
+    // Unrelated key should remain
+    expect(await cacheService.get('cache:org-1:courses:page=1')).toEqual({
+      page: 1,
+    });
+  });
+
+  it('should not cross-invalidate between organizations', async () => {
+    await cacheService.set('cache:org-1:teachers:page=1', { org1: true });
+    await cacheService.set('cache:org-2:teachers:page=1', { org2: true });
+
+    // Invalidate only org-1 teachers
+    await cacheService.invalidateByPattern('org-1', 'teachers');
+
+    expect(
+      await cacheService.get('cache:org-1:teachers:page=1'),
+    ).toBeUndefined();
+    expect(await cacheService.get('cache:org-2:teachers:page=1')).toEqual({
+      org2: true,
     });
   });
 });
