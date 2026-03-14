@@ -66,6 +66,12 @@ export const authFactory = (
         defaultRole: AppRole.Admin,
       }),
     ],
+    session: {
+      cookieCache: {
+        enabled: true,
+        maxAge: 5 * 60,
+      },
+    },
     user: {
       additionalFields: {
         status: {

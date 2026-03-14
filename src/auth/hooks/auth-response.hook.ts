@@ -15,9 +15,7 @@ export class AuthResponseHook {
    */
   createHook() {
     return createAuthMiddleware(async (ctx) => {
-      if (
-        !['/sign-in/email', '/sign-up/email', '/get-session'].includes(ctx.path)
-      ) {
+      if (!['/sign-in/email', '/sign-up/email'].includes(ctx.path)) {
         return;
       }
 
