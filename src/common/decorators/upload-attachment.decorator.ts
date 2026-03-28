@@ -15,7 +15,7 @@ export function UploadAttachment() {
         }),
         new FileTypeValidator({
           fileType:
-            /(jpg|jpeg|png|gif|pdf|doc|docx|xls|xlsx|ppt|pptx|txt|zip)$/,
+            /(image\/(jpeg|png|gif)|application\/pdf|application\/msword|application\/vnd\.openxmlformats-officedocument\..*|application\/vnd\.ms-.*|text\/plain|application\/zip|application\/x-zip-compressed)$/,
         }),
       ],
     }),
