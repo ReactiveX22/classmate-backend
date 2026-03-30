@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { User } from 'src/auth/auth.factory';
 import {
   PaginatedResponse,
   PaginationQueryDto,
@@ -42,9 +41,7 @@ export class TeacherRepository {
     return result[0] || null;
   }
 
-  async findByIdWithUser(
-    id: string,
-  ): Promise<{ teacher: SelectTeacher; user: User } | null> {
+  async findByIdWithUser(id: string) {
     const result = await this.db
       .select()
       .from(teacher)
@@ -90,5 +87,5 @@ export class TeacherRepository {
 export interface TeacherWithProfile {
   teacher: SelectTeacher | null;
   userProfile: SelectUserProfile | null;
-  user: User;
+  user: typeof user.$inferSelect;
 }

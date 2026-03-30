@@ -11,7 +11,7 @@ export class ApplicationException extends HttpException {
 
   constructor(status: HttpStatus, message: string, errorCode: string) {
     super({ message, errorCode }, status);
-    this.errorCode = errorCode;
+    this.errorCode = errorCode as ApplicationErrorCode;
   }
 }
 

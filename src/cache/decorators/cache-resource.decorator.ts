@@ -14,9 +14,11 @@ export const CacheResource = (resource: string, options?: CacheOptions) => {
     key?: string | symbol,
     descriptor?: TypedPropertyDescriptor<any>,
   ) => {
-    SetMetadata(CACHE_RESOURCE_METADATA, resource)(target, key, descriptor);
-    if (options?.ttl) {
-      SetMetadata(CACHE_TTL_METADATA, options.ttl)(target, key, descriptor);
+    if (key !== undefined && descriptor !== undefined) {
+      SetMetadata(CACHE_RESOURCE_METADATA, resource)(target, key, descriptor);
+      if (options?.ttl) {
+        SetMetadata(CACHE_TTL_METADATA, options.ttl)(target, key, descriptor);
+      }
     }
   };
 };

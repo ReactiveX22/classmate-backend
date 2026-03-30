@@ -10,7 +10,8 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
-import { Attachment, classroomPost } from './classroom-post-schema';
+import { classroomPost } from './classroom-post-schema';
+import { Attachment } from './types';
 
 export const SUBMISSION_STATUS = {
   ASSIGNED: 'assigned',

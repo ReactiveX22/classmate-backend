@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { User } from 'src/auth/auth.factory';
 import { ERROR_CODES } from 'src/common/constants/error.codes';
 import {
   ApplicationForbiddenException,
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
-import { SelectTeacher } from 'src/database/schema';
+import { SelectTeacher, user } from 'src/database/schema';
 import { UpdateTeacherDto } from '../dto/update-teacher.dto';
 import { TeacherRepository } from '../repositories/teacher.repository';
 import { UserService } from './user.service';
@@ -62,7 +61,7 @@ export class TeacherService {
     const teacherData = this.filterUndefined({ title, joinDate });
 
     let updatedTeacher: SelectTeacher | null = null;
-    let updatedUser: User | null = null;
+    let updatedUser: typeof user.$inferSelect | null = null;
 
     if (Object.keys(teacherData).length > 0) {
       updatedTeacher = await this.teacherRepository.update(

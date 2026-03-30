@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AuthService } from '@thallesp/nestjs-better-auth';
-import { AuthType, User } from 'src/auth/auth.factory';
+import { AuthType } from 'src/auth/auth.factory';
 import { ERROR_CODES } from 'src/common/constants/error.codes';
 import { AppRole } from 'src/common/enums/role.enum';
 import { UserStatus } from 'src/common/enums/user-status.enum';
@@ -8,7 +8,7 @@ import {
   ApplicationForbiddenException,
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
-import { SelectStudent } from 'src/database/schema';
+import { SelectStudent, user } from 'src/database/schema';
 import { CreateStudentDto } from '../dto/create-student.dto';
 import { UpdateStudentDto } from '../dto/update-student.dto';
 import { StudentRepository } from '../repositories/student.repository';
@@ -85,7 +85,7 @@ export class StudentService {
     const studentData = this.filterUndefined({ studentId: studentIdNumber });
 
     let updatedStudent: SelectStudent | null = null;
-    let updatedUser: User | null = null;
+    let updatedUser: typeof user.$inferSelect | null = null;
 
     if (Object.keys(studentData).length > 0) {
       updatedStudent = await this.studentRepository.update(
