@@ -15,7 +15,6 @@ import {
 import { buildOrganizationFilters } from 'src/common/helpers/pagination.helper';
 import { PaginationService } from 'src/lib/pagination/pagination.service';
 import { studentPaginationConfig } from 'src/lib/pagination/config/student.config';
-import { User } from 'src/auth/auth.factory';
 
 /**
  * Student data returned from queries.
@@ -23,7 +22,7 @@ import { User } from 'src/auth/auth.factory';
 export interface StudentWithProfile {
   student: SelectStudent | null;
   userProfile: SelectUserProfile | null;
-  user: User;
+  user: typeof user.$inferSelect;
 }
 
 @Injectable()
@@ -45,9 +44,7 @@ export class StudentRepository {
     return newStudent[0];
   }
 
-  async findByIdWithUser(
-    id: string,
-  ): Promise<{ student: SelectStudent; user: User } | null> {
+  async findByIdWithUser(id: string) {
     const result = await this.db
       .select()
       .from(student)

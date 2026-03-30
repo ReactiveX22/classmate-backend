@@ -15,6 +15,21 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
 
+  app.enableCors({
+    origin: process.env.CLIENT_URL || '*',
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization',
+      'Cookie',
+      'Set-Cookie',
+    ],
+  });
+
   // swagger setup
   const docConfig = new DocumentBuilder()
     .setTitle('ClassMate API')
