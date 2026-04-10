@@ -63,7 +63,7 @@ export class MinioStorageStrategy implements StorageStrategy {
       }),
     );
 
-    const url = `${this.appUrl}/api/v1/uploads/${key}`;
+    const url = `/api/v1/uploads/${key}`;
 
     this.logger.log(`File uploaded to MinIO: ${key}`);
 

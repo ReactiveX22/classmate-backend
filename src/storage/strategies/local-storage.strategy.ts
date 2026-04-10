@@ -39,7 +39,7 @@ export class LocalStorageStrategy implements StorageStrategy {
     const relativeFolder = path
       .relative(this.uploadDir, folderPath)
       .replace(/\\/g, '/');
-    const url = `${this.baseUrl}/api/v1/uploads/${relativeFolder}/${fileName}`;
+    const url = `/api/v1/uploads/${relativeFolder}/${fileName}`;
 
     return {
       id: fileId,
