@@ -5,7 +5,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
   Min,
 } from 'class-validator';
 
@@ -27,11 +26,8 @@ export class AttachmentDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty()
-  @IsUrl({
-    require_tld: false, // This allows 'localhost' which has no TLD
-    require_protocol: true, // Ensures http:// or https:// is present
-  })
+  @ApiProperty({ description: 'Relative path to the attachment' })
+  @IsString()
   @IsNotEmpty()
   url: string;
 
