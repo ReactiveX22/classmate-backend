@@ -40,7 +40,7 @@ export class SubmissionService {
     );
 
     return await this.submissionRepository.create({
-      postId: (post as any).id,
+      postId: post.id,
       studentId: userId,
       content: dto.content,
       attachments: dto.attachments,

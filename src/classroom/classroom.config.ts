@@ -14,6 +14,7 @@ import {
   classroom,
   classroomMembers,
   classroomPost,
+  classroomPostComment,
   course,
   user,
 } from 'src/database/schema';
@@ -104,7 +105,7 @@ export class ClassroomPostPaginationConfig extends PaginationConfig<
   }
 
   getBaseQuery(db: DB) {
-    // 1. Prepare the count subquery
+    // 1. Prepare the submission count subquery
     const subCounts = db
       .select({
         postId: assignmentSubmission.postId,
@@ -124,17 +125,50 @@ export class ClassroomPostPaginationConfig extends PaginationConfig<
 
     if (this.isInstructor) {
       selectFields.submissionStats = sql`
-      CASE 
-        WHEN ${classroomPost.type} = 'assignment' 
+      CASE
+        WHEN ${classroomPost.type} = 'assignment'
         THEN json_build_object(
           'total', CAST(COALESCE(${subCounts.total}, 0) AS INTEGER),
           'graded', CAST(COALESCE(${subCounts.graded}, 0) AS INTEGER)
         )
-        ELSE NULL 
+        ELSE NULL
       END`.as('submissionStats');
     } else {
       selectFields.submission = assignmentSubmission;
     }
+
+    // Add comment data using correlated subqueries (count + recent 3 comments)
+    const commentCountSq = sql<number>`(
+      SELECT COUNT(*)
+      FROM ${classroomPostComment}
+      WHERE ${classroomPostComment.postId} = ${classroomPost.id}
+    )`.as('commentCount');
+
+    const recentCommentsSq = sql`COALESCE(
+      (
+        SELECT json_agg(comment_data)
+        FROM (
+          SELECT 
+            c.id,
+            c.content,
+            c."created_at",
+            json_build_object(
+              'id', u.id,
+              'name', u.name,
+              'image', u.image
+            ) as author
+          FROM ${classroomPostComment} c
+          INNER JOIN ${user} u ON c."author_id" = u.id
+          WHERE c."post_id" = ${classroomPost.id}
+          ORDER BY c."created_at" DESC
+          LIMIT 3
+        ) comment_data
+      ),
+      '[]'::json
+    )`.as('recentComments');
+
+    selectFields.commentCount = commentCountSq;
+    selectFields.recentComments = recentCommentsSq;
 
     const query = db
       .select(selectFields)
