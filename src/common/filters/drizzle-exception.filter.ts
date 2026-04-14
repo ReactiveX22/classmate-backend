@@ -29,9 +29,38 @@ export class DrizzleExceptionFilter implements ExceptionFilter {
       cause?.code === '23505' ||
       cause?.message?.includes('duplicate key value')
     ) {
+      const detail = cause?.detail || '';
+      // detail format: Key (code, semester, session)=(CS101, 8th, Spring 2025) already exists.
+      const match = detail.match(/Key \(([^)]+)\)=\(([^)]+)\) already exists/);
+
+      let errors: { field: string; issue: string }[] = [];
+      let message = 'A record with this unique value already exists.';
+
+      if (match) {
+        const columns = match[1].split(', ');
+        const values = match[2].split(', ');
+
+        errors = columns.map((col, index) => {
+          // Map snake_case database column to camelCase for frontend
+          const field = col.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+          const value = values[index];
+          return {
+            field,
+            issue: `${field.charAt(0).toUpperCase() + field.slice(1)} "${value}" already exists.`,
+          };
+        });
+
+        if (errors.length === 1) {
+          message = errors[0].issue;
+        } else {
+          message = `Combination of ${columns.join(', ')} already exists.`;
+        }
+      }
+
       return response.status(HttpStatus.CONFLICT).json({
         errorCode: ERROR_CODES.INFRA.DUPLICATE_KEY,
-        message: 'A record with this unique value already exists.',
+        message,
+        errors: errors.length > 0 ? errors : undefined,
       });
     }
 

@@ -47,6 +47,10 @@ export const course = pgTable(
       .notNull(),
   },
   (table) => [
+    unique('course_code_organization_unique').on(
+      table.code,
+      table.organizationId,
+    ),
     unique('course_code_semester_session_unique').on(
       table.code,
       table.semester,
