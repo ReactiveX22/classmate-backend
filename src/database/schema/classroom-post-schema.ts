@@ -11,6 +11,7 @@ import {
 import { user } from './auth-schema';
 import { classroom } from './classroom-schema';
 import { assignmentSubmission } from './assignment-submission-schema';
+import { classroomPostComment } from './classroom-post-comment-schema';
 import { Attachment } from './types';
 
 export const postType = pgEnum('post_type', [
@@ -63,8 +64,8 @@ export const classroomPostRelations = relations(
       references: [user.id],
     }),
     submissions: many(assignmentSubmission),
+    comments: many(classroomPostComment),
     // future:
-    // comments: many(classroomPostComment),
     // reactions: many(classroomPostReaction),
   }),
 );

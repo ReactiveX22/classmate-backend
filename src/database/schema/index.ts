@@ -2,6 +2,7 @@ export * from './assignment-submission-schema';
 export * from './attendance-schema';
 export * from './auth-schema';
 export * from './classroom-members-schema';
+export * from './classroom-post-comment-schema';
 export * from './classroom-post-schema';
 export * from './classroom-schema';
 export * from './course-schema';

@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, getTableColumns } from 'drizzle-orm';
+import { and, eq, getTableColumns, sql } from 'drizzle-orm';
 import { ApplicationForbiddenException } from 'src/common/exceptions/application.exception';
 import { type DB, InjectDb, Transaction } from 'src/database/db.provider';
 import {
   assignmentSubmission,
   classroomMembers,
   classroomPost,
+  classroomPostComment,
   user,
 } from 'src/database/schema';
 
@@ -96,14 +97,47 @@ export class ClassroomPostRepository {
       selection.submission = assignmentSubmission;
     }
 
-    let query = this.db
+    // Add comment data
+    const commentCountSq = sql<number>`(
+      SELECT COUNT(*)
+      FROM ${classroomPostComment}
+      WHERE ${classroomPostComment.postId} = ${classroomPost.id}
+    )`.as('commentCount');
+
+    const recentCommentsSq = sql`COALESCE(
+      (
+        SELECT json_agg(comment_data)
+        FROM (
+          SELECT 
+            c.id,
+            c.content,
+            c."created_at",
+            json_build_object(
+              'id', u.id,
+              'name', u.name,
+              'image', u.image
+            ) as author
+          FROM ${classroomPostComment} c
+          INNER JOIN ${user} u ON c."author_id" = u.id
+          WHERE c."post_id" = ${classroomPost.id}
+          ORDER BY c."created_at" DESC
+          LIMIT 3
+        ) comment_data
+      ),
+      '[]'::json
+    )`.as('recentComments');
+
+    selection.commentCount = commentCountSq;
+    selection.recentComments = recentCommentsSq;
+
+    const query = this.db
       .select(selection)
       .from(classroomPost)
       .innerJoin(user, eq(classroomPost.authorId, user.id))
       .where(eq(classroomPost.id, postId));
 
     if (userId) {
-      query = query.leftJoin(
+      query.leftJoin(
         assignmentSubmission,
         and(
           eq(assignmentSubmission.postId, classroomPost.id),
