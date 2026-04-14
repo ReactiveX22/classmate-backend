@@ -33,8 +33,13 @@ export class CreateCourseDto {
 
   @IsNotEmpty()
   @IsString()
-  @MinLength(4, { message: 'Semester must be at least 4 characters long' })
+  @MinLength(1, { message: 'Semester must be at least 1 character long' })
   semester: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1, { message: 'Session must be at least 1 character long' })
+  session?: string;
 
   @IsOptional()
   @IsNumber()

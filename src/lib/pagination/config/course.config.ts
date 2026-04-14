@@ -4,12 +4,13 @@ import { course } from 'src/database/schema';
 import { PaginatedConfig } from '../pagination.interface';
 
 export class CoursePaginationConfig implements PaginatedConfig {
-  searchableFields = [course.code, course.title, course.semester];
+  searchableFields = [course.code, course.title, course.semester, course.session];
 
   sortFields = {
     code: course.code,
     title: course.title,
     semester: course.semester,
+    session: course.session,
     createdAt: course.createdAt,
     updatedAt: course.updatedAt,
   };

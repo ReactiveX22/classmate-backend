@@ -35,6 +35,7 @@ export const course = pgTable(
     description: text('description'),
     credits: integer('credits').default(3).notNull(),
     semester: text('semester').notNull(),
+    session: text('session'),
     status: courseStatusEnum('status').default('active').notNull(),
     maxStudents: integer('max_students').default(50).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
@@ -46,7 +47,11 @@ export const course = pgTable(
       .notNull(),
   },
   (table) => [
-    unique('course_code_semester_unique').on(table.semester, table.code),
+    unique('course_code_semester_session_unique').on(
+      table.code,
+      table.semester,
+      table.session,
+    ),
   ],
 );
 
