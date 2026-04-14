@@ -25,4 +25,8 @@ export class CreateStudentDto {
   @IsString()
   @IsOptional()
   studentId?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Phone must be a string' })
+  phone?: string;
 }

@@ -34,4 +34,8 @@ export class CreateTeacherDto {
     { message: 'Join date must be a valid ISO 8601 date string' },
   )
   joinDate?: string;
+
+  @IsOptional()
+  @IsString({ message: 'Phone must be a string' })
+  phone?: string;
 }

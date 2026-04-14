@@ -24,10 +24,12 @@ import { AppRole } from 'src/common/enums/role.enum';
 import { UserStatus } from 'src/common/enums/user-status.enum';
 import { OrganizationGuard } from 'src/common/guards';
 import { type AppUserSession } from 'src/common/types/session.types';
+import { userProfile } from 'src/database/schema';
 import { CreateTeacherDto } from '../dto/create-teacher.dto';
 import { UpdateTeacherDto } from '../dto/update-teacher.dto';
 import { TeacherService } from '../services/teacher.service';
 import { UserService } from '../services/user.service';
+import { UserProfileRepository } from '../repositories/user-profile.repository';
 
 @Controller('teachers')
 @UseGuards(OrganizationGuard)
@@ -37,6 +39,7 @@ export class TeacherController {
     private readonly userService: UserService,
     private readonly authService: AuthService<AuthType>,
     private readonly teacherService: TeacherService,
+    private readonly userProfileRepository: UserProfileRepository,
   ) {}
 
   @Post()
@@ -64,6 +67,13 @@ export class TeacherController {
       title: dto.title,
       joinDate: dto.joinDate,
     });
+
+    if (dto.phone !== undefined) {
+      await this.userProfileRepository.save({
+        userId: user.id,
+        phone: dto.phone,
+      });
+    }
 
     return {
       user,

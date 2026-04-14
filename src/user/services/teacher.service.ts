@@ -7,6 +7,7 @@ import {
 import { SelectTeacher, user } from 'src/database/schema';
 import { UpdateTeacherDto } from '../dto/update-teacher.dto';
 import { TeacherRepository } from '../repositories/teacher.repository';
+import { UserProfileRepository } from '../repositories/user-profile.repository';
 import { UserService } from './user.service';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class TeacherService {
   constructor(
     private readonly teacherRepository: TeacherRepository,
     private readonly userService: UserService,
+    private readonly userProfileRepository: UserProfileRepository,
   ) {}
 
   async findTeacherInOrg(teacherId: string, orgId: string) {
@@ -56,7 +58,7 @@ export class TeacherService {
       );
     }
 
-    const { email, name, title, joinDate, status } = dto;
+    const { email, name, title, joinDate, status, phone } = dto;
     const userData = this.filterUndefined({ email, name, status });
     const teacherData = this.filterUndefined({ title, joinDate });
 
@@ -70,11 +72,18 @@ export class TeacherService {
       );
     }
 
-    if (Object.keys(teacherData).length > 0) {
+    if (Object.keys(userData).length > 0) {
       updatedUser = await this.userService.update(
         teacherWithUser.user.id,
         userData,
       );
+    }
+
+    if (phone !== undefined) {
+      await this.userProfileRepository.save({
+        userId: teacherWithUser.user.id,
+        phone,
+      });
     }
 
     return {

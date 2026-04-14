@@ -13,6 +13,7 @@ import { CreateStudentDto } from '../dto/create-student.dto';
 import { UpdateStudentDto } from '../dto/update-student.dto';
 import { StudentRepository } from '../repositories/student.repository';
 import { UserService } from './user.service';
+import { UserProfileRepository } from '../repositories/user-profile.repository';
 
 @Injectable()
 export class StudentService {
@@ -20,6 +21,7 @@ export class StudentService {
     private readonly authService: AuthService<AuthType>,
     private readonly studentRepository: StudentRepository,
     private readonly userService: UserService,
+    private readonly userProfileRepository: UserProfileRepository,
   ) {}
 
   async createStudent(orgId: string, dto: CreateStudentDto) {
@@ -41,6 +43,14 @@ export class StudentService {
         userId: user.id,
         studentId: dto.studentId,
       });
+
+      if (dto.phone !== undefined) {
+        await this.userProfileRepository.save({
+          userId: user.id,
+          phone: dto.phone,
+        });
+      }
+
       return {
         user,
         student,
@@ -80,7 +90,7 @@ export class StudentService {
       );
     }
 
-    const { email, name, studentId: studentIdNumber, status } = dto;
+    const { email, name, studentId: studentIdNumber, status, phone } = dto;
     const userData = this.filterUndefined({ email, name, status });
     const studentData = this.filterUndefined({ studentId: studentIdNumber });
 
@@ -99,6 +109,13 @@ export class StudentService {
         studentWithUser.user.id,
         userData,
       );
+    }
+
+    if (phone !== undefined) {
+      await this.userProfileRepository.save({
+        userId: studentWithUser.user.id,
+        phone,
+      });
     }
 
     return {
