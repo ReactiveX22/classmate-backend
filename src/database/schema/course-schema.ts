@@ -51,11 +51,6 @@ export const course = pgTable(
       table.code,
       table.organizationId,
     ),
-    unique('course_code_semester_session_unique').on(
-      table.code,
-      table.semester,
-      table.session,
-    ),
   ],
 );
 
