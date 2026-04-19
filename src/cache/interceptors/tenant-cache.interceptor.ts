@@ -125,7 +125,7 @@ export class TenantCacheInterceptor implements NestInterceptor {
       .map((key) => `${key}=${query[key]}`)
       .join('&');
 
-    const parts = [`cache:${orgId}:${resource}`];
+    const parts = [`cache:${orgId}:${resource}`, request.path];
     if (sortedParamsString) parts.push(sortedParamsString);
     if (sortedQueryString) parts.push(sortedQueryString);
 
