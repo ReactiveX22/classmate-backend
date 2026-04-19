@@ -26,7 +26,7 @@ export class TenantCacheInterceptor implements NestInterceptor {
     private readonly cacheService: CacheService,
     private readonly reflector: Reflector,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async intercept(
     context: ExecutionContext,
@@ -54,9 +54,9 @@ export class TenantCacheInterceptor implements NestInterceptor {
       request.organizationId || request.session?.user?.organizationId;
 
     if (!orgId) {
-      this.logger.debug(
-        'No organizationId found in request, skipping cache interceptor logic',
-      );
+      // this.logger.debug(
+      //   'No organizationId found in request, skipping cache interceptor logic',
+      // );
       return next.handle();
     }
 
@@ -66,11 +66,11 @@ export class TenantCacheInterceptor implements NestInterceptor {
       const cachedData = await this.cacheService.get(cacheKey);
 
       if (cachedData) {
-        this.logger.debug(`Cache hit: ${cacheKey}`);
+        // this.logger.debug(`Cache hit: ${cacheKey}`);
         return of(cachedData);
       }
 
-      this.logger.debug(`Cache miss: ${cacheKey}`);
+      // this.logger.debug(`Cache miss: ${cacheKey}`);
       const ttl = this.reflector.get<number>(
         CACHE_TTL_METADATA,
         context.getHandler(),
@@ -92,9 +92,9 @@ export class TenantCacheInterceptor implements NestInterceptor {
     ) {
       return next.handle().pipe(
         tap(() => {
-          this.logger.debug(
-            `Triggering invalidation for ${invalidateResources} in org ${orgId}`,
-          );
+          // this.logger.debug(
+          //   `Triggering invalidation for ${invalidateResources} in org ${orgId}`,
+          // );
           const payload: CacheInvalidatePayload = {
             organizationId: orgId,
             resources: invalidateResources,

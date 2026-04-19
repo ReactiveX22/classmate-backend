@@ -11,6 +11,7 @@ export class CoursePaginationConfig implements PaginatedConfig {
     title: course.title,
     semester: course.semester,
     session: course.session,
+    credits: course.credits,
     createdAt: course.createdAt,
     updatedAt: course.updatedAt,
   };
