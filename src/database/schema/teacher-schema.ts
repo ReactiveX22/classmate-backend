@@ -8,7 +8,6 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
-import { course } from './course-schema';
 
 export const teacher = pgTable(
   'teacher',
@@ -31,12 +30,11 @@ export const teacher = pgTable(
   (table) => [index('teacher_userId_idx').on(table.userId)],
 );
 
-export const teacherRelations = relations(teacher, ({ one, many }) => ({
+export const teacherRelations = relations(teacher, ({ one }) => ({
   user: one(user, {
     fields: [teacher.userId],
     references: [user.id],
   }),
-  courses: many(course),
 }));
 
 export type SelectTeacher = typeof teacher.$inferSelect;
