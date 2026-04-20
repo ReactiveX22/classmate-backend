@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import {
   student,
@@ -31,6 +31,17 @@ export class StudentRepository {
     @InjectDb() private readonly db: DB,
     private readonly paginationService: PaginationService,
   ) {}
+
+  async countByOrganization(organizationId: string) {
+    const [result] = await this.db
+      .select({
+        count: sql<number>`count(*)`.mapWith(Number),
+      })
+      .from(student)
+      .innerJoin(user, eq(student.userId, user.id))
+      .where(eq(user.organizationId, organizationId));
+    return result?.count ?? 0;
+  }
 
   async create(data: { userId: string; studentId?: string }) {
     const newStudent = await this.db

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import {
   PaginatedResponse,
   PaginationQueryDto,
@@ -16,6 +16,16 @@ export class CourseRepository {
     @InjectDb() private readonly db: DB,
     private readonly paginationService: PaginationService,
   ) {}
+
+  async countByOrganization(organizationId: string) {
+    const [result] = await this.db
+      .select({
+        count: sql<number>`count(*)`.mapWith(Number),
+      })
+      .from(course)
+      .where(eq(course.organizationId, organizationId));
+    return result?.count ?? 0;
+  }
 
   async create(data: {
     organizationId: string;

@@ -8,6 +8,7 @@ import { ClassroomModule } from './classroom/classroom.module';
 import { ConfigModule } from './config/config.module';
 import { CourseModule } from './course/course.module';
 import { DatabaseModule } from './database/database.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
 import { MailModule } from './mail/mail.module';
 import { NoticeModule } from './notice/notice.module';
@@ -32,6 +33,7 @@ import { UserModule } from './user/user.module';
     NotificationModule,
     NoticeModule,
     MailModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
