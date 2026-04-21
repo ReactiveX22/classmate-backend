@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TeacherService } from 'src/user/services/teacher.service';
 import { CreateCourseDto } from '../dto/create-course.dto';
 import { CourseRepository } from '../repositories/course.repository';
-import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { CourseFilterDto } from '../dto/course-filter.dto';
 import { UpdateCourseDto } from '../dto/update-course.dto';
 import {
   ApplicationForbiddenException,
@@ -70,7 +70,7 @@ export class CourseService {
     await this.courseRepository.remove(id);
   }
 
-  async getAllCourses(orgId: string, query: PaginationQueryDto) {
+  async getAllCourses(orgId: string, query: CourseFilterDto) {
     return this.courseRepository.findAllByOrganization(orgId, query);
   }
 }

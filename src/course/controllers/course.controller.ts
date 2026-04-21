@@ -14,9 +14,9 @@ import {
 } from '@nestjs/common';
 import { Roles } from '@thallesp/nestjs-better-auth';
 import { OrganizationId } from 'src/common/decorators';
-import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
 import { CreateCourseDto } from '../dto/create-course.dto';
+import { CourseFilterDto } from '../dto/course-filter.dto';
 import { CourseService } from '../services/course.service';
 import { UpdateCourseDto } from '../dto/update-course.dto';
 import { TenantCacheInterceptor } from 'src/cache/interceptors/tenant-cache.interceptor';
@@ -32,7 +32,7 @@ export class CourseController {
   @CacheResource('courses')
   @Roles([AppRole.Admin, AppRole.Instructor])
   async getAll(
-    @Query() query: PaginationQueryDto,
+    @Query() query: CourseFilterDto,
     @OrganizationId() orgId: string,
   ) {
     return this.courseService.getAllCourses(orgId, query);

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, sql, type SQL } from 'drizzle-orm';
 import {
   PaginatedResponse,
   PaginationQueryDto,
@@ -9,6 +9,7 @@ import { type DB, InjectDb } from 'src/database/db.provider';
 import { course, SelectCourse } from 'src/database/schema';
 import { coursePaginationConfig } from 'src/lib/pagination/config/course.config';
 import { PaginationService } from 'src/lib/pagination/pagination.service';
+import { CourseFilterDto } from '../dto/course-filter.dto';
 
 @Injectable()
 export class CourseRepository {
@@ -30,11 +31,12 @@ export class CourseRepository {
   async create(data: {
     organizationId: string;
     teacherId?: string;
+    semesterId: string;
+    sessionId?: string;
     code: string;
     title: string;
     description?: string;
     credits?: number;
-    semester: string;
     maxStudents?: number;
   }) {
     const [created] = await this.db.insert(course).values(data).returning();
@@ -58,6 +60,8 @@ export class CourseRepository {
       where: and(eq(course.id, courseId), eq(course.organizationId, orgId)),
       with: {
         teacher: true,
+        session: true,
+        semester: true,
         enrollment: {
           with: {
             student: {
@@ -87,9 +91,13 @@ export class CourseRepository {
 
   async findAllByOrganization(
     orgId: string,
-    query: PaginationQueryDto,
+    query: CourseFilterDto,
   ): Promise<PaginatedResponse<SelectCourse>> {
-    const filters = buildOrganizationFilters(orgId, { table: course });
+    const extraFilters: SQL[] = [];
+    if (query.semesterId) extraFilters.push(eq(course.semesterId, query.semesterId));
+    if (query.sessionId) extraFilters.push(eq(course.sessionId, query.sessionId));
+
+    const filters = buildOrganizationFilters(orgId, { table: course, extraFilters });
 
     return this.paginationService.paginate<SelectCourse>(
       {

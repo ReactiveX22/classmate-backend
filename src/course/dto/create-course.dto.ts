@@ -1,4 +1,5 @@
 import {
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -7,11 +8,12 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import { type CourseStatus } from 'src/database/schema';
 
 export class CreateCourseDto {
   @IsOptional()
-  @IsString()
-  teacherId: string;
+  @IsUUID()
+  teacherId?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -31,17 +33,19 @@ export class CreateCourseDto {
   @Min(1, { message: 'Credit must be at least 1' })
   credits?: number;
 
+  @IsOptional()
+  @IsEnum(['active', 'inactive', 'archived'])
+  status?: CourseStatus;
+
   @IsNotEmpty()
-  @IsString()
-  @MinLength(1, { message: 'Semester must be at least 1 character long' })
-  semester: string;
+  @IsUUID()
+  semesterId: string;
 
   @IsOptional()
-  @IsString()
-  @MinLength(1, { message: 'Session must be at least 1 character long' })
-  session?: string;
+  @IsUUID()
+  sessionId?: string;
 
   @IsOptional()
   @IsNumber()
-  maxStudents: number;
+  maxStudents?: number;
 }
