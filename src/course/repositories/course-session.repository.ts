@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import {
   PaginatedResponse,
   PaginationQueryDto,
@@ -56,6 +56,19 @@ export class CourseSessionRepository {
 
   async remove(id: string) {
     await this.db.delete(courseSession).where(eq(courseSession.id, id));
+  }
+  
+  async unsetOtherCurrentSessions(orgId: string, excludeId?: string) {
+    await this.db
+      .update(courseSession)
+      .set({ isCurrent: false })
+      .where(
+        and(
+          eq(courseSession.organizationId, orgId),
+          excludeId ? ne(courseSession.id, excludeId) : undefined,
+          eq(courseSession.isCurrent, true),
+        ),
+      );
   }
 
   async findAllByOrganization(

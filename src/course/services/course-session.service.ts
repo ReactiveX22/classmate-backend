@@ -16,6 +16,10 @@ export class CourseSessionService {
   ) {}
 
   async create(data: CreateCourseSessionDto, orgId: string) {
+    if (data.isCurrent) {
+      await this.courseSessionRepository.unsetOtherCurrentSessions(orgId);
+    }
+    
     return this.courseSessionRepository.create({
       ...data,
       organizationId: orgId,
@@ -41,6 +45,11 @@ export class CourseSessionService {
 
   async update(orgId: string, id: string, dto: UpdateCourseSessionDto) {
     await this.findById(orgId, id);
+    
+    if (dto.isCurrent) {
+      await this.courseSessionRepository.unsetOtherCurrentSessions(orgId, id);
+    }
+
     return this.courseSessionRepository.update(id, {
       ...dto,
       startDate: dto.startDate ? new Date(dto.startDate) : undefined,
