@@ -38,7 +38,7 @@ export class MailService {
       'src/mail/templates',
       `${templateName}.ejs`,
     );
-    const html = await ejs.renderFile(templatePath, context);
+    const html = (await ejs.renderFile(templatePath, context)) as string;
     const body = html.replace(/<[^>]*>?/gm, ''); // Simple strip tags for text body
 
     await this.transporter.send({

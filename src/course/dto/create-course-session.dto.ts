@@ -1,10 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsBoolean, IsDateString, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateCourseSessionDto {
   @ApiProperty({ example: 'Fall 2024' })
   @IsNotEmpty()
   @IsString()
+  @Transform(({ value }) => value?.trim())
   name: string;
 
   @ApiPropertyOptional({ example: 'The main fall session' })

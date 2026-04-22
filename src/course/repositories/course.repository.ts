@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, sql, type SQL } from 'drizzle-orm';
-import {
-  PaginatedResponse,
-  PaginationQueryDto,
-} from 'src/common/dto/pagination.dto';
 import { buildOrganizationFilters } from 'src/common/helpers/pagination.helper';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import { course, SelectCourse } from 'src/database/schema';
@@ -16,7 +12,7 @@ export class CourseRepository {
   constructor(
     @InjectDb() private readonly db: DB,
     private readonly paginationService: PaginationService,
-  ) {}
+  ) { }
 
   async countByOrganization(organizationId: string) {
     const [result] = await this.db
@@ -31,7 +27,7 @@ export class CourseRepository {
   async create(data: {
     organizationId: string;
     teacherId?: string;
-    semesterId: string;
+    semesterId?: string;
     sessionId?: string;
     code: string;
     title: string;
@@ -40,7 +36,7 @@ export class CourseRepository {
     maxStudents?: number;
   }) {
     const [created] = await this.db.insert(course).values(data).returning();
-    return created;
+    return this.findByIdWithTeacher(created.id, created.organizationId);
   }
 
   async findById(id: string): Promise<SelectCourse | null> {
@@ -55,7 +51,7 @@ export class CourseRepository {
   async findByIdWithTeacher(
     courseId: string,
     orgId: string,
-  ): Promise<SelectCourse | null> {
+  ) {
     const result = await this.db.query.course.findFirst({
       where: and(eq(course.id, courseId), eq(course.organizationId, orgId)),
       with: {
@@ -82,7 +78,11 @@ export class CourseRepository {
       .set(data)
       .where(eq(course.id, id))
       .returning();
-    return updated || null;
+
+    if (updated) {
+      return this.findByIdWithTeacher(updated.id, updated.organizationId);
+    }
+    return null;
   }
 
   async remove(id: string) {
@@ -92,14 +92,14 @@ export class CourseRepository {
   async findAllByOrganization(
     orgId: string,
     query: CourseFilterDto,
-  ): Promise<PaginatedResponse<SelectCourse>> {
+  ) {
     const extraFilters: SQL[] = [];
     if (query.semesterId) extraFilters.push(eq(course.semesterId, query.semesterId));
     if (query.sessionId) extraFilters.push(eq(course.sessionId, query.sessionId));
 
     const filters = buildOrganizationFilters(orgId, { table: course, extraFilters });
 
-    return this.paginationService.paginate<SelectCourse>(
+    return this.paginationService.paginate<any>(
       {
         config: coursePaginationConfig,
         filters,

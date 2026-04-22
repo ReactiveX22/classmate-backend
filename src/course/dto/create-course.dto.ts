@@ -12,9 +12,9 @@ import {
 import { type CourseStatus } from 'src/database/schema';
 
 export class CreateCourseDto {
-  @ApiPropertyOptional({ example: 'uuid-of-teacher' })
+  @ApiPropertyOptional({ example: 'user-id-from-auth' })
   @IsOptional()
-  @IsUUID()
+  @IsString()
   teacherId?: string;
 
   @ApiProperty({ example: 'CS101' })
@@ -44,10 +44,10 @@ export class CreateCourseDto {
   @IsEnum(['active', 'inactive', 'archived'])
   status?: CourseStatus;
 
-  @ApiProperty({ example: 'uuid-of-semester' })
-  @IsNotEmpty()
+  @ApiPropertyOptional({ example: 'uuid-of-semester' })
+  @IsOptional()
   @IsUUID()
-  semesterId: string;
+  semesterId?: string;
 
   @ApiPropertyOptional({ example: 'uuid-of-session' })
   @IsOptional()
