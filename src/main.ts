@@ -1,13 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { DrizzleExceptionFilter } from './common/filters/drizzle-exception.filter';
 import { GlobalValidationPipe } from './common/filters/validation.pipe';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bodyParser: false, // Required for Better Auth
   });
+
+  app.set('query parser', 'extended');
 
   app.useGlobalPipes(GlobalValidationPipe);
 

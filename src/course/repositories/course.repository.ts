@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, sql, type SQL } from 'drizzle-orm';
+import { and, eq, inArray, sql, type SQL } from 'drizzle-orm';
 import { buildOrganizationFilters } from 'src/common/helpers/pagination.helper';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import { course, SelectCourse } from 'src/database/schema';
@@ -94,10 +94,19 @@ export class CourseRepository {
     query: CourseFilterDto,
   ) {
     const extraFilters: SQL[] = [];
-    if (query.semesterId) extraFilters.push(eq(course.semesterId, query.semesterId));
-    if (query.sessionId) extraFilters.push(eq(course.sessionId, query.sessionId));
 
-    const filters = buildOrganizationFilters(orgId, { table: course, extraFilters });
+    if (query.semesterId && query.semesterId.length > 0) {
+      extraFilters.push(inArray(course.semesterId, query.semesterId));
+    }
+
+    if (query.sessionId && query.sessionId.length > 0) {
+      extraFilters.push(inArray(course.sessionId, query.sessionId));
+    }
+
+    const filters = buildOrganizationFilters(orgId, {
+      table: course,
+      extraFilters,
+    });
 
     return this.paginationService.paginate<any>(
       {
