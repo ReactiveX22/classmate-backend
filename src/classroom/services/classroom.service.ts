@@ -18,6 +18,7 @@ import { ClassroomRepository } from '../classroom.repository';
 import { AddMembersClassroomDto } from '../dto/addMembers-classroom.dto';
 import { CreateClassroomDto } from '../dto/create-classroom.dto';
 import { JoinClassroomDto } from '../dto/join-classroom.dto';
+import { ListClassroomPostsDto } from '../dto/list-classroom-posts.dto';
 import { UpdateClassroomPostDto } from '../dto/update-classroom-post.dto';
 import { UpdateClassroomDto } from '../dto/update-classroom.dto';
 import { ClassroomPostRepository } from '../repositories/classroom-post.repository';
@@ -192,13 +193,15 @@ export class ClassroomService {
     id: string,
     user: User,
     orgId: string,
-    query: PaginationQueryDto,
+    query: ListClassroomPostsDto,
   ) {
     const classroom = await this.findOne(id, orgId);
+    const normalizedTags = this.normalizeTags(query.tags);
     return await this.classroomRepository.findPostsByClassroom(
-      query,
+      { ...query, tags: normalizedTags },
       classroom.id,
       user.role === AppRole.Instructor,
+      classroom.teacherId,
       user.id,
     );
   }
@@ -210,16 +213,20 @@ export class ClassroomService {
     orgId: string,
   ) {
     const classroom = await this.findOne(id, orgId);
+    const normalizedBody: CreateClassroomPostDto = {
+      ...body,
+      tags: this.normalizeTags(body.tags),
+    };
     const newPost = await this.classroomPostRepository.runInTransaction(
       async (tx) => {
         const post = await this.classroomPostRepository.create(
           tx,
-          body,
+          normalizedBody,
           classroom.id,
           user.id,
         );
 
-        if (body.type === 'assignment') {
+        if (normalizedBody.type === 'assignment') {
           const members =
             await this.classroomPostRepository.getClassroomMembers(
               tx,
@@ -258,7 +265,7 @@ export class ClassroomService {
       },
     };
 
-    const mapping = notificationMapping[body.type] || {
+    const mapping = notificationMapping[normalizedBody.type] || {
       type: NotificationType.CLASSROOM.POST,
       template: 'CLASSROOM_POST',
     };
@@ -298,7 +305,15 @@ export class ClassroomService {
     orgId: string,
   ) {
     const classroom = await this.findOne(id, orgId);
-    return await this.classroomPostRepository.update(postId, authorId, body);
+    const normalizedBody: UpdateClassroomPostDto = {
+      ...body,
+      tags: body.tags ? this.normalizeTags(body.tags) : body.tags,
+    };
+    return await this.classroomPostRepository.update(
+      postId,
+      authorId,
+      normalizedBody,
+    );
   }
 
   async findPost(id: string, orgId: string, postId: string, userId: string) {
@@ -349,6 +364,34 @@ export class ClassroomService {
     await this.classroomPostRepository.deletePost(classroom.id, postId);
   }
 
+  async bookmarkPost(
+    classroomId: string,
+    postId: string,
+    userId: string,
+    orgId: string,
+  ) {
+    await this.findOne(classroomId, orgId);
+    const post = await this.classroomPostRepository.fetchOne(postId);
+    if (!post || post.classroomId !== classroomId) {
+      throw new ApplicationNotFoundException('Post not found');
+    }
+    await this.classroomPostRepository.bookmark(postId, userId);
+  }
+
+  async unbookmarkPost(
+    classroomId: string,
+    postId: string,
+    userId: string,
+    orgId: string,
+  ) {
+    await this.findOne(classroomId, orgId);
+    const post = await this.classroomPostRepository.fetchOne(postId);
+    if (!post || post.classroomId !== classroomId) {
+      throw new ApplicationNotFoundException('Post not found');
+    }
+    await this.classroomPostRepository.unbookmark(postId, userId);
+  }
+
   async joinClassroom(dto: JoinClassroomDto, userId: string, orgId: string) {
     const classroom = await this.classroomRepository.findByClassCode(
       dto.classCode,
@@ -396,5 +439,19 @@ export class ClassroomService {
   private generateClassCode(): string {
     const alphabet = '23456789abcdefghjkmnpqrstuvwxyz';
     return customAlphabet(alphabet, 7)();
+  }
+
+  private normalizeTags(tags?: string[]) {
+    if (!tags?.length) return [];
+
+    const uniqueTags = new Set<string>();
+    for (const rawTag of tags) {
+      const normalized = rawTag.trim().replace(/^#/, '').toLowerCase();
+      if (normalized) {
+        uniqueTags.add(normalized);
+      }
+    }
+
+    return Array.from(uniqueTags);
   }
 }

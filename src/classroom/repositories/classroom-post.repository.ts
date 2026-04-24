@@ -7,6 +7,7 @@ import {
   classroomMembers,
   classroomPost,
   classroomPostComment,
+  classroomResourceBookmark,
   user,
 } from 'src/database/schema';
 
@@ -91,6 +92,14 @@ export class ClassroomPostRepository {
     const selection: any = {
       ...getTableColumns(classroomPost),
       author: user,
+      isBookmarked: userId
+        ? sql<boolean>`EXISTS (
+            SELECT 1
+            FROM ${classroomResourceBookmark}
+            WHERE ${classroomResourceBookmark.postId} = ${classroomPost.id}
+              AND ${classroomResourceBookmark.userId} = ${userId}
+          )`.as('isBookmarked')
+        : sql<boolean>`false`.as('isBookmarked'),
     };
 
     if (userId) {
@@ -166,5 +175,23 @@ export class ClassroomPostRepository {
       .set(body)
       .where(eq(classroomPost.id, postId))
       .returning();
+  }
+
+  async bookmark(postId: string, userId: string) {
+    await this.db
+      .insert(classroomResourceBookmark)
+      .values({ postId, userId })
+      .onConflictDoNothing();
+  }
+
+  async unbookmark(postId: string, userId: string) {
+    await this.db
+      .delete(classroomResourceBookmark)
+      .where(
+        and(
+          eq(classroomResourceBookmark.postId, postId),
+          eq(classroomResourceBookmark.userId, userId),
+        ),
+      );
   }
 }

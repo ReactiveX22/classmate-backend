@@ -91,4 +91,10 @@ export class CreateClassroomPostDto {
   @IsOptional()
   @IsBoolean()
   commentsEnabled?: boolean;
+
+  @ApiPropertyOptional({ type: [String], default: [] })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
 }
