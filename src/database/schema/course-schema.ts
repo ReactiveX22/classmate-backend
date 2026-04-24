@@ -11,6 +11,8 @@ import {
 import { user } from './auth-schema';
 import { enrollment } from './enrollment-schema';
 import { organization } from './organization-schema';
+import { semester } from './semester-schema';
+import { courseSession } from './session-schema';
 
 export const courseStatusEnum = pgEnum('course_status', [
   'active',
@@ -30,12 +32,16 @@ export const course = pgTable(
     teacherId: text('teacher_id').references(() => user.id, {
       onDelete: 'set null',
     }),
+    sessionId: uuid('session_id').references(() => courseSession.id, {
+      onDelete: 'set null',
+    }),
+    semesterId: uuid('semester_id').references(() => semester.id, {
+      onDelete: 'set null',
+    }),
     code: text('code').notNull(),
     title: text('title').notNull(),
     description: text('description'),
     credits: integer('credits').default(3).notNull(),
-    semester: text('semester').notNull(),
-    session: text('session'),
     status: courseStatusEnum('status').default('active').notNull(),
     maxStudents: integer('max_students').default(50).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
@@ -62,6 +68,14 @@ export const courseRelations = relations(course, ({ one, many }) => ({
   teacher: one(user, {
     fields: [course.teacherId],
     references: [user.id],
+  }),
+  session: one(courseSession, {
+    fields: [course.sessionId],
+    references: [courseSession.id],
+  }),
+  semester: one(semester, {
+    fields: [course.semesterId],
+    references: [semester.id],
   }),
   enrollment: many(enrollment),
 }));

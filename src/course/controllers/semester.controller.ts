@@ -16,70 +16,70 @@ import { ApiTags } from '@nestjs/swagger';
 import { Roles } from '@thallesp/nestjs-better-auth';
 import { OrganizationId } from 'src/common/decorators';
 import { AppRole } from 'src/common/enums/role.enum';
-import { CreateCourseDto } from '../dto/create-course.dto';
-import { CourseFilterDto } from '../dto/course-filter.dto';
-import { CourseService } from '../services/course.service';
-import { UpdateCourseDto } from '../dto/update-course.dto';
+import { CreateSemesterDto } from '../dto/create-semester.dto';
+import { UpdateSemesterDto } from '../dto/update-semester.dto';
+import { SemesterService } from '../services/semester.service';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { TenantCacheInterceptor } from 'src/cache/interceptors/tenant-cache.interceptor';
 import { CacheResource } from 'src/cache/decorators/cache-resource.decorator';
 import { InvalidateCache } from 'src/cache/decorators/invalidate-cache.decorator';
 
-@ApiTags('Courses')
-@Controller('courses')
+@ApiTags('Semesters')
+@Controller('semesters')
 @UseInterceptors(TenantCacheInterceptor)
-export class CourseController {
-  constructor(private readonly courseService: CourseService) {}
+export class SemesterController {
+  constructor(private readonly semesterService: SemesterService) {}
 
   @Get()
-  @CacheResource('courses')
+  @CacheResource('semesters')
   @Roles([AppRole.Admin, AppRole.Instructor])
   async getAll(
-    @Query() query: CourseFilterDto,
+    @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
   ) {
-    return this.courseService.getAllCourses(orgId, query);
+    return this.semesterService.getAll(orgId, query);
   }
 
   @Post()
-  @InvalidateCache('courses')
+  @InvalidateCache('semesters')
   @Roles([AppRole.Admin])
   async create(
-    @Body() createCourseDto: CreateCourseDto,
+    @Body() createSemesterDto: CreateSemesterDto,
     @OrganizationId() orgId: string,
   ) {
-    return this.courseService.createCourse(createCourseDto, orgId);
+    return this.semesterService.create(createSemesterDto, orgId);
   }
 
   @Get(':id')
-  @CacheResource('courses')
+  @CacheResource('semesters')
   @Roles([AppRole.Admin, AppRole.Instructor])
   async getById(
     @Param('id', ParseUUIDPipe) id: string,
     @OrganizationId() orgId: string,
   ) {
-    return this.courseService.getCourseById(orgId, id);
+    return this.semesterService.findById(orgId, id);
   }
 
   @Patch(':id')
-  @InvalidateCache('courses')
+  @InvalidateCache('semesters')
   @HttpCode(HttpStatus.OK)
   @Roles([AppRole.Admin])
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @OrganizationId() orgId: string,
-    @Body() dto: UpdateCourseDto,
+    @Body() dto: UpdateSemesterDto,
   ) {
-    return await this.courseService.update(orgId, id, dto);
+    return await this.semesterService.update(orgId, id, dto);
   }
 
   @Delete(':id')
-  @InvalidateCache('courses')
+  @InvalidateCache('semesters')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles([AppRole.Admin])
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @OrganizationId() orgId: string,
   ) {
-    await this.courseService.remove(orgId, id);
+    await this.semesterService.remove(orgId, id);
   }
 }

@@ -16,70 +16,70 @@ import { ApiTags } from '@nestjs/swagger';
 import { Roles } from '@thallesp/nestjs-better-auth';
 import { OrganizationId } from 'src/common/decorators';
 import { AppRole } from 'src/common/enums/role.enum';
-import { CreateCourseDto } from '../dto/create-course.dto';
-import { CourseFilterDto } from '../dto/course-filter.dto';
-import { CourseService } from '../services/course.service';
-import { UpdateCourseDto } from '../dto/update-course.dto';
+import { CreateCourseSessionDto } from '../dto/create-course-session.dto';
+import { UpdateCourseSessionDto } from '../dto/update-course-session.dto';
+import { CourseSessionService } from '../services/course-session.service';
+import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { TenantCacheInterceptor } from 'src/cache/interceptors/tenant-cache.interceptor';
 import { CacheResource } from 'src/cache/decorators/cache-resource.decorator';
 import { InvalidateCache } from 'src/cache/decorators/invalidate-cache.decorator';
 
-@ApiTags('Courses')
-@Controller('courses')
+@ApiTags('Course Sessions')
+@Controller('course-sessions')
 @UseInterceptors(TenantCacheInterceptor)
-export class CourseController {
-  constructor(private readonly courseService: CourseService) {}
+export class CourseSessionController {
+  constructor(private readonly courseSessionService: CourseSessionService) {}
 
   @Get()
-  @CacheResource('courses')
+  @CacheResource('course-sessions')
   @Roles([AppRole.Admin, AppRole.Instructor])
   async getAll(
-    @Query() query: CourseFilterDto,
+    @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
   ) {
-    return this.courseService.getAllCourses(orgId, query);
+    return this.courseSessionService.getAll(orgId, query);
   }
 
   @Post()
-  @InvalidateCache('courses')
+  @InvalidateCache('course-sessions')
   @Roles([AppRole.Admin])
   async create(
-    @Body() createCourseDto: CreateCourseDto,
+    @Body() createDto: CreateCourseSessionDto,
     @OrganizationId() orgId: string,
   ) {
-    return this.courseService.createCourse(createCourseDto, orgId);
+    return this.courseSessionService.create(createDto, orgId);
   }
 
   @Get(':id')
-  @CacheResource('courses')
+  @CacheResource('course-sessions')
   @Roles([AppRole.Admin, AppRole.Instructor])
   async getById(
     @Param('id', ParseUUIDPipe) id: string,
     @OrganizationId() orgId: string,
   ) {
-    return this.courseService.getCourseById(orgId, id);
+    return this.courseSessionService.findById(orgId, id);
   }
 
   @Patch(':id')
-  @InvalidateCache('courses')
+  @InvalidateCache('course-sessions')
   @HttpCode(HttpStatus.OK)
   @Roles([AppRole.Admin])
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @OrganizationId() orgId: string,
-    @Body() dto: UpdateCourseDto,
+    @Body() dto: UpdateCourseSessionDto,
   ) {
-    return await this.courseService.update(orgId, id, dto);
+    return await this.courseSessionService.update(orgId, id, dto);
   }
 
   @Delete(':id')
-  @InvalidateCache('courses')
+  @InvalidateCache('course-sessions')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles([AppRole.Admin])
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
     @OrganizationId() orgId: string,
   ) {
-    await this.courseService.remove(orgId, id);
+    await this.courseSessionService.remove(orgId, id);
   }
 }

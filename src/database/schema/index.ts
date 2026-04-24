@@ -11,6 +11,8 @@ export * from './notice-schema';
 export * from './notification-read-schema';
 export * from './notification-schema';
 export * from './organization-schema';
+export * from './semester-schema';
+export * from './session-schema';
 export * from './student-schema';
 export * from './teacher-schema';
 export * from './types';
