@@ -1,18 +1,30 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
-import { Session } from '@thallesp/nestjs-better-auth';
+import {
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { Roles, Session } from '@thallesp/nestjs-better-auth';
 import { OrganizationId } from 'src/common/decorators';
-import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { AppRole } from 'src/common/enums/role.enum';
 import { type AppUserSession } from 'src/common/types/session.types';
+import { ListClassroomPostsDto } from '../dto/list-classroom-posts.dto';
 import { ClassroomService } from '../services/classroom.service';
 
 @Controller('classrooms/:classroomId/posts')
 export class PostController {
   constructor(private readonly classroomService: ClassroomService) {}
 
+  @Roles([AppRole.Instructor, AppRole.Student])
   @Get()
   async findPostsByClassroom(
     @Param('classroomId', ParseUUIDPipe) id: string,
-    @Query() query: PaginationQueryDto,
+    @Query() query: ListClassroomPostsDto,
     @OrganizationId() orgId: string,
     @Session() session: AppUserSession,
   ) {
@@ -21,6 +33,40 @@ export class PostController {
       session.user,
       orgId,
       query,
+    );
+  }
+
+  @Roles([AppRole.Instructor, AppRole.Student])
+  @Post(':postId/bookmark')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async bookmarkPost(
+    @Param('classroomId', ParseUUIDPipe) classroomId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @OrganizationId() orgId: string,
+    @Session() session: AppUserSession,
+  ) {
+    await this.classroomService.bookmarkPost(
+      classroomId,
+      postId,
+      session.user.id,
+      orgId,
+    );
+  }
+
+  @Roles([AppRole.Instructor, AppRole.Student])
+  @Delete(':postId/bookmark')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async unbookmarkPost(
+    @Param('classroomId', ParseUUIDPipe) classroomId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @OrganizationId() orgId: string,
+    @Session() session: AppUserSession,
+  ) {
+    await this.classroomService.unbookmarkPost(
+      classroomId,
+      postId,
+      session.user.id,
+      orgId,
     );
   }
 }

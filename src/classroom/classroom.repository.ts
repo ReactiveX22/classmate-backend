@@ -21,10 +21,12 @@ import {
   classroom,
   classroomMembers,
   classroomPost,
+  classroomResourceBookmark,
   course,
   SelectClassroom,
 } from 'src/database/schema';
 import { PaginationService } from 'src/lib/pagination/pagination.service';
+import { ListClassroomPostsDto } from './dto/list-classroom-posts.dto';
 
 @Injectable()
 export class ClassroomRepository {
@@ -137,17 +139,70 @@ export class ClassroomRepository {
   }
 
   async findPostsByClassroom(
-    query: PaginationQueryDto,
+    query: ListClassroomPostsDto,
     classroomId: string,
     isInstructor: boolean,
+    teacherId: string,
     userId?: string,
   ) {
     const filters: SQL[] = [eq(classroomPost.classroomId, classroomId)];
+
+    if (query.type) {
+      filters.push(eq(classroomPost.type, query.type));
+    }
+
+    if (query.fromInstructor) {
+      filters.push(eq(classroomPost.authorId, teacherId));
+    }
+
+    if (query.bookmarked && userId) {
+      filters.push(
+        exists(
+          this.db
+            .select({ id: classroomResourceBookmark.id })
+            .from(classroomResourceBookmark)
+            .where(
+              and(
+                eq(classroomResourceBookmark.postId, classroomPost.id),
+                eq(classroomResourceBookmark.userId, userId),
+              ),
+            ),
+        ),
+      );
+    }
+
+    if (query.tags && query.tags.length > 0) {
+      filters.push(
+        or(
+          ...query.tags.map(
+            (tag) =>
+              sql`${tag} = ANY(COALESCE(${classroomPost.tags}, ARRAY[]::text[]))`,
+          ),
+        )!,
+      );
+    }
+
+    const searchTerm = query.search?.trim();
+    if (searchTerm) {
+      const likeTerm = `%${searchTerm}%`;
+      filters.push(
+        or(
+          sql`${classroomPost.title} ILIKE ${likeTerm}`,
+          sql`${classroomPost.content} ILIKE ${likeTerm}`,
+          sql`EXISTS (
+            SELECT 1
+            FROM unnest(COALESCE(${classroomPost.tags}, ARRAY[]::text[])) AS tag
+            WHERE tag ILIKE ${likeTerm}
+          )`,
+        )!,
+      );
+    }
 
     return this.paginationService.paginate(
       {
         config: new ClassroomPostPaginationConfig(userId, isInstructor),
         filters,
+        searchQuery: '',
       },
       query,
     );

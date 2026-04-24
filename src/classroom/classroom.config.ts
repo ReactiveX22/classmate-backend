@@ -15,6 +15,7 @@ import {
   classroomMembers,
   classroomPost,
   classroomPostComment,
+  classroomResourceBookmark,
   course,
   user,
 } from 'src/database/schema';
@@ -121,6 +122,14 @@ export class ClassroomPostPaginationConfig extends PaginationConfig<
     const selectFields: any = {
       ...getTableColumns(classroomPost),
       author: user,
+      isBookmarked: this.userId
+        ? sql<boolean>`EXISTS (
+            SELECT 1
+            FROM ${classroomResourceBookmark}
+            WHERE ${classroomResourceBookmark.postId} = ${classroomPost.id}
+              AND ${classroomResourceBookmark.userId} = ${this.userId}
+          )`.as('isBookmarked')
+        : sql<boolean>`false`.as('isBookmarked'),
     };
 
     if (this.isInstructor) {

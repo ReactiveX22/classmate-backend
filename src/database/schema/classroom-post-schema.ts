@@ -12,6 +12,7 @@ import { user } from './auth-schema';
 import { classroom } from './classroom-schema';
 import { assignmentSubmission } from './assignment-submission-schema';
 import { classroomPostComment } from './classroom-post-comment-schema';
+import { classroomResourceBookmark } from './classroom-resource-bookmark-schema';
 import { Attachment } from './types';
 
 export const postType = pgEnum('post_type', [
@@ -43,6 +44,7 @@ export const classroomPost = pgTable('classroom_post', {
   assignmentData: jsonb('assignment_data').$type<AssignmentData>(),
   isPinned: boolean('is_pinned').default(false).notNull(),
   commentsEnabled: boolean('comments_enabled').default(true).notNull(),
+  tags: text('tags').array().default([]).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -65,6 +67,7 @@ export const classroomPostRelations = relations(
     }),
     submissions: many(assignmentSubmission),
     comments: many(classroomPostComment),
+    bookmarks: many(classroomResourceBookmark),
     // future:
     // reactions: many(classroomPostReaction),
   }),
