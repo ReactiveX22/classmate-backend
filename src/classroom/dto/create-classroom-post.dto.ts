@@ -15,6 +15,20 @@ import {
 } from 'class-validator';
 import { AttachmentDto } from '../../common/dto/attachment.dto';
 
+export type QuestionDataDto =
+  | {
+      mode: 'short_answer';
+    }
+  | {
+      mode: 'poll';
+      selectionMode: 'single' | 'multiple';
+      options: Array<{
+        id: string;
+        text: string;
+        position?: number;
+      }>;
+    };
+
 export enum PostType {
   ANNOUNCEMENT = 'announcement',
   ASSIGNMENT = 'assignment',
@@ -81,6 +95,10 @@ export class CreateClassroomPostDto {
   @ValidateNested()
   @Type(() => AssignmentDataDto)
   assignmentData?: AssignmentDataDto;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  questionData?: QuestionDataDto;
 
   @ApiPropertyOptional({ default: false })
   @IsOptional()
