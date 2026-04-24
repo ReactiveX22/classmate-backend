@@ -172,11 +172,14 @@ export class ClassroomRepository {
     }
 
     if (query.tags && query.tags.length > 0) {
-      for (const tag of query.tags) {
-        filters.push(
-          sql`${tag} = ANY(COALESCE(${classroomPost.tags}, ARRAY[]::text[]))`,
-        );
-      }
+      filters.push(
+        or(
+          ...query.tags.map(
+            (tag) =>
+              sql`${tag} = ANY(COALESCE(${classroomPost.tags}, ARRAY[]::text[]))`,
+          ),
+        )!,
+      );
     }
 
     const searchTerm = query.search?.trim();
