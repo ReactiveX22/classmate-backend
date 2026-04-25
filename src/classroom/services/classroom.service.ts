@@ -3,13 +3,16 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
 import { User } from 'src/auth/auth.factory';
 import { CreateClassroomPostDto } from 'src/classroom/dto/create-classroom-post.dto';
+import { VoteClassroomPollDto } from 'src/classroom/dto/vote-classroom-poll.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
 import {
+  ApplicationBadRequestException,
   ApplicationForbiddenException,
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
 import { CourseRepository } from 'src/course/repositories/course.repository';
+import { QuestionData } from 'src/database/schema';
 import { NotificationCreatedEvent } from 'src/notification/notification-created.event';
 import { NotificationType } from 'src/notification/notification.constants';
 import { NotificationTemplate } from 'src/notification/template/notification.template';
@@ -22,6 +25,14 @@ import { ListClassroomPostsDto } from '../dto/list-classroom-posts.dto';
 import { UpdateClassroomPostDto } from '../dto/update-classroom-post.dto';
 import { UpdateClassroomDto } from '../dto/update-classroom.dto';
 import { ClassroomPostRepository } from '../repositories/classroom-post.repository';
+import {
+  assertPollStructureEditable,
+  buildPollVote,
+  collectPollVoterIds,
+  enrichQuestionData,
+  normalizeQuestionDataInput,
+  PollViewer,
+} from '../utils/question-data.util';
 
 @Injectable()
 export class ClassroomService {
@@ -197,13 +208,22 @@ export class ClassroomService {
   ) {
     const classroom = await this.findOne(id, orgId);
     const normalizedTags = this.normalizeTags(query.tags);
-    return await this.classroomRepository.findPostsByClassroom(
+    const result = await this.classroomRepository.findPostsByClassroom(
       { ...query, tags: normalizedTags },
       classroom.id,
       user.role === AppRole.Instructor,
       classroom.teacherId,
       user.id,
     );
+
+    return {
+      ...result,
+      data: await this.enrichPostsWithQuestionData(
+        result.data as any[],
+        user.id,
+        classroom.teacherId,
+      ),
+    };
   }
 
   async createPost(
@@ -213,15 +233,17 @@ export class ClassroomService {
     orgId: string,
   ) {
     const classroom = await this.findOne(id, orgId);
-    const normalizedBody: CreateClassroomPostDto = {
+    const normalizedBody = {
       ...body,
       tags: this.normalizeTags(body.tags),
+      assignmentData: body.type === 'assignment' ? body.assignmentData : undefined,
+      questionData: normalizeQuestionDataInput(body.type, body.questionData),
     };
     const newPost = await this.classroomPostRepository.runInTransaction(
       async (tx) => {
         const post = await this.classroomPostRepository.create(
           tx,
-          normalizedBody,
+          normalizedBody as any,
           classroom.id,
           user.id,
         );
@@ -294,7 +316,13 @@ export class ClassroomService {
       }),
     );
 
-    return newPost;
+    return (
+      await this.enrichPostsWithQuestionData(
+        [newPost as any],
+        user.id,
+        classroom.teacherId,
+      )
+    )[0];
   }
 
   async updatePost(
@@ -305,22 +333,90 @@ export class ClassroomService {
     orgId: string,
   ) {
     const classroom = await this.findOne(id, orgId);
-    const normalizedBody: UpdateClassroomPostDto = {
+    const existingPost = await this.classroomPostRepository.fetchOne(postId);
+    if (!existingPost || existingPost.classroomId !== classroom.id) {
+      throw new ApplicationNotFoundException('Post not found');
+    }
+
+    const questionData =
+      body.type === undefined && body.questionData === undefined
+        ? undefined
+        : normalizeQuestionDataInput(
+            body.type ?? existingPost.type,
+            body.questionData ?? existingPost.questionData,
+            existingPost.questionData,
+          );
+
+    if (questionData !== undefined) {
+      assertPollStructureEditable(existingPost.questionData, questionData);
+    }
+
+    const nextType = body.type ?? existingPost.type;
+    const normalizedBody = {
       ...body,
       tags: body.tags ? this.normalizeTags(body.tags) : body.tags,
+      assignmentData: nextType === 'assignment' ? body.assignmentData : undefined,
+      questionData,
     };
-    return await this.classroomPostRepository.update(
+    const updatedPost = await this.classroomPostRepository.update(
       postId,
       authorId,
       normalizedBody,
     );
+
+    return (
+      await this.enrichPostsWithQuestionData(
+        [updatedPost as any],
+        authorId,
+        classroom.teacherId,
+      )
+    )[0];
   }
 
   async findPost(id: string, orgId: string, postId: string, userId: string) {
-    await this.findOne(id, orgId);
+    const classroom = await this.findOne(id, orgId);
     const post = await this.classroomPostRepository.fetchOne(postId, userId);
     if (!post) throw new ApplicationNotFoundException('Post not found');
-    return post;
+    return (
+      await this.enrichPostsWithQuestionData(
+        [post as any],
+        userId,
+        classroom.teacherId,
+      )
+    )[0];
+  }
+
+  async voteOnPoll(
+    classroomId: string,
+    postId: string,
+    user: User,
+    body: VoteClassroomPollDto,
+    orgId: string,
+  ) {
+    const classroom = await this.findOne(classroomId, orgId);
+    const post = await this.classroomPostRepository.fetchOne(postId);
+
+    if (!post || post.classroomId !== classroom.id) {
+      throw new ApplicationNotFoundException('Post not found');
+    }
+
+    if (post.type !== 'question') {
+      throw new ApplicationBadRequestException('Only questions can be voted on');
+    }
+
+    const questionData = buildPollVote(post.questionData, body.optionIds, user.id);
+    const updatedPost = await this.classroomPostRepository.updateQuestionData(
+      postId,
+      questionData,
+    );
+
+    return (
+      await this.enrichPostsWithQuestionData(
+        [updatedPost as any],
+        user.id,
+        classroom.teacherId,
+      )
+    )[0];
   }
 
   async uploadAttachment(file: Express.Multer.File, id: string, orgId: string) {
@@ -453,5 +549,34 @@ export class ClassroomService {
     }
 
     return Array.from(uniqueTags);
+  }
+
+  private async enrichPostsWithQuestionData(
+    posts: any[],
+    viewerId: string,
+    teacherId: string,
+  ) {
+    const voterIds = collectPollVoterIds(posts);
+    const users = await this.classroomPostRepository.findUsersByIds(voterIds);
+    const viewersById = new Map<string, PollViewer>(
+      users.map((user) => [
+        user.id,
+        {
+          id: user.id,
+          name: user.name ?? null,
+          image: user.image ?? null,
+        },
+      ]),
+    );
+
+    return posts.map((post) => ({
+      ...post,
+      questionData: enrichQuestionData(
+        post.questionData,
+        viewerId,
+        post.authorId === viewerId || teacherId === viewerId,
+        viewersById,
+      ),
+    }));
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, getTableColumns, sql } from 'drizzle-orm';
+import { and, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { ApplicationForbiddenException } from 'src/common/exceptions/application.exception';
 import { type DB, InjectDb, Transaction } from 'src/database/db.provider';
 import {
@@ -170,11 +170,36 @@ export class ClassroomPostRepository {
       );
     }
 
-    return await this.db
+    const [updatedPost] = await this.db
       .update(classroomPost)
       .set(body)
       .where(eq(classroomPost.id, postId))
       .returning();
+
+    return updatedPost;
+  }
+
+  async updateQuestionData(postId: string, questionData: any) {
+    const [updatedPost] = await this.db
+      .update(classroomPost)
+      .set({ questionData })
+      .where(eq(classroomPost.id, postId))
+      .returning();
+
+    return updatedPost;
+  }
+
+  async findUsersByIds(userIds: string[]) {
+    if (userIds.length === 0) return [];
+
+    return await this.db
+      .select({
+        id: user.id,
+        name: user.name,
+        image: user.image,
+      })
+      .from(user)
+      .where(inArray(user.id, userIds));
   }
 
   async bookmark(postId: string, userId: string) {

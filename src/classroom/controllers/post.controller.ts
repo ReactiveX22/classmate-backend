@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -7,6 +8,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { Roles, Session } from '@thallesp/nestjs-better-auth';
@@ -14,6 +16,7 @@ import { OrganizationId } from 'src/common/decorators';
 import { AppRole } from 'src/common/enums/role.enum';
 import { type AppUserSession } from 'src/common/types/session.types';
 import { ListClassroomPostsDto } from '../dto/list-classroom-posts.dto';
+import { VoteClassroomPollDto } from '../dto/vote-classroom-poll.dto';
 import { ClassroomService } from '../services/classroom.service';
 
 @Controller('classrooms/:classroomId/posts')
@@ -33,6 +36,24 @@ export class PostController {
       session.user,
       orgId,
       query,
+    );
+  }
+
+  @Roles([AppRole.Instructor, AppRole.Student])
+  @Put(':postId/poll-vote')
+  async voteOnPoll(
+    @Param('classroomId', ParseUUIDPipe) classroomId: string,
+    @Param('postId', ParseUUIDPipe) postId: string,
+    @Body() body: VoteClassroomPollDto,
+    @OrganizationId() orgId: string,
+    @Session() session: AppUserSession,
+  ) {
+    return this.classroomService.voteOnPoll(
+      classroomId,
+      postId,
+      session.user,
+      body,
+      orgId,
     );
   }
 
