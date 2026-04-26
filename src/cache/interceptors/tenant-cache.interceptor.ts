@@ -26,7 +26,7 @@ export class TenantCacheInterceptor implements NestInterceptor {
     private readonly cacheService: CacheService,
     private readonly reflector: Reflector,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async intercept(
     context: ExecutionContext,

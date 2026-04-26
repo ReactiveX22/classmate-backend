@@ -236,7 +236,8 @@ export class ClassroomService {
     const normalizedBody = {
       ...body,
       tags: this.normalizeTags(body.tags),
-      assignmentData: body.type === 'assignment' ? body.assignmentData : undefined,
+      assignmentData:
+        body.type === 'assignment' ? body.assignmentData : undefined,
       questionData: normalizeQuestionDataInput(body.type, body.questionData),
     };
     const newPost = await this.classroomPostRepository.runInTransaction(
@@ -355,7 +356,8 @@ export class ClassroomService {
     const normalizedBody = {
       ...body,
       tags: body.tags ? this.normalizeTags(body.tags) : body.tags,
-      assignmentData: nextType === 'assignment' ? body.assignmentData : undefined,
+      assignmentData:
+        nextType === 'assignment' ? body.assignmentData : undefined,
       questionData,
     };
     const updatedPost = await this.classroomPostRepository.update(
@@ -379,7 +381,7 @@ export class ClassroomService {
     if (!post) throw new ApplicationNotFoundException('Post not found');
     return (
       await this.enrichPostsWithQuestionData(
-        [post as any],
+        [post],
         userId,
         classroom.teacherId,
       )
@@ -401,10 +403,16 @@ export class ClassroomService {
     }
 
     if (post.type !== 'question') {
-      throw new ApplicationBadRequestException('Only questions can be voted on');
+      throw new ApplicationBadRequestException(
+        'Only questions can be voted on',
+      );
     }
 
-    const questionData = buildPollVote(post.questionData, body.optionIds, user.id);
+    const questionData = buildPollVote(
+      post.questionData,
+      body.optionIds,
+      user.id,
+    );
     const updatedPost = await this.classroomPostRepository.updateQuestionData(
       postId,
       questionData,

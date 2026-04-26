@@ -14,11 +14,7 @@ import { SemesterService } from './services/semester.service';
 
 @Module({
   imports: [DatabaseModule, UserModule, PaginationModule],
-  controllers: [
-    CourseController,
-    CourseSessionController,
-    SemesterController,
-  ],
+  controllers: [CourseController, CourseSessionController, SemesterController],
   providers: [
     CourseService,
     CourseSessionService,

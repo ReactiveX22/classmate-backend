@@ -39,7 +39,10 @@ export class CreateCourseDto {
   @Min(1, { message: 'Credit must be at least 1' })
   credits?: number;
 
-  @ApiPropertyOptional({ enum: ['active', 'inactive', 'archived'], default: 'active' })
+  @ApiPropertyOptional({
+    enum: ['active', 'inactive', 'archived'],
+    default: 'active',
+  })
   @IsOptional()
   @IsEnum(['active', 'inactive', 'archived'])
   status?: CourseStatus;
