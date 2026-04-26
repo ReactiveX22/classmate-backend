@@ -30,4 +30,5 @@ export class CourseSessionPaginationConfig implements PaginatedConfig {
   }
 }
 
-export const courseSessionPaginationConfig = new CourseSessionPaginationConfig();
+export const courseSessionPaginationConfig =
+  new CourseSessionPaginationConfig();

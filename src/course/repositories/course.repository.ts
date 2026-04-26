@@ -12,7 +12,7 @@ export class CourseRepository {
   constructor(
     @InjectDb() private readonly db: DB,
     private readonly paginationService: PaginationService,
-  ) { }
+  ) {}
 
   async countByOrganization(organizationId: string) {
     const [result] = await this.db
@@ -48,10 +48,7 @@ export class CourseRepository {
     return result || null;
   }
 
-  async findByIdWithTeacher(
-    courseId: string,
-    orgId: string,
-  ) {
+  async findByIdWithTeacher(courseId: string, orgId: string) {
     const result = await this.db.query.course.findFirst({
       where: and(eq(course.id, courseId), eq(course.organizationId, orgId)),
       with: {
@@ -89,10 +86,7 @@ export class CourseRepository {
     await this.db.delete(course).where(eq(course.id, id));
   }
 
-  async findAllByOrganization(
-    orgId: string,
-    query: CourseFilterDto,
-  ) {
+  async findAllByOrganization(orgId: string, query: CourseFilterDto) {
     const extraFilters: SQL[] = [];
 
     if (query.semesterId && query.semesterId.length > 0) {

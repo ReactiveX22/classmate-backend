@@ -10,7 +10,15 @@ import { ResetPasswordEvent } from 'src/mail/events/reset-password.event';
 import { AuthResponseHook } from './hooks/auth-response.hook';
 
 const appStatements = {
-  user: ['create', 'read', 'update', 'delete', 'list', 'ban', 'impersonate'] as const,
+  user: [
+    'create',
+    'read',
+    'update',
+    'delete',
+    'list',
+    'ban',
+    'impersonate',
+  ] as const,
 };
 export const ac = createAccessControl(appStatements);
 
@@ -73,6 +81,12 @@ export const authFactory = (
       cookieCache: {
         enabled: true,
         maxAge: 5 * 60,
+      },
+      additionalFields: {
+        impersonatedBy: {
+          type: 'string',
+          required: false,
+        },
       },
     },
     user: {

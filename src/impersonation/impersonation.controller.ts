@@ -83,12 +83,11 @@ export class ImpersonationController {
       }
     }
 
-    const impersonationResponse =
-      (await this.authService.api.impersonateUser({
-        body: { userId: targetUser.id },
-        headers,
-        asResponse: true,
-      })) as globalThis.Response;
+    const impersonationResponse = (await this.authService.api.impersonateUser({
+      body: { userId: targetUser.id },
+      headers,
+      asResponse: true,
+    })) as globalThis.Response;
 
     if (!impersonationResponse || !impersonationResponse.ok) {
       throw new ForbiddenException('Failed to impersonate user');

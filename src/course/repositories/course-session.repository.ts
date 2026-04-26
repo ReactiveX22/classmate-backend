@@ -57,7 +57,7 @@ export class CourseSessionRepository {
   async remove(id: string) {
     await this.db.delete(courseSession).where(eq(courseSession.id, id));
   }
-  
+
   async unsetOtherCurrentSessions(orgId: string, excludeId?: string) {
     await this.db
       .update(courseSession)

@@ -1,5 +1,11 @@
 import { Transform } from 'class-transformer';
-import { IsArray, IsBoolean, IsIn, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
 export class ListClassroomPostsDto extends PaginationQueryDto {

@@ -16,6 +16,14 @@ export const superAdminRole = ac.newRole({
 
 export const auth = betterAuth({
   database: drizzleAdapter({}, { provider: 'pg' }),
+  session: {
+    additionalFields: {
+      impersonatedBy: {
+        type: 'string',
+        required: false,
+      },
+    },
+  },
   plugins: [
     admin({
       ac,

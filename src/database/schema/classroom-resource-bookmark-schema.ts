@@ -1,11 +1,5 @@
 import { relations } from 'drizzle-orm';
-import {
-  pgTable,
-  timestamp,
-  unique,
-  uuid,
-  text,
-} from 'drizzle-orm/pg-core';
+import { pgTable, timestamp, unique, uuid, text } from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
 import { classroomPost } from './classroom-post-schema';
 
