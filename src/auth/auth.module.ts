@@ -19,6 +19,7 @@ import { SignUpHook } from './hooks/signup.hook';
     UserModule,
     OrganizationModule,
     BetterAuthModule.forRootAsync({
+      isGlobal: true,
       imports: [ConfigModule, DatabaseModule, UserModule, AuthHooksModule],
       inject: [ConfigService, DB_PROVIDER, AuthResponseHook, EventEmitter2],
       useFactory: (

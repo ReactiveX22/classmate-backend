@@ -10,6 +10,7 @@ import { CourseModule } from './course/course.module';
 import { DatabaseModule } from './database/database.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
+import { ImpersonationModule } from './impersonation/impersonation.module';
 import { MailModule } from './mail/mail.module';
 import { NoticeModule } from './notice/notice.module';
 import { NotificationModule } from './notification/notification.module';
@@ -34,6 +35,7 @@ import { UserModule } from './user/user.module';
     NoticeModule,
     MailModule,
     DashboardModule,
+    ImpersonationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

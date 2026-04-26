@@ -10,12 +10,12 @@ import { ResetPasswordEvent } from 'src/mail/events/reset-password.event';
 import { AuthResponseHook } from './hooks/auth-response.hook';
 
 const appStatements = {
-  user: ['create', 'read', 'update', 'delete', 'list', 'ban'] as const,
+  user: ['create', 'read', 'update', 'delete', 'list', 'ban', 'impersonate'] as const,
 };
 export const ac = createAccessControl(appStatements);
 
 export const superAdminRole = ac.newRole({
-  user: ['create', 'read', 'update', 'delete', 'list', 'ban'],
+  user: ['create', 'read', 'update', 'delete', 'list', 'ban', 'impersonate'],
 });
 
 export const authFactory = (
@@ -58,11 +58,14 @@ export const authFactory = (
         ac,
         roles: {
           [AppRole.SuperAdmin]: superAdminRole,
+          [AppRole.Admin]: ac.newRole({
+            user: ['create', 'read', 'update', 'delete', 'list', 'impersonate'],
+          }),
           [AppRole.Instructor]: ac.newRole({
             user: ['create', 'read', 'update', 'delete', 'list'],
           }),
         },
-        adminRoles: [AppRole.SuperAdmin],
+        adminRoles: [AppRole.SuperAdmin, AppRole.Admin],
         defaultRole: AppRole.Admin,
       }),
     ],
