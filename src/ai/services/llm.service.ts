@@ -15,10 +15,20 @@ type ChatGraphState = {
   tokenUsage?: AiTokenUsage;
 };
 
+type TitleGraphState = {
+  message: string;
+  title?: string;
+};
+
 const ChatState = Annotation.Root({
   messages: Annotation<AiChatMessage[]>(),
   content: Annotation<string | undefined>(),
   tokenUsage: Annotation<AiTokenUsage | undefined>(),
+});
+
+const TitleState = Annotation.Root({
+  message: Annotation<string>(),
+  title: Annotation<string | undefined>(),
 });
 
 @Injectable()
@@ -28,6 +38,7 @@ export class LlmService {
   private readonly enabled: boolean;
   private readonly model?: ChatGoogleGenerativeAI;
   private readonly graph: ReturnType<typeof this.buildGraph>;
+  private readonly titleGraph: ReturnType<typeof this.buildTitleGraph>;
 
   constructor(private readonly configService: ConfigService) {
     this.enabled = this.configService.get<boolean>('AI_ENABLED') ?? false;
@@ -45,6 +56,7 @@ export class LlmService {
     }
 
     this.graph = this.buildGraph();
+    this.titleGraph = this.buildTitleGraph();
   }
 
   getProvider() {
@@ -68,6 +80,18 @@ export class LlmService {
     };
   }
 
+  async generateTitle(message: string) {
+    if (!this.enabled || !this.model) {
+      throw new ServiceUnavailableException('AI chat is not enabled');
+    }
+
+    const result = (await this.titleGraph.invoke({
+      message,
+    })) as TitleGraphState;
+
+    return this.sanitizeTitle(result.title);
+  }
+
   private buildGraph() {
     return new StateGraph(ChatState)
       .addNode('callModel', async (state: ChatGraphState) => {
@@ -80,6 +104,37 @@ export class LlmService {
       })
       .addEdge(START, 'callModel')
       .addEdge('callModel', END)
+      .compile();
+  }
+
+  private buildTitleGraph() {
+    return new StateGraph(TitleState)
+      .addNode('generateTitle', async (state: TitleGraphState) => {
+        const response = await this.callModel([
+          {
+            role: 'system',
+            content: [
+              'Generate a short title for a chat conversation.',
+              'Rules:',
+              '- Use 3 to 6 words.',
+              '- Use title case.',
+              '- Do not use quotes.',
+              '- Do not use ending punctuation.',
+              '- Return only the title.',
+            ].join('\n'),
+          },
+          {
+            role: 'user',
+            content: state.message,
+          },
+        ]);
+
+        return {
+          title: response.content,
+        };
+      })
+      .addEdge(START, 'generateTitle')
+      .addEdge('generateTitle', END)
       .compile();
   }
 
@@ -119,5 +174,16 @@ export class LlmService {
       content,
       tokenUsage: result.usage_metadata,
     };
+  }
+
+  private sanitizeTitle(title?: string) {
+    const sanitized = title
+      ?.trim()
+      .replace(/^["'`]+|["'`]+$/g, '')
+      .replace(/[.!?]+$/g, '')
+      .replace(/\s+/g, ' ')
+      .slice(0, 80);
+
+    return sanitized || undefined;
   }
 }

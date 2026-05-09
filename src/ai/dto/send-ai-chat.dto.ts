@@ -6,13 +6,16 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class SendAiMessageDto {
+export class SendAiChatDto {
   @IsString()
   @MinLength(1)
   @MaxLength(8000)
   message: string;
 
+  @IsUUID()
+  classroomId: string;
+
   @IsOptional()
   @IsUUID()
-  classroomId?: string;
+  conversationId?: string;
 }

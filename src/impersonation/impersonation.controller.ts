@@ -12,11 +12,11 @@ import {
   AuthGuard,
   AuthService,
   Session,
-  UserSession,
+  type UserSession,
 } from '@thallesp/nestjs-better-auth';
 import { IsNotEmpty, IsString } from 'class-validator';
 import { eq } from 'drizzle-orm';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { AppRole } from 'src/common/enums/role.enum';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import { user } from 'src/database/schema';
