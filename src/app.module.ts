@@ -17,6 +17,7 @@ import { NotificationModule } from './notification/notification.module';
 import { OrganizationModule } from './organization/organization.module';
 import { StorageModule } from './storage/storage.module';
 import { UserModule } from './user/user.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { UserModule } from './user/user.module';
     MailModule,
     DashboardModule,
     ImpersonationModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

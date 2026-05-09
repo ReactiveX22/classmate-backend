@@ -1,3 +1,5 @@
+export * from './ai-conversation-schema';
+export * from './ai-message-schema';
 export * from './assignment-submission-schema';
 export * from './attendance-schema';
 export * from './auth-schema';
