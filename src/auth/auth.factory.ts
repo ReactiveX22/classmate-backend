@@ -72,6 +72,9 @@ export const authFactory = (
           [AppRole.Instructor]: ac.newRole({
             user: ['create', 'read', 'update', 'delete', 'list'],
           }),
+          [AppRole.Student]: ac.newRole({
+            user: ['create', 'read', 'update', 'delete', 'list'],
+          }),
         },
         adminRoles: [AppRole.SuperAdmin, AppRole.Admin],
         defaultRole: AppRole.Admin,

@@ -6,7 +6,6 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -24,7 +23,6 @@ import { AppRole } from 'src/common/enums/role.enum';
 import { UserStatus } from 'src/common/enums/user-status.enum';
 import { OrganizationGuard } from 'src/common/guards';
 import { type AppUserSession } from 'src/common/types/session.types';
-import { userProfile } from 'src/database/schema';
 import { CreateTeacherDto } from '../dto/create-teacher.dto';
 import { UpdateTeacherDto } from '../dto/update-teacher.dto';
 import { TeacherService } from '../services/teacher.service';
@@ -58,7 +56,7 @@ export class TeacherController {
           organizationId: session.user.organizationId,
           status: UserStatus.Active,
         },
-        role: AppRole.Instructor as any,
+        role: AppRole.Instructor,
       },
     });
 
