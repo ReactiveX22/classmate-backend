@@ -22,10 +22,13 @@ import { computeSourceHash } from '../utils/hash.util';
 @Processor(EMBEDDING_QUEUE_NAME, {
   concurrency: EMBEDDING_DEFAULTS.queueConcurrency,
 })
-export class AttachmentEmbeddingProcessor extends WorkerHost implements OnModuleInit {
+export class AttachmentEmbeddingProcessor
+  extends WorkerHost
+  implements OnModuleInit
+{
   private readonly logger = new Logger(AttachmentEmbeddingProcessor.name);
 
-  async onModuleInit() {
+  onModuleInit() {
     this.logger.log(
       `Embedding Worker started (concurrency: ${EMBEDDING_DEFAULTS.queueConcurrency})`,
     );

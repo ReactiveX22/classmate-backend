@@ -8,11 +8,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import {
-  AuthGuard,
-  AuthService,
-  Session,
-} from '@thallesp/nestjs-better-auth';
+import { AuthGuard, AuthService, Session } from '@thallesp/nestjs-better-auth';
 import { type AppUserSession } from 'src/common/types/session.types';
 import { IsNotEmpty, IsString } from 'class-validator';
 import { eq } from 'drizzle-orm';
@@ -85,11 +81,11 @@ export class ImpersonationController {
       }
     }
 
-    const impersonationResponse = (await this.authService.api.impersonateUser({
+    const impersonationResponse = await this.authService.api.impersonateUser({
       body: { userId: targetUser.id },
       headers,
       asResponse: true,
-    })) as globalThis.Response;
+    });
 
     if (!impersonationResponse || !impersonationResponse.ok) {
       throw new ForbiddenException('Failed to impersonate user');
@@ -120,10 +116,10 @@ export class ImpersonationController {
       }
     }
 
-    const stopResponse = (await this.authService.api.stopImpersonating({
+    const stopResponse = await this.authService.api.stopImpersonating({
       headers,
       asResponse: true,
-    })) as globalThis.Response;
+    });
 
     if (stopResponse && stopResponse.ok) {
       const setCookieHeaders = stopResponse.headers.getSetCookie?.() || [];

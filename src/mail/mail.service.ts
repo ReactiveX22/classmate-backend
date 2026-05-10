@@ -31,14 +31,14 @@ export class MailService {
     to: string,
     subject: string,
     templateName: string,
-    context: any,
+    context: Record<string, unknown>,
   ) {
     const templatePath = path.join(
       process.cwd(),
       'src/mail/templates',
       `${templateName}.ejs`,
     );
-    const html = (await ejs.renderFile(templatePath, context)) as string;
+    const html = await ejs.renderFile(templatePath, context);
     const body = html.replace(/<[^>]*>?/gm, '');
 
     await this.transporter.send({
