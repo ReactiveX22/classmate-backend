@@ -8,10 +8,41 @@ export const EMBEDDING_DEFAULTS = {
   vectorTableName: 'embedding_documents',
   vectorCollectionTableName: 'embedding_collections',
   vectorCollectionName: 'classroom_post_attachments',
+  embeddingDimensions: 768,
 } as const;
+
+export const EMBEDDING_QUEUE_NAME = 'embedding';
+
+export type EmbedAttachmentJobReason =
+  | 'created'
+  | 'updated'
+  | 'backfill'
+  | 'retry';
 
 export const EMBEDDING_EVENTS = {
   CLASSROOM_POST_ATTACHMENTS_CHANGED:
     'embedding.classroom_post.attachments_changed',
   CLASSROOM_POST_DELETED: 'embedding.classroom_post.deleted',
+  CLASSROOM_ATTACHMENT_DELETED: 'embedding.classroom_post.attachment_deleted',
 } as const;
+
+export interface ClassroomAttachmentDeletedEvent {
+  organizationId: string;
+  classroomId: string;
+  postId: string;
+  attachmentId: string;
+}
+
+export interface ClassroomPostAttachmentsChangedEvent {
+  organizationId: string;
+  classroomId: string;
+  postId: string;
+  attachmentIds: string[];
+  userId: string;
+}
+
+export interface ClassroomPostDeletedEvent {
+  organizationId: string;
+  classroomId: string;
+  postId: string;
+}

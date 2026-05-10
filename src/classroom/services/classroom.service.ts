@@ -12,7 +12,7 @@ import {
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
 import { CourseRepository } from 'src/course/repositories/course.repository';
-import { QuestionData } from 'src/database/schema';
+import { EMBEDDING_EVENTS } from 'src/embedding/embedding.constants';
 import { NotificationCreatedEvent } from 'src/notification/notification-created.event';
 import { NotificationType } from 'src/notification/notification.constants';
 import { NotificationTemplate } from 'src/notification/template/notification.template';
@@ -317,6 +317,19 @@ export class ClassroomService {
       }),
     );
 
+    if (newPost.attachments && newPost.attachments.length > 0) {
+      this.eventEmitter.emit(
+        EMBEDDING_EVENTS.CLASSROOM_POST_ATTACHMENTS_CHANGED,
+        {
+          organizationId: classroom.course.organizationId,
+          classroomId: classroom.id,
+          postId: newPost.id,
+          attachmentIds: newPost.attachments.map((a) => a.id),
+          userId: user.id,
+        },
+      );
+    }
+
     return (
       await this.enrichPostsWithQuestionData(
         [newPost as any],
@@ -365,6 +378,25 @@ export class ClassroomService {
       authorId,
       normalizedBody,
     );
+
+    const oldAttachments = existingPost.attachments || [];
+    const newAttachments = updatedPost.attachments || [];
+    const addedAttachments = newAttachments.filter(
+      (na) => !oldAttachments.some((oa) => oa.id === na.id),
+    );
+
+    if (addedAttachments.length > 0) {
+      this.eventEmitter.emit(
+        EMBEDDING_EVENTS.CLASSROOM_POST_ATTACHMENTS_CHANGED,
+        {
+          organizationId: classroom.course.organizationId,
+          classroomId: classroom.id,
+          postId: updatedPost.id,
+          attachmentIds: addedAttachments.map((a) => a.id),
+          userId: authorId,
+        },
+      );
+    }
 
     return (
       await this.enrichPostsWithQuestionData(
@@ -439,10 +471,19 @@ export class ClassroomService {
   async deleteAttachment(id: string, orgId: string, attachmentId: string) {
     const classroom = await this.findOne(id, orgId);
 
-    await this.classroomPostRepository.deleteAttachment(
+    const result = await this.classroomPostRepository.deleteAttachment(
       classroom.id,
       attachmentId,
     );
+
+    if (result?.post) {
+      this.eventEmitter.emit(EMBEDDING_EVENTS.CLASSROOM_ATTACHMENT_DELETED, {
+        organizationId: classroom.course.organizationId,
+        classroomId: classroom.id,
+        postId: result.post.id,
+        attachmentId,
+      });
+    }
 
     await this.storageService.deleteFile(
       `classroom-attachments/${classroom.id}/${attachmentId}`,
@@ -466,6 +507,12 @@ export class ClassroomService {
     }
 
     await this.classroomPostRepository.deletePost(classroom.id, postId);
+
+    this.eventEmitter.emit(EMBEDDING_EVENTS.CLASSROOM_POST_DELETED, {
+      organizationId: classroom.course.organizationId,
+      classroomId: classroom.id,
+      postId,
+    });
   }
 
   async bookmarkPost(

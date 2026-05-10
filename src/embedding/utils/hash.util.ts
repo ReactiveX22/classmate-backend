@@ -1,37 +1,21 @@
-import { createHash } from 'node:crypto';
+import * as crypto from 'crypto';
 
-/**
- * Generates a SHA-256 hash of the given string.
- */
-export function sha256(content: string): string {
-  return createHash('sha256').update(content).digest('hex');
-}
-
-/**
- * Generates a source hash for idempotency checks based on attachment and processing config.
- */
-export function generateSourceHash(params: {
+export function computeSourceHash(data: {
   attachmentId: string;
-  documentText: string;
-  loaderName: string;
+  text: string;
+  mimeType: string;
   chunkSize: number;
   chunkOverlap: number;
   embeddingProvider: string;
   embeddingModel: string;
 }): string {
-  const payload = JSON.stringify({
-    id: params.attachmentId,
-    text: sha256(params.documentText), // Hash the text to keep payload small
-    loader: params.loaderName,
-    config: {
-      size: params.chunkSize,
-      overlap: params.chunkOverlap,
-    },
-    ai: {
-      provider: params.embeddingProvider,
-      model: params.embeddingModel,
-    },
-  });
-
-  return sha256(payload);
+  const hash = crypto.createHash('sha256');
+  hash.update(data.attachmentId);
+  hash.update(data.text);
+  hash.update(data.mimeType);
+  hash.update(data.chunkSize.toString());
+  hash.update(data.chunkOverlap.toString());
+  hash.update(data.embeddingProvider);
+  hash.update(data.embeddingModel);
+  return hash.digest('hex');
 }

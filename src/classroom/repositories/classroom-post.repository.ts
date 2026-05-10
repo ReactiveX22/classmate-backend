@@ -19,6 +19,15 @@ export class ClassroomPostRepository {
     return await this.db.transaction(callback);
   }
 
+  async findById(postId: string) {
+    const results = await this.db
+      .select()
+      .from(classroomPost)
+      .where(eq(classroomPost.id, postId))
+      .limit(1);
+    return results[0];
+  }
+
   async create(
     tx: Transaction,
     data: Omit<typeof classroomPost.$inferInsert, 'authorId' | 'classroomId'>,
@@ -58,9 +67,12 @@ export class ClassroomPostRepository {
       .returning();
   }
 
-  async deleteAttachment(postId: string, attachmentId: string) {
+  async deleteAttachment(classroomId: string, attachmentId: string) {
     const post = await this.db.query.classroomPost.findFirst({
-      where: eq(classroomPost.id, postId),
+      where: and(
+        eq(classroomPost.classroomId, classroomId),
+        sql`${classroomPost.attachments} @> ${JSON.stringify([{ id: attachmentId }])}::jsonb`,
+      ),
     });
 
     if (!post || !post.attachments) return;
@@ -72,9 +84,12 @@ export class ClassroomPostRepository {
     await this.db
       .update(classroomPost)
       .set({ attachments: updatedAttachments })
-      .where(eq(classroomPost.id, postId));
+      .where(eq(classroomPost.id, post.id));
 
-    return post.attachments.find((a) => a.id === attachmentId);
+    return {
+      post,
+      deletedAttachment: post.attachments.find((a) => a.id === attachmentId),
+    };
   }
 
   async deletePost(classroomId: string, postId: string) {

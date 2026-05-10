@@ -117,7 +117,10 @@ export const envSchema = z
   )
   .refine(
     (data) => {
-      if (data.AI_EMBEDDING_ENABLED && data.AI_EMBEDDING_PROVIDER === 'google') {
+      if (
+        data.AI_EMBEDDING_ENABLED &&
+        data.AI_EMBEDDING_PROVIDER === 'google'
+      ) {
         return !!data.GOOGLE_API_KEY;
       }
       return true;
@@ -135,7 +138,8 @@ export const envSchema = z
       return true;
     },
     {
-      message: "QUEUE_REDIS_URL or CACHE_REDIS_URL is required when AI_EMBEDDING_ENABLED is 'true'",
+      message:
+        "QUEUE_REDIS_URL or CACHE_REDIS_URL is required when AI_EMBEDDING_ENABLED is 'true'",
       path: ['QUEUE_REDIS_URL'],
     },
   );

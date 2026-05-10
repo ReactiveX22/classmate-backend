@@ -111,6 +111,24 @@ export class EmbeddingTrackingRepository {
   }
 
   /**
+   * Finds all tracking records for a specific attachment.
+   */
+  async findByAttachment(
+    postId: string,
+    attachmentId: string,
+  ): Promise<SelectEmbeddingTracking[]> {
+    return await this.db
+      .select()
+      .from(embeddingTracking)
+      .where(
+        and(
+          eq(embeddingTracking.postId, postId),
+          eq(embeddingTracking.attachmentId, attachmentId),
+        ),
+      );
+  }
+
+  /**
    * Deletes tracking records for a specific attachment.
    */
   async deleteByAttachment(params: {
@@ -125,6 +143,16 @@ export class EmbeddingTrackingRepository {
           eq(embeddingTracking.attachmentId, params.attachmentId),
         ),
       );
+  }
+
+  /**
+   * Finds all tracking records for a specific post.
+   */
+  async findByPost(postId: string): Promise<SelectEmbeddingTracking[]> {
+    return await this.db
+      .select()
+      .from(embeddingTracking)
+      .where(eq(embeddingTracking.postId, postId));
   }
 
   /**
