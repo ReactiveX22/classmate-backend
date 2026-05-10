@@ -17,3 +17,18 @@ export class UnsupportedDocumentLoaderException extends EmbeddingException {
     );
   }
 }
+
+export class EmbeddingModelException extends EmbeddingException {
+  constructor(
+    message: string,
+    public readonly originalError?: unknown,
+  ) {
+    super(message, 'EMBEDDING_MODEL_ERROR');
+  }
+}
+
+export class EmbeddingConfigurationException extends EmbeddingException {
+  constructor(message: string) {
+    super(message, 'EMBEDDING_CONFIG_ERROR');
+  }
+}
