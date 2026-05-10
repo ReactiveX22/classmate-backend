@@ -18,6 +18,7 @@ import { OrganizationModule } from './organization/organization.module';
 import { StorageModule } from './storage/storage.module';
 import { UserModule } from './user/user.module';
 import { AiModule } from './ai/ai.module';
+import { EmbeddingModule } from './embedding/embedding.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { AiModule } from './ai/ai.module';
     DashboardModule,
     ImpersonationModule,
     AiModule,
+    EmbeddingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -14,6 +14,8 @@ export interface StorageStrategy {
   getFileUrl(folder: string, fileName: string): string;
   fileExists(folder: string, fileName: string): Promise<boolean>;
   serveFile(folder: string, fileName: string, res: Response): Promise<void>;
+  getFileBuffer(filePath: string): Promise<Buffer>;
+  getFileStream(filePath: string): Promise<NodeJS.ReadableStream>;
 }
 
 export interface UploadResult {

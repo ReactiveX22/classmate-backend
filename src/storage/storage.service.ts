@@ -54,4 +54,12 @@ export class StorageService {
   ): Promise<void> {
     return this.strategy.serveFile(folder, fileName, res);
   }
+
+  async getFileBuffer(filePath: string): Promise<Buffer> {
+    return this.strategy.getFileBuffer(filePath);
+  }
+
+  async getFileStream(filePath: string): Promise<NodeJS.ReadableStream> {
+    return this.strategy.getFileStream(filePath);
+  }
 }
