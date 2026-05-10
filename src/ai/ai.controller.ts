@@ -1,0 +1,39 @@
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+} from '@nestjs/common';
+import { Roles, Session } from '@thallesp/nestjs-better-auth';
+import { AppRole } from 'src/common/enums/role.enum';
+import { type AppUserSession } from 'src/common/types/session.types';
+import { AiService } from './ai.service';
+import { SendAiChatDto } from './dto/send-ai-chat.dto';
+
+@Controller('ai')
+export class AiController {
+  constructor(private readonly aiService: AiService) {}
+
+  @Roles([AppRole.Instructor, AppRole.Student])
+  @Post('chat')
+  chat(@Body() dto: SendAiChatDto, @Session() session: AppUserSession) {
+    return this.aiService.chat(dto, session.user);
+  }
+
+  @Roles([AppRole.Instructor, AppRole.Student])
+  @Get('conversations')
+  findConversations(@Session() session: AppUserSession) {
+    return this.aiService.findConversations(session.user);
+  }
+
+  @Roles([AppRole.Instructor, AppRole.Student])
+  @Get('conversations/:id')
+  findConversation(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Session() session: AppUserSession,
+  ) {
+    return this.aiService.findConversation(id, session.user);
+  }
+}
