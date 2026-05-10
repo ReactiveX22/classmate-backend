@@ -4,10 +4,12 @@ import { ApplicationForbiddenException } from 'src/common/exceptions/application
 import { type DB, InjectDb, Transaction } from 'src/database/db.provider';
 import {
   assignmentSubmission,
+  classroom,
   classroomMembers,
   classroomPost,
   classroomPostComment,
   classroomResourceBookmark,
+  course,
   user,
 } from 'src/database/schema';
 
@@ -17,6 +19,22 @@ export class ClassroomPostRepository {
 
   async runInTransaction<T>(callback: (tx: any) => Promise<T>): Promise<T> {
     return await this.db.transaction(callback);
+  }
+
+  async findAllWithAttachments() {
+    return await this.db
+      .select({
+        id: classroomPost.id,
+        classroomId: classroomPost.classroomId,
+        organizationId: course.organizationId,
+        attachments: classroomPost.attachments,
+      })
+      .from(classroomPost)
+      .innerJoin(classroom, eq(classroomPost.classroomId, classroom.id))
+      .innerJoin(course, eq(classroom.courseId, course.id))
+      .where(
+        sql`${classroomPost.attachments} IS NOT NULL AND jsonb_array_length(${classroomPost.attachments}) > 0`,
+      );
   }
 
   async findById(postId: string) {

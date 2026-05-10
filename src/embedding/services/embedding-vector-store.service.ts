@@ -45,9 +45,11 @@ export class EmbeddingVectorStoreService implements OnModuleInit {
   }
 
   /**
-   * Adds documents to the vector store with deterministic IDs.
+   * Adds documents to the vector store.
+   * If IDs are provided, they are used. Otherwise, LangChain generates random UUIDs.
+   * Returns the IDs of the added documents.
    */
-  async addDocuments(documents: Document[], ids: string[]): Promise<void> {
+  async addDocuments(documents: Document[], ids?: string[]): Promise<void> {
     await this.vectorStore.addDocuments(documents, { ids });
   }
 

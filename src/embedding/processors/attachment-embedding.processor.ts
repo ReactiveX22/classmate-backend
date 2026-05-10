@@ -1,4 +1,5 @@
 import { Document } from '@langchain/core/documents';
+import { v4 as uuidv4 } from 'uuid';
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
@@ -240,11 +241,8 @@ export class AttachmentEmbeddingProcessor extends WorkerHost {
       },
     }));
 
-    const vectorIds = chunks.map(
-      (chunk) =>
-        `classroom_post_attachment:${context.postId}:${context.attachmentId}:${model}:${chunk.index}`,
-    );
-
+    // 3. Generate and Save (Using random v4 UUIDs for stability and tracking)
+    const vectorIds = chunks.map(() => uuidv4());
     await this.vectorStoreService.addDocuments(vectorDocs, vectorIds);
 
     // 4. Finalize
