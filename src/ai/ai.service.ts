@@ -1,3 +1,4 @@
+import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { Injectable } from '@nestjs/common';
 import { User } from 'src/auth/auth.factory';
 import {
@@ -10,7 +11,6 @@ import { SendAiChatDto } from './dto/send-ai-chat.dto';
 import { AiConversationRepository } from './repositories/ai-conversation.repository';
 import { AiContextService } from './services/ai-context.service';
 import { LlmService } from './services/llm.service';
-import { AiChatMessage } from './types/ai-message.type';
 
 @Injectable()
 export class AiService {
@@ -28,8 +28,8 @@ export class AiService {
       );
 
     return {
-      conversations: conversations.map((conversation) =>
-        this.toConversationSummaryResponse(conversation),
+      conversations: conversations.map((c) =>
+        this.toConversationSummaryResponse(c),
       ),
     };
   }
@@ -48,9 +48,7 @@ export class AiService {
 
     return {
       conversation: this.toConversationResponse(conversation),
-      messages: conversation.messages.map((message) =>
-        this.toMessageResponse(message),
-      ),
+      messages: conversation.messages.map((m) => this.toMessageResponse(m)),
     };
   }
 
@@ -71,6 +69,13 @@ export class AiService {
       );
     }
 
+    // Load prior messages BEFORE saving the new user message so we can build
+    // the prompt array in-memory — no re-fetch needed after the insert.
+    const priorMessages =
+      await this.aiConversationRepository.findMessagesByConversation(
+        conversation.id,
+      );
+
     const userMessage = await this.aiConversationRepository.createMessage({
       conversationId: conversation.id,
       organizationId: user.organizationId,
@@ -79,44 +84,33 @@ export class AiService {
       content: dto.message,
     });
 
-    const priorMessages =
-      await this.aiConversationRepository.findMessagesByConversation(
-        conversation.id,
-      );
-
-    const messages: AiChatMessage[] = [
-      {
-        role: 'system',
-        content: this.aiContextService.buildSystemPrompt(user, dto.classroomId),
-      },
-      ...priorMessages.map((message) => ({
-        role: message.role,
-        content: message.content,
-      })),
+    // Build the BaseMessage array in-memory — system prompt + history + new message.
+    const messages = [
+      this.aiContextService.buildSystemPrompt(user, dto.classroomId),
+      ...priorMessages.map((m) =>
+        m.role === 'assistant'
+          ? new AIMessage(m.content)
+          : new HumanMessage(m.content),
+      ),
+      new HumanMessage(dto.message),
     ];
 
-    const response = await this.llmService.generate(messages);
+    const response = await this.llmService.chat(messages);
 
     const assistantMessage = await this.aiConversationRepository.createMessage({
       conversationId: conversation.id,
       organizationId: user.organizationId,
       role: 'assistant',
       content: response.content,
-      provider: this.llmService.getProvider(),
-      model: this.llmService.getModelName(),
+      provider: response.provider,
+      model: response.model,
       tokenUsage: response.tokenUsage,
     });
 
-    let conversationTitle = conversation.title;
-
-    if (!conversationTitle) {
-      const updatedConversation =
-        await this.aiConversationRepository.updateConversationTitle(
-          conversation.id,
-          await this.generateConversationTitle(dto.message),
-        );
-
-      conversationTitle = updatedConversation.title;
+    // Title generation is non-critical — fire and forget so it doesn't block
+    // the response. The conversation list will pick up the title on next fetch.
+    if (!conversation.title) {
+      this.generateAndSaveTitle(conversation.id, dto.message);
     } else {
       await this.aiConversationRepository.touchConversation(conversation.id);
     }
@@ -124,7 +118,6 @@ export class AiService {
     return {
       conversation: this.toConversationResponse({
         ...conversation,
-        title: conversationTitle,
         updatedAt: new Date(),
       }),
       messages: [
@@ -164,20 +157,32 @@ export class AiService {
     }
   }
 
-  private buildConversationTitle(message: string) {
-    const title = message.trim().replace(/\s+/g, ' ').slice(0, 80);
-    return title || 'New AI chat';
+  /**
+   * Fires title generation in the background — the LLM call and DB write happen
+   * after the chat response is already returned to the client. Falls back to a
+   * truncated version of the first message if the LLM call fails.
+   */
+  private generateAndSaveTitle(conversationId: string, message: string) {
+    this.llmService
+      .generateTitle(message)
+      .then((title) => title ?? this.fallbackTitle(message))
+      .then((title) =>
+        this.aiConversationRepository.updateConversationTitle(
+          conversationId,
+          title,
+        ),
+      )
+      .catch(() => {
+        const title = this.fallbackTitle(message);
+        return this.aiConversationRepository.updateConversationTitle(
+          conversationId,
+          title,
+        );
+      });
   }
 
-  private async generateConversationTitle(message: string) {
-    try {
-      return (
-        (await this.llmService.generateTitle(message)) ??
-        this.buildConversationTitle(message)
-      );
-    } catch {
-      return this.buildConversationTitle(message);
-    }
+  private fallbackTitle(message: string): string {
+    return message.trim().replace(/\s+/g, ' ').slice(0, 80) || 'New AI chat';
   }
 
   private toConversationSummaryResponse(conversation: SelectAiConversation) {

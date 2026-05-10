@@ -1,35 +1,27 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import type { UsageMetadata } from '@langchain/core/messages';
 import {
   AIMessage,
+  BaseMessage,
   HumanMessage,
   SystemMessage,
 } from '@langchain/core/messages';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-import { Annotation, END, START, StateGraph } from '@langchain/langgraph';
-import { AiChatMessage, AiTokenUsage } from '../types/ai-message.type';
+import {
+  END,
+  MessagesAnnotation,
+  START,
+  StateGraph,
+} from '@langchain/langgraph';
+import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
-type ChatGraphState = {
-  messages: AiChatMessage[];
-  content?: string;
-  tokenUsage?: AiTokenUsage;
+export type LlmChatResponse = {
+  content: string;
+  tokenUsage?: UsageMetadata;
+  provider: string;
+  model: string;
 };
-
-type TitleGraphState = {
-  message: string;
-  title?: string;
-};
-
-const ChatState = Annotation.Root({
-  messages: Annotation<AiChatMessage[]>(),
-  content: Annotation<string | undefined>(),
-  tokenUsage: Annotation<AiTokenUsage | undefined>(),
-});
-
-const TitleState = Annotation.Root({
-  message: Annotation<string>(),
-  title: Annotation<string | undefined>(),
-});
 
 @Injectable()
 export class LlmService {
@@ -37,8 +29,7 @@ export class LlmService {
   private readonly modelName: string;
   private readonly enabled: boolean;
   private readonly model?: ChatGoogleGenerativeAI;
-  private readonly graph: ReturnType<typeof this.buildGraph>;
-  private readonly titleGraph: ReturnType<typeof this.buildTitleGraph>;
+  private readonly graph: ReturnType<typeof this.buildChatGraph>;
 
   constructor(private readonly configService: ConfigService) {
     this.enabled = this.configService.get<boolean>('AI_ENABLED') ?? false;
@@ -55,128 +46,99 @@ export class LlmService {
       });
     }
 
-    this.graph = this.buildGraph();
-    this.titleGraph = this.buildTitleGraph();
+    this.graph = this.buildChatGraph();
   }
 
-  getProvider() {
-    return this.provider;
-  }
-
-  getModelName() {
-    return this.modelName;
-  }
-
-  async generate(messages: AiChatMessage[]) {
+  /**
+   * Send a chat turn through the graph.
+   * The graph currently routes: START → model → END.
+   * To add tool calls: bind tools to the model, add a ToolNode, and wire
+   * toolsCondition as a conditional edge — no other changes needed.
+   */
+  async chat(messages: BaseMessage[]): Promise<LlmChatResponse> {
     if (!this.enabled || !this.model) {
       throw new ServiceUnavailableException('AI chat is not enabled');
     }
 
-    const result = (await this.graph.invoke({ messages })) as ChatGraphState;
+    const result = await this.graph.invoke({ messages });
+    const last = result.messages.at(-1) as AIMessage;
 
     return {
-      content: result.content ?? '',
-      tokenUsage: result.tokenUsage,
+      content: this.extractText(last.content),
+      tokenUsage: last.usage_metadata ?? undefined,
+      provider: this.provider,
+      model: this.modelName,
     };
   }
 
-  async generateTitle(message: string) {
-    if (!this.enabled || !this.model) {
-      throw new ServiceUnavailableException('AI chat is not enabled');
+  /**
+   * One-shot title generation — not a multi-turn chat flow, so no graph needed.
+   * Returns undefined on failure so the caller can fall back gracefully.
+   */
+  async generateTitle(userMessage: string): Promise<string | undefined> {
+    if (!this.enabled || !this.model) return undefined;
+
+    try {
+      const response = await this.model.invoke([
+        new SystemMessage(
+          [
+            'Generate a short title for a chat conversation.',
+            'Rules:',
+            '- Use 3 to 6 words.',
+            '- Use title case.',
+            '- Do not use quotes.',
+            '- Do not use ending punctuation.',
+            '- Return only the title.',
+          ].join('\n'),
+        ),
+        new HumanMessage(userMessage),
+      ]);
+
+      return this.sanitizeTitle(this.extractText(response.content));
+    } catch {
+      return undefined;
     }
-
-    const result = (await this.titleGraph.invoke({
-      message,
-    })) as TitleGraphState;
-
-    return this.sanitizeTitle(result.title);
   }
 
-  private buildGraph() {
-    return new StateGraph(ChatState)
-      .addNode('callModel', async (state: ChatGraphState) => {
-        const response = await this.callModel(state.messages);
-
-        return {
-          content: response.content,
-          tokenUsage: response.tokenUsage,
-        };
+  /**
+   * Chat graph: START → model → END.
+   *
+   * MessagesAnnotation is the canonical LangGraph state for chat agents.
+   * Its built-in reducer appends each new BaseMessage to the array, which
+   * means ToolNode and toolsCondition plug in with zero extra state management:
+   *
+   *   .addNode('tools', new ToolNode(tools))
+   *   .addConditionalEdges('model', toolsCondition)
+   *   .addEdge('tools', 'model')
+   */
+  private buildChatGraph() {
+    return new StateGraph(MessagesAnnotation)
+      .addNode('model', async (state) => {
+        if (!this.model) {
+          throw new ServiceUnavailableException('AI chat is not enabled');
+        }
+        const response = await this.model.invoke(state.messages);
+        return { messages: [response] };
       })
-      .addEdge(START, 'callModel')
-      .addEdge('callModel', END)
+      .addEdge(START, 'model')
+      .addEdge('model', END)
       .compile();
   }
 
-  private buildTitleGraph() {
-    return new StateGraph(TitleState)
-      .addNode('generateTitle', async (state: TitleGraphState) => {
-        const response = await this.callModel([
-          {
-            role: 'system',
-            content: [
-              'Generate a short title for a chat conversation.',
-              'Rules:',
-              '- Use 3 to 6 words.',
-              '- Use title case.',
-              '- Do not use quotes.',
-              '- Do not use ending punctuation.',
-              '- Return only the title.',
-            ].join('\n'),
-          },
-          {
-            role: 'user',
-            content: state.message,
-          },
-        ]);
-
-        return {
-          title: response.content,
-        };
-      })
-      .addEdge(START, 'generateTitle')
-      .addEdge('generateTitle', END)
-      .compile();
+  private extractText(content: AIMessage['content']): string {
+    if (typeof content === 'string') return content;
+    return content
+      .map((block) =>
+        typeof block === 'string'
+          ? block
+          : 'text' in block
+            ? String(block.text)
+            : '',
+      )
+      .join('');
   }
 
-  private async callModel(messages: AiChatMessage[]) {
-    if (!this.model) {
-      throw new ServiceUnavailableException('AI chat is not enabled');
-    }
-
-    const result = await this.model.invoke(
-      messages.map((message) => {
-        if (message.role === 'system') {
-          return new SystemMessage(message.content);
-        }
-
-        if (message.role === 'assistant') {
-          return new AIMessage(message.content);
-        }
-
-        return new HumanMessage(message.content);
-      }),
-    );
-
-    const content =
-      typeof result.content === 'string'
-        ? result.content
-        : result.content
-            .map((block) =>
-              typeof block === 'string'
-                ? block
-                : 'text' in block
-                  ? String(block.text)
-                  : '',
-            )
-            .join('');
-
-    return {
-      content,
-      tokenUsage: result.usage_metadata,
-    };
-  }
-
-  private sanitizeTitle(title?: string) {
+  private sanitizeTitle(title?: string): string | undefined {
     const sanitized = title
       ?.trim()
       .replace(/^["'`]+|["'`]+$/g, '')
@@ -187,3 +149,7 @@ export class LlmService {
     return sanitized || undefined;
   }
 }
+
+// Re-export prebuilt primitives so callers can reference them without a
+// separate import if needed during graph expansion.
+export { ToolNode, toolsCondition };
