@@ -1,4 +1,3 @@
-import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { Injectable } from '@nestjs/common';
 import { User } from 'src/auth/auth.factory';
 import {
@@ -9,14 +8,12 @@ import {
 import { SelectAiConversation, SelectAiMessage } from 'src/database/schema';
 import { SendAiChatDto } from './dto/send-ai-chat.dto';
 import { AiConversationRepository } from './repositories/ai-conversation.repository';
-import { AiContextService } from './services/ai-context.service';
 import { LlmService } from './services/llm.service';
 
 @Injectable()
 export class AiService {
   constructor(
     private readonly aiConversationRepository: AiConversationRepository,
-    private readonly aiContextService: AiContextService,
     private readonly llmService: LlmService,
   ) {}
 
@@ -69,13 +66,6 @@ export class AiService {
       );
     }
 
-    // Load prior messages BEFORE saving the new user message so we can build
-    // the prompt array in-memory — no re-fetch needed after the insert.
-    const priorMessages =
-      await this.aiConversationRepository.findMessagesByConversation(
-        conversation.id,
-      );
-
     const userMessage = await this.aiConversationRepository.createMessage({
       conversationId: conversation.id,
       organizationId: user.organizationId,
@@ -84,18 +74,11 @@ export class AiService {
       content: dto.message,
     });
 
-    // Build the BaseMessage array in-memory — system prompt + history + new message.
-    const messages = [
-      this.aiContextService.buildSystemPrompt(user, dto.classroomId),
-      ...priorMessages.map((m) =>
-        m.role === 'assistant'
-          ? new AIMessage(m.content)
-          : new HumanMessage(m.content),
-      ),
-      new HumanMessage(dto.message),
-    ];
+    const threadId = `user_${user.id}_conv_${conversation.id}`;
 
-    const response = await this.llmService.chat(messages);
+    const response = await this.llmService.chat(threadId, dto.message, {
+      user,
+    });
 
     const assistantMessage = await this.aiConversationRepository.createMessage({
       conversationId: conversation.id,

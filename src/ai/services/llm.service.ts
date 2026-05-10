@@ -1,10 +1,10 @@
 import type { UsageMetadata } from '@langchain/core/messages';
 import {
   AIMessage,
-  BaseMessage,
   HumanMessage,
   SystemMessage,
 } from '@langchain/core/messages';
+import { RunnableConfig } from '@langchain/core/runnables';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import {
   END,
@@ -12,9 +12,18 @@ import {
   START,
   StateGraph,
 } from '@langchain/langgraph';
+import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  OnModuleInit,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Pool } from 'pg';
+import { User } from 'src/auth/auth.factory';
+import { AiContextService } from './ai-context.service';
 
 export type LlmChatResponse = {
   content: string;
@@ -24,14 +33,19 @@ export type LlmChatResponse = {
 };
 
 @Injectable()
-export class LlmService {
+export class LlmService implements OnModuleInit {
   private readonly provider = 'google';
   private readonly modelName: string;
   private readonly enabled: boolean;
   private readonly model?: ChatGoogleGenerativeAI;
+  private readonly checkpointer: PostgresSaver;
   private readonly graph: ReturnType<typeof this.buildChatGraph>;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    @Inject('AI_PG_POOL') private readonly pool: Pool,
+    private readonly aiContextService: AiContextService,
+  ) {
     this.enabled = this.configService.get<boolean>('AI_ENABLED') ?? false;
     this.modelName =
       this.configService.get<string>('AI_MODEL') ?? 'gemini-2.5-flash';
@@ -46,21 +60,38 @@ export class LlmService {
       });
     }
 
+    this.checkpointer = new PostgresSaver(this.pool);
     this.graph = this.buildChatGraph();
+  }
+
+  async onModuleInit() {
+    await this.checkpointer.setup();
   }
 
   /**
    * Send a chat turn through the graph.
-   * The graph currently routes: START → model → END.
-   * To add tool calls: bind tools to the model, add a ToolNode, and wire
-   * toolsCondition as a conditional edge — no other changes needed.
+   * The graph uses the Postgres checkpointer to automatically resume
+   * state across turns using the threadId.
    */
-  async chat(messages: BaseMessage[]): Promise<LlmChatResponse> {
+  async chat(
+    threadId: string,
+    userMessage: string,
+    context: { user: User },
+  ): Promise<LlmChatResponse> {
     if (!this.enabled || !this.model) {
       throw new ServiceUnavailableException('AI chat is not enabled');
     }
 
-    const result = await this.graph.invoke({ messages });
+    const result = await this.graph.invoke(
+      { messages: [new HumanMessage(userMessage)] },
+      {
+        configurable: {
+          thread_id: threadId,
+          user: context.user,
+        },
+      },
+    );
+
     const last = result.messages.at(-1) as AIMessage;
 
     return {
@@ -102,27 +133,31 @@ export class LlmService {
 
   /**
    * Chat graph: START → model → END.
-   *
-   * MessagesAnnotation is the canonical LangGraph state for chat agents.
-   * Its built-in reducer appends each new BaseMessage to the array, which
-   * means ToolNode and toolsCondition plug in with zero extra state management:
-   *
-   *   .addNode('tools', new ToolNode(tools))
-   *   .addConditionalEdges('model', toolsCondition)
-   *   .addEdge('tools', 'model')
    */
   private buildChatGraph() {
     return new StateGraph(MessagesAnnotation)
-      .addNode('model', async (state) => {
+      .addNode('model', async (state, config?: RunnableConfig) => {
         if (!this.model) {
           throw new ServiceUnavailableException('AI chat is not enabled');
         }
-        const response = await this.model.invoke(state.messages);
+
+        const { user } = (config?.configurable ?? {}) as {
+          user: User;
+        };
+        const systemPrompt = this.aiContextService.buildSystemPrompt(user);
+
+        // System prompt is prepended dynamically each turn. It is never
+        // returned in the node output, so it is never saved to the checkpointer state.
+        const response = await this.model.invoke([
+          systemPrompt,
+          ...state.messages,
+        ]);
+
         return { messages: [response] };
       })
       .addEdge(START, 'model')
       .addEdge('model', END)
-      .compile();
+      .compile({ checkpointer: this.checkpointer });
   }
 
   private extractText(content: AIMessage['content']): string {

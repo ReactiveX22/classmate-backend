@@ -12,8 +12,8 @@ import {
   AuthGuard,
   AuthService,
   Session,
-  type UserSession,
 } from '@thallesp/nestjs-better-auth';
+import { type AppUserSession } from 'src/common/types/session.types';
 import { IsNotEmpty, IsString } from 'class-validator';
 import { eq } from 'drizzle-orm';
 import type { Request, Response } from 'express';
@@ -27,20 +27,22 @@ class StartImpersonationDto {
   userId: string;
 }
 
+import { AuthType } from 'src/auth/auth.factory';
+
 @Controller('impersonation')
 @UseGuards(AuthGuard)
 export class ImpersonationController {
   private readonly logger = new Logger(ImpersonationController.name);
 
   constructor(
-    private readonly authService: AuthService,
+    private readonly authService: AuthService<AuthType>,
     @InjectDb() private readonly db: DB,
   ) {}
 
   @Post('start')
   async start(
     @Body() body: StartImpersonationDto,
-    @Session() session: UserSession,
+    @Session() session: AppUserSession,
     @Req() req: Request,
     @Res() res: Response,
   ) {

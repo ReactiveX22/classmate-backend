@@ -6,14 +6,22 @@ import { Pool } from 'pg';
 import * as schema from './schema';
 
 export const DB_PROVIDER = 'DB_PROVIDER';
+export const DB_POOL_TOKEN = 'DB_POOL_TOKEN';
+
 export const InjectDb = () => Inject(DB_PROVIDER);
+export const InjectDbPool = () => Inject(DB_POOL_TOKEN);
 
 export type DB = NodePgDatabase<typeof schema>;
 
-export const dbProvider: FactoryProvider = {
-  provide: DB_PROVIDER,
+/**
+ * Raw pg.Pool provider — shared by the Drizzle DB provider.
+ * Exported so other modules can reuse the same pool reference if needed.
+ * Max connections: 80 (the remaining 20 are reserved for the LangGraph AI pool).
+ */
+export const dbPoolProvider: FactoryProvider<Pool> = {
+  provide: DB_POOL_TOKEN,
   inject: [ConfigService],
-  useFactory: async (configService: ConfigService): Promise<DB> => {
+  useFactory: (configService: ConfigService): Pool => {
     const logger = new Logger('Database');
 
     const connectionString = configService.get<string>('DATABASE_URL');
@@ -25,7 +33,7 @@ export const dbProvider: FactoryProvider = {
 
     const pool = new Pool({
       connectionString,
-      max: 100,
+      max: 80,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
       maxUses: 7500,
@@ -35,15 +43,29 @@ export const dbProvider: FactoryProvider = {
       logger.error('Unexpected error on database client', err.stack);
     });
 
-    try {
-      const client = await pool.connect();
-      logger.log('Database connected successfully');
-      client.release();
-    } catch (error) {
-      logger.error('Database connection failed at startup.');
-      logger.debug(error.message);
-    }
+    pool
+      .connect()
+      .then((client) => {
+        logger.log('Database connected successfully');
+        client.release();
+      })
+      .catch((error: Error) => {
+        logger.error('Database connection failed at startup.');
+        logger.debug(error.message);
+        throw error;
+      });
 
+    return pool;
+  },
+};
+
+/**
+ * Drizzle ORM provider — wraps the shared pg.Pool with the full schema.
+ */
+export const dbProvider: FactoryProvider<DB> = {
+  provide: DB_PROVIDER,
+  inject: [DB_POOL_TOKEN],
+  useFactory: (pool: Pool): DB => {
     return drizzle(pool, {
       schema,
       logger: false,
