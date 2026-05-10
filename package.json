@@ -37,8 +37,6 @@
     "perf:stress": "k6 run perf/perf.js --env SCENARIO=stress",
     "perf:spike": "k6 run perf/perf.js --env SCENARIO=spike",
     "perf:smoke": "k6 run perf/perf.js --env SCENARIO=smoke",
-    "worker:embedding": "nest start --entryFile embedding/embedding-worker",
-    "worker:embedding:dev": "nest start --entryFile embedding/embedding-worker --watch",
     "embedding:check": "ts-node -r tsconfig-paths/register src/embedding/commands/check-missing-embeddings.command.ts",
     "embedding:enqueue-missing": "ts-node -r tsconfig-paths/register src/embedding/commands/enqueue-missing-embeddings.command.ts",
     "embedding:clear": "ts-node -r tsconfig-paths/register src/embedding/commands/clear-all-embeddings.command.ts"

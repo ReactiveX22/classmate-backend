@@ -1,7 +1,7 @@
 import { Document } from '@langchain/core/documents';
 import { v4 as uuidv4 } from 'uuid';
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { Logger, OnModuleInit } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { ClassroomPostRepository } from '../../classroom/repositories/classroom-post.repository';
 import { type DB, InjectDb } from '../../database/db.provider';
@@ -22,8 +22,14 @@ import { computeSourceHash } from '../utils/hash.util';
 @Processor(EMBEDDING_QUEUE_NAME, {
   concurrency: EMBEDDING_DEFAULTS.queueConcurrency,
 })
-export class AttachmentEmbeddingProcessor extends WorkerHost {
+export class AttachmentEmbeddingProcessor extends WorkerHost implements OnModuleInit {
   private readonly logger = new Logger(AttachmentEmbeddingProcessor.name);
+
+  async onModuleInit() {
+    this.logger.log(
+      `Embedding Worker started (concurrency: ${EMBEDDING_DEFAULTS.queueConcurrency})`,
+    );
+  }
 
   constructor(
     @InjectDb() private readonly db: DB,

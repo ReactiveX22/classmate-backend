@@ -68,7 +68,7 @@ export const dbProvider: FactoryProvider<DB> = {
   useFactory: (pool: Pool): DB => {
     return drizzle(pool, {
       schema,
-      logger: true,
+      logger: false,
     });
   },
 };
