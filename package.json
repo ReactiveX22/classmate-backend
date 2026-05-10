@@ -37,7 +37,11 @@
     "perf:stress": "k6 run perf/perf.js --env SCENARIO=stress",
     "perf:spike": "k6 run perf/perf.js --env SCENARIO=spike",
     "perf:smoke": "k6 run perf/perf.js --env SCENARIO=smoke",
-    "worker:embedding": "nest start --entryFile embedding/embedding-worker"
+    "worker:embedding": "nest start --entryFile embedding/embedding-worker",
+    "worker:embedding:dev": "nest start --entryFile embedding/embedding-worker --watch",
+    "embedding:check": "ts-node -r tsconfig-paths/register src/embedding/commands/check-missing-embeddings.command.ts",
+    "embedding:enqueue-missing": "ts-node -r tsconfig-paths/register src/embedding/commands/enqueue-missing-embeddings.command.ts",
+    "embedding:clear": "ts-node -r tsconfig-paths/register src/embedding/commands/clear-all-embeddings.command.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.985.0",
@@ -80,6 +84,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.3",
+    "uuid": "^14.0.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -98,6 +103,7 @@
     "@types/nodemailer": "^7.0.9",
     "@types/pg": "^8.15.6",
     "@types/supertest": "^6.0.2",
+    "@types/uuid": "^11.0.0",
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
