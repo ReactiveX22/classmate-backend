@@ -241,6 +241,11 @@ export class AiService {
     });
   }
 
+  async deleteConversation(id: string, user: User) {
+    await this.findOwnedConversation(id, user);
+    await this.aiConversationRepository.deleteConversation(id, user.id);
+  }
+
   private async findOwnedConversation(conversationId: string, user: User) {
     const conversation =
       await this.aiConversationRepository.findConversationForUser(

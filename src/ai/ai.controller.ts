@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Header,
   MessageEvent,
@@ -53,6 +54,15 @@ export class AiController {
     @Session() session: AppUserSession,
   ) {
     return this.aiService.findConversation(id, session.user);
+  }
+
+  @Roles([AppRole.Instructor, AppRole.Student])
+  @Delete('conversations/:id')
+  deleteConversation(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Session() session: AppUserSession,
+  ) {
+    return this.aiService.deleteConversation(id, session.user);
   }
 
   @Roles([AppRole.Instructor, AppRole.Student])

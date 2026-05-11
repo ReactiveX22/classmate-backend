@@ -107,11 +107,10 @@ export class AiConversationRepository {
     return result;
   }
 
-  async touchConversation(id: string) {
+  async deleteConversation(id: string, userId: string) {
     await this.db
-      .update(aiConversation)
-      .set({ updatedAt: new Date() })
-      .where(eq(aiConversation.id, id));
+      .delete(aiConversation)
+      .where(and(eq(aiConversation.id, id), eq(aiConversation.userId, userId)));
   }
 
   async userCanAccessClassroom(
