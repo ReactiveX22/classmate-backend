@@ -78,6 +78,7 @@ export class AiService {
 
     const response = await this.llmService.chat(threadId, dto.message, {
       user,
+      classroomId: conversation.classroomId,
     });
 
     const assistantMessage = await this.aiConversationRepository.createMessage({

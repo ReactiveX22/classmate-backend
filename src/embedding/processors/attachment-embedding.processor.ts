@@ -58,11 +58,21 @@ export class AttachmentEmbeddingProcessor
     try {
       // 1. Validation
       const attachment = await this.validateAndGetAttachment(context);
-      if (!attachment) return { status: 'skipped-validation' };
+      if (!attachment) {
+        await this.upsertStatus(context, 'skipped', {
+          reason: 'validation_failed',
+        });
+        return { status: 'skipped-validation' };
+      }
 
       // 2. Extraction
       const chunks = await this.loadAndChunkDocuments(attachment, context);
-      if (!chunks) return { status: 'skipped-empty' };
+      if (!chunks) {
+        await this.upsertStatus(context, 'skipped', {
+          reason: 'empty_content',
+        });
+        return { status: 'skipped-empty' };
+      }
 
       // 3. Idempotency & Processing
       const combinedText = chunks.map((c) => c.text).join('\n');

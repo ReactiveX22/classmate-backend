@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-
 import {
   ClassroomPaginationConfig,
   SubmissionPaginationConfig,
@@ -14,13 +13,13 @@ import { ClassroomController } from './controllers/classroom.controller';
 import { CommentController } from './controllers/comment.controller';
 import { PostController } from './controllers/post.controller';
 import { SubmissionsController } from './controllers/submission.controller';
-import { ClassroomPostCommentRepository } from './repositories/classroom-post-comment.repository';
 import { AttendanceRepository } from './repositories/attendance.repository';
+import { ClassroomPostCommentRepository } from './repositories/classroom-post-comment.repository';
 import { ClassroomPostRepository } from './repositories/classroom-post.repository';
 import { SubmissionRepository } from './repositories/submission.repository';
 import { AttendanceService } from './services/attendance.service';
-import { ClassroomPostCommentService } from './services/comment.service';
 import { ClassroomService } from './services/classroom.service';
+import { ClassroomPostCommentService } from './services/comment.service';
 import { SubmissionService } from './services/submission.service';
 
 @Module({
@@ -45,6 +44,6 @@ import { SubmissionService } from './services/submission.service';
     AttendanceRepository,
     ClassroomPostCommentService,
   ],
-  exports: [ClassroomService, ClassroomPostRepository],
+  exports: [ClassroomService, ClassroomPostRepository, SubmissionRepository],
 })
 export class ClassroomModule {}

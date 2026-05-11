@@ -2,6 +2,7 @@ import { JSONLoader } from '@langchain/classic/document_loaders/fs/json';
 import { TextLoader } from '@langchain/classic/document_loaders/fs/text';
 import { CSVLoader } from '@langchain/community/document_loaders/fs/csv';
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
+import { PPTXLoader } from '@langchain/community/document_loaders/fs/pptx';
 import type { Document } from '@langchain/core/documents';
 import { Injectable, Logger } from '@nestjs/common';
 import type { Attachment } from '../../database/schema/types';
@@ -43,6 +44,10 @@ export class DocumentLoaderService {
       case 'application/json': {
         // Load JSON with pointers or simple extraction
         const loader = new JSONLoader(blob);
+        return loader.load();
+      }
+      case 'application/vnd.openxmlformats-officedocument.presentationml.presentation': {
+        const loader = new PPTXLoader(blob);
         return loader.load();
       }
       default:

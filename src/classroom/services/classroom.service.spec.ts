@@ -147,10 +147,7 @@ describe('ClassroomService', () => {
       });
       mockClassroomPostRepository.update.mockResolvedValue({
         id: 'post-123',
-        attachments: [
-          { id: 'existing-attachment' },
-          { id: 'new-attachment' },
-        ],
+        attachments: [{ id: 'existing-attachment' }, { id: 'new-attachment' }],
       });
 
       await service.updatePost(
