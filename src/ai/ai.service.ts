@@ -3,7 +3,6 @@ import { Observable } from 'rxjs';
 import { User } from 'src/auth/auth.factory';
 import { ClassroomRepository } from 'src/classroom/classroom.repository';
 import {
-  ApplicationBadRequestException,
   ApplicationForbiddenException,
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
@@ -239,6 +238,17 @@ export class AiService {
 
       void run();
     });
+  }
+
+  async updateConversation(id: string, dto: { title: string }, user: User) {
+    await this.findOwnedConversation(id, user);
+    const conversation =
+      await this.aiConversationRepository.updateConversationTitle(
+        id,
+        dto.title,
+      );
+
+    return this.toConversationResponse(conversation);
   }
 
   async deleteConversation(id: string, user: User) {

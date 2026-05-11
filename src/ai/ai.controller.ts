@@ -7,6 +7,7 @@ import {
   MessageEvent,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   RequestMethod,
   Sse,
@@ -18,6 +19,7 @@ import { AppRole } from 'src/common/enums/role.enum';
 import { type AppUserSession } from 'src/common/types/session.types';
 import { AiService } from './ai.service';
 import { SendAiChatDto } from './dto/send-ai-chat.dto';
+import { UpdateAiConversationDto } from './dto/update-ai-conversation.dto';
 import { VectorSearchDto } from './dto/vector-search.dto';
 
 @Controller('ai')
@@ -54,6 +56,16 @@ export class AiController {
     @Session() session: AppUserSession,
   ) {
     return this.aiService.findConversation(id, session.user);
+  }
+
+  @Roles([AppRole.Instructor, AppRole.Student])
+  @Patch('conversations/:id')
+  updateConversation(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateAiConversationDto,
+    @Session() session: AppUserSession,
+  ) {
+    return this.aiService.updateConversation(id, dto, session.user);
   }
 
   @Roles([AppRole.Instructor, AppRole.Student])
