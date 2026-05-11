@@ -139,14 +139,10 @@ export class LlmService implements OnModuleInit {
           throw new ServiceUnavailableException('AI chat is not enabled');
         }
 
-        const { user, classroomId } = (config?.configurable ?? {}) as {
+        const { user } = (config?.configurable ?? {}) as {
           user: User;
-          classroomId: string;
         };
-        const systemPrompt = this.aiContextService.buildSystemPrompt(
-          user,
-          classroomId,
-        );
+        const systemPrompt = this.aiContextService.buildSystemPrompt(user);
 
         const tools = this.toolsRegistry.getTools();
         const modelWithTools = this.model.bindTools(tools);

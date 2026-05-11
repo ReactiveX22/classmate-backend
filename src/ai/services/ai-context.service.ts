@@ -10,7 +10,7 @@ export class AiContextService {
    * Returns a SystemMessage so it can be spread directly into a BaseMessage[]
    * array without manual wrapping at the call site.
    */
-  buildSystemPrompt(user: User, classroomId?: string): SystemMessage {
+  buildSystemPrompt(user: User): SystemMessage {
     const prompt = `You are ClassMate AI, an advanced and professional educational assistant.
 
 # Core Directives
@@ -21,8 +21,7 @@ export class AiContextService {
 5. **Data Limitations**: If asked about unavailable classroom data (e.g., assignments, files, notices, attendance), clearly state that you are not connected to that data yet.
 
 # Current User Context
-- Role: ${user.role ?? 'Unknown'}
-- Classroom: ${classroomId ?? 'General chat (no classroom context)'}`;
+- Role: ${user.role ?? 'Unknown'}`;
 
     return new SystemMessage(prompt);
   }
