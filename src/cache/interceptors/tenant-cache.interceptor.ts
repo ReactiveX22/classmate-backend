@@ -8,7 +8,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Observable, of } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { mergeMap, tap } from 'rxjs/operators';
+import { AuthenticatedRequest } from 'src/common/types/request.types';
 import {
   CACHE_INVALIDATE_EVENT,
   CACHE_INVALIDATE_METADATA,
@@ -19,7 +20,10 @@ import {
 import { CacheService } from '../cache.service';
 
 @Injectable()
-export class TenantCacheInterceptor implements NestInterceptor {
+export class TenantCacheInterceptor<T = unknown> implements NestInterceptor<
+  T,
+  T
+> {
   private readonly logger = new Logger(TenantCacheInterceptor.name);
 
   constructor(
@@ -30,19 +34,19 @@ export class TenantCacheInterceptor implements NestInterceptor {
 
   async intercept(
     context: ExecutionContext,
-    next: CallHandler,
-  ): Promise<Observable<any>> {
-    const request = context.switchToHttp().getRequest();
+    next: CallHandler<T>,
+  ): Promise<Observable<T>> {
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const method = request.method;
 
-    // 1. Get metadata
-    const resource = this.reflector.get<string>(
+    // 1. Get metadata (Checks both Handler and Class levels)
+    const resource = this.reflector.getAllAndOverride<string>(
       CACHE_RESOURCE_METADATA,
-      context.getHandler(),
+      [context.getHandler(), context.getClass()],
     );
-    const invalidateResources = this.reflector.get<string[]>(
+    const invalidateResources = this.reflector.getAllAndMerge<string[]>(
       CACHE_INVALIDATE_METADATA,
-      context.getHandler(),
+      [context.getHandler(), context.getClass()],
     );
 
     // If no caching metadata, proceed
@@ -63,7 +67,7 @@ export class TenantCacheInterceptor implements NestInterceptor {
     // 2. Handle GET (Caching)
     if (method === 'GET' && resource) {
       const cacheKey = this.buildCacheKey(orgId, resource, request);
-      const cachedData = await this.cacheService.get(cacheKey);
+      const cachedData = await this.cacheService.get<T>(cacheKey);
 
       if (cachedData) {
         // this.logger.debug(`Cache hit: ${cacheKey}`);
@@ -77,10 +81,19 @@ export class TenantCacheInterceptor implements NestInterceptor {
       );
 
       return next.handle().pipe(
-        tap(async (data) => {
+        mergeMap(async (data: T) => {
           if (data) {
-            await this.cacheService.set(cacheKey, data, ttl);
+            try {
+              await this.cacheService.set(cacheKey, data, ttl);
+            } catch (error) {
+              const errorMessage =
+                error instanceof Error ? error.message : String(error);
+              this.logger.error(
+                `Failed to set cache for key ${cacheKey}: ${errorMessage}`,
+              );
+            }
           }
+          return data;
         }),
       );
     }
@@ -111,21 +124,29 @@ export class TenantCacheInterceptor implements NestInterceptor {
    * Builds a deterministic cache key
    * Format: cache:{orgId}:{resource}:{serializedParams}:{serializedQuery}
    */
-  private buildCacheKey(orgId: string, resource: string, request: any): string {
+  private buildCacheKey(
+    orgId: string,
+    resource: string,
+    request: AuthenticatedRequest,
+  ): string {
     const query = request.query || {};
     const params = request.params || {};
 
     const sortedParamsString = Object.keys(params)
       .sort()
-      .map((key) => `${key}=${params[key]}`)
+      .map((key) => `${key}=${String(params[key])}`)
       .join('&');
 
     const sortedQueryString = Object.keys(query)
       .sort()
-      .map((key) => `${key}=${query[key]}`)
+      .map((key) => {
+        const value = query[key];
+        return `${key}=${typeof value === 'object' ? JSON.stringify(value) : String(value)}`;
+      })
       .join('&');
 
-    const parts = [`cache:${orgId}:${resource}`];
+    const parts = [`cache:${orgId}:${resource}`, request.path];
+
     if (sortedParamsString) parts.push(sortedParamsString);
     if (sortedQueryString) parts.push(sortedQueryString);
 
