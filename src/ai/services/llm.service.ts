@@ -74,7 +74,7 @@ export class LlmService implements OnModuleInit {
   async chat(
     threadId: string,
     userMessage: string,
-    context: { user: User; classroomId: string },
+    context: { user: User; classroomId?: string },
   ): Promise<LlmChatResponse> {
     if (!this.enabled || !this.model) {
       throw new ServiceUnavailableException('AI chat is not enabled');
@@ -110,63 +110,68 @@ export class LlmService implements OnModuleInit {
       throw new ServiceUnavailableException('AI chat is not enabled');
     }
 
-    const stream = this.graph.streamEvents(
-      { messages: [new HumanMessage(userMessage)] },
-      {
-        version: 'v2',
-        configurable: {
-          thread_id: threadId,
-          user: context.user,
-          classroomId: context.classroomId,
+    try {
+      const stream = this.graph.streamEvents(
+        { messages: [new HumanMessage(userMessage)] },
+        {
+          version: 'v2',
+          configurable: {
+            thread_id: threadId,
+            user: context.user,
+            classroomId: context.classroomId,
+          },
         },
-      },
-    );
+      );
 
-    for await (const event of stream) {
-      if (
-        event.event === 'on_chat_model_stream' &&
-        event.metadata?.langgraph_node === 'model'
-      ) {
-        const chunk = event.data?.chunk as AIMessage | undefined;
-        const delta = this.extractText(chunk?.content ?? '');
+      for await (const event of stream) {
+        if (
+          event.event === 'on_chat_model_stream' &&
+          event.metadata?.langgraph_node === 'model'
+        ) {
+          const chunk = event.data?.chunk as AIMessage | undefined;
+          const delta = this.extractText(chunk?.content ?? '');
 
-        if (delta) {
-          yield { type: 'content', payload: { delta } };
+          if (delta) {
+            yield { type: 'content', payload: { delta } };
+          }
         }
-      }
 
-      if (event.event === 'on_tool_start') {
-        yield {
-          type: 'tool',
-          payload: { name: event.name, status: 'start' },
-        };
-      }
-
-      if (event.event === 'on_tool_end') {
-        yield {
-          type: 'tool',
-          payload: { name: event.name, status: 'end' },
-        };
-      }
-
-      if (
-        event.event === 'on_chat_model_end' &&
-        event.metadata?.langgraph_node === 'model'
-      ) {
-        const last = event.data?.output as AIMessage | undefined;
-
-        if (last) {
+        if (event.event === 'on_tool_start') {
           yield {
-            type: '_internal_final_llm',
-            payload: {
-              content: this.extractText(last.content),
-              tokenUsage: last.usage_metadata ?? undefined,
-              provider: this.provider,
-              model: this.modelName,
-            },
+            type: 'tool',
+            payload: { name: event.name, status: 'start' },
           };
         }
+
+        if (event.event === 'on_tool_end') {
+          yield {
+            type: 'tool',
+            payload: { name: event.name, status: 'end' },
+          };
+        }
+
+        if (
+          event.event === 'on_chat_model_end' &&
+          event.metadata?.langgraph_node === 'model'
+        ) {
+          const last = event.data?.output as AIMessage | undefined;
+
+          if (last) {
+            yield {
+              type: '_internal_final_llm',
+              payload: {
+                content: this.extractText(last.content),
+                tokenUsage: last.usage_metadata ?? undefined,
+                provider: this.provider,
+                model: this.modelName,
+              },
+            };
+          }
+        }
       }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to stream AI response';
+      throw new ServiceUnavailableException(message);
     }
   }
 

@@ -94,6 +94,7 @@ describe('AiService.streamChat', () => {
       repository as unknown as AiConversationRepository,
       llmService as unknown as LlmService,
       {} as never,
+      {} as never,
     );
   });
 
@@ -123,7 +124,7 @@ describe('AiService.streamChat', () => {
 
     const events = await collectEvents(
       service.streamChat(
-        { message: 'Hello', classroomId: 'classroom-1' },
+        { message: 'Hello' },
         user as never,
       ),
     );
@@ -157,7 +158,7 @@ describe('AiService.streamChat', () => {
 
     await collectEvents(
       service.streamChat(
-        { message: 'Hello', classroomId: 'classroom-1' },
+        { message: 'Hello' },
         user as never,
       ),
     );
@@ -180,11 +181,10 @@ describe('AiService.streamChat', () => {
 
     await expect(
       new Promise((resolve, reject) => {
-        service
+          service
           .streamChat(
             {
               message: 'Hello',
-              classroomId: 'classroom-1',
               conversationId: 'conversation-1',
             },
             user as never,
@@ -225,7 +225,6 @@ describe('AiService.streamChat', () => {
       service.streamChat(
         {
           message: 'What are the exam rules for next week?',
-          classroomId: 'classroom-1',
         },
         user as never,
       ),
@@ -239,6 +238,36 @@ describe('AiService.streamChat', () => {
     expect(llmService.generateTitle).toHaveBeenCalledWith(
       'What are the exam rules for next week?',
     );
+  });
+
+  it('emits an error event when the LLM stream fails', async () => {
+    llmService.streamChat.mockImplementation(async function* () {
+      throw new Error('Failed to parse stream');
+    });
+
+    const events: MessageEvent[] = [];
+
+    await expect(
+      new Promise((resolve, reject) => {
+          service
+          .streamChat(
+            { message: 'Hello' },
+            user as never,
+          )
+          .subscribe({
+            next: (event) => events.push(event),
+            error: reject,
+            complete: () => resolve(undefined),
+          });
+      }),
+    ).rejects.toThrow('Failed to parse stream');
+
+    expect(events.at(-1)).toEqual({
+      data: {
+        type: 'error',
+        payload: { message: 'Failed to parse stream' },
+      },
+    });
   });
 });
 

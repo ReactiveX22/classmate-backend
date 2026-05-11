@@ -73,7 +73,7 @@ export class AiService {
     const results = await this.vectorStoreService.similaritySearchWithScore(
       dto.query,
       dto.limit ?? 5,
-      { classroomId: classroomIds },
+      { classroomId: { in: classroomIds } },
     );
 
     return results.map(([doc, score]) => {
