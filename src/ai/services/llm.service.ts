@@ -104,7 +104,7 @@ export class LlmService implements OnModuleInit {
   async *streamChat(
     threadId: string,
     userMessage: string,
-    context: { user: User; classroomId: string },
+    context: { user: User; classroomId?: string },
   ): AsyncGenerator<LlmStreamEvent> {
     if (!this.enabled || !this.model) {
       throw new ServiceUnavailableException('AI chat is not enabled');

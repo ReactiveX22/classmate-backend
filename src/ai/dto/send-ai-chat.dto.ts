@@ -12,9 +12,6 @@ export class SendAiChatDto {
   @MaxLength(8000)
   message: string;
 
-  @IsUUID()
-  classroomId: string;
-
   @IsOptional()
   @IsUUID()
   conversationId?: string;

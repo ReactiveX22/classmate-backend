@@ -1,6 +1,7 @@
 import { Injectable, MessageEvent } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { User } from 'src/auth/auth.factory';
+import { ClassroomRepository } from 'src/classroom/classroom.repository';
 import {
   ApplicationBadRequestException,
   ApplicationForbiddenException,
@@ -24,6 +25,7 @@ export class AiService {
     private readonly aiConversationRepository: AiConversationRepository,
     private readonly llmService: LlmService,
     private readonly vectorStoreService: EmbeddingVectorStoreService,
+    private readonly classroomRepository: ClassroomRepository,
   ) {}
 
   async findConversations(user: User) {
@@ -59,12 +61,20 @@ export class AiService {
   }
 
   async vectorSearch(dto: VectorSearchDto, user: User) {
-    await this.assertClassroomAccess(dto.classroomId, user);
+    const userClassrooms = await this.classroomRepository.findJoinedClassrooms(
+      user.id,
+    );
+
+    if (!userClassrooms.length) {
+      return [];
+    }
+
+    const classroomIds = userClassrooms.map((c) => c.id);
 
     const results = await this.vectorStoreService.similaritySearchWithScore(
       dto.query,
       dto.limit ?? 5,
-      { classroomId: dto.classroomId },
+      { classroomId: classroomIds },
     );
 
     return results.map(([doc, score]) => {
@@ -82,21 +92,12 @@ export class AiService {
   }
 
   async chat(dto: SendAiChatDto, user: User) {
-    await this.assertClassroomAccess(dto.classroomId, user);
-
     const conversation = dto.conversationId
       ? await this.findOwnedConversation(dto.conversationId, user)
       : await this.aiConversationRepository.createConversation({
           organizationId: user.organizationId,
           userId: user.id,
-          classroomId: dto.classroomId,
         });
-
-    if (conversation.classroomId !== dto.classroomId) {
-      throw new ApplicationBadRequestException(
-        'Conversation classroom does not match the requested classroom',
-      );
-    }
 
     const userMessage = await this.aiConversationRepository.createMessage({
       conversationId: conversation.id,
@@ -110,7 +111,7 @@ export class AiService {
 
     const response = await this.llmService.chat(threadId, dto.message, {
       user,
-      classroomId: conversation.classroomId,
+      classroomId: conversation.classroomId ?? undefined,
     });
 
     const assistantMessage = await this.aiConversationRepository.createMessage({
@@ -151,21 +152,12 @@ export class AiService {
 
       const run = async () => {
         try {
-          await this.assertClassroomAccess(dto.classroomId, user);
-
           const conversation = dto.conversationId
             ? await this.findOwnedConversation(dto.conversationId, user)
             : await this.aiConversationRepository.createConversation({
                 organizationId: user.organizationId,
                 userId: user.id,
-                classroomId: dto.classroomId,
               });
-
-          if (conversation.classroomId !== dto.classroomId) {
-            throw new ApplicationBadRequestException(
-              'Conversation classroom does not match the requested classroom',
-            );
-          }
 
           const userMessage = await this.aiConversationRepository.createMessage(
             {
@@ -198,7 +190,7 @@ export class AiService {
             dto.message,
             {
               user,
-              classroomId: conversation.classroomId,
+              classroomId: conversation.classroomId ?? undefined,
             },
           )) {
             if (event.type === '_internal_final_llm') {
