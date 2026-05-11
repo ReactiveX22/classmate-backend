@@ -96,6 +96,7 @@ export class AiService {
       : await this.aiConversationRepository.createConversation({
           organizationId: user.organizationId,
           userId: user.id,
+          title: this.fallbackTitle(dto.message),
         });
 
     const userMessage = await this.aiConversationRepository.createMessage({
@@ -123,13 +124,9 @@ export class AiService {
       tokenUsage: response.tokenUsage,
     });
 
-    // Title generation is non-critical — fire and forget so it doesn't block
-    // the response. The conversation list will pick up the title on next fetch.
-    if (!conversation.title) {
-      this.generateAndSaveTitle(conversation.id, dto.message);
-    } else {
-      await this.aiConversationRepository.touchConversation(conversation.id);
-    }
+    // Refine the provisional title in the background so the UI is immediate
+    // but the final label still becomes more descriptive.
+    void this.generateAndSaveTitle(conversation.id, dto.message);
 
     return {
       conversation: this.toConversationResponse({
@@ -156,6 +153,7 @@ export class AiService {
             : await this.aiConversationRepository.createConversation({
                 organizationId: user.organizationId,
                 userId: user.id,
+                title: this.fallbackTitle(dto.message),
               });
 
           const userMessage = await this.aiConversationRepository.createMessage(
@@ -220,13 +218,16 @@ export class AiService {
             payload: this.toMessageResponse(assistantMessage),
           });
 
-          if (!conversation.title) {
-            this.generateAndSaveTitle(conversation.id, dto.message);
-          } else {
-            await this.aiConversationRepository.touchConversation(
-              conversation.id,
-            );
-          }
+          void this.generateAndSaveTitle(conversation.id, dto.message).then(
+            (updatedConversation) => {
+              if (updatedConversation) {
+                emit({
+                  type: 'title_updated',
+                  payload: this.toConversationResponse(updatedConversation),
+                });
+              }
+            },
+          );
 
           subscriber.complete();
         } catch (err) {
@@ -291,23 +292,25 @@ export class AiService {
    * after the chat response is already returned to the client. Falls back to a
    * truncated version of the first message if the LLM call fails.
    */
-  private generateAndSaveTitle(conversationId: string, message: string) {
-    this.llmService
-      .generateTitle(message)
-      .then((title) => title ?? this.fallbackTitle(message))
-      .then((title) =>
-        this.aiConversationRepository.updateConversationTitle(
-          conversationId,
-          title,
-        ),
-      )
-      .catch(() => {
-        const title = this.fallbackTitle(message);
-        return this.aiConversationRepository.updateConversationTitle(
-          conversationId,
-          title,
-        );
-      });
+  private async generateAndSaveTitle(
+    conversationId: string,
+    message: string,
+  ): Promise<ConversationResponseSource | null> {
+    try {
+      const title =
+        (await this.llmService.generateTitle(message)) ??
+        this.fallbackTitle(message);
+      return await this.aiConversationRepository.updateConversationTitle(
+        conversationId,
+        title,
+      );
+    } catch {
+      const title = this.fallbackTitle(message);
+      return this.aiConversationRepository.updateConversationTitle(
+        conversationId,
+        title,
+      );
+    }
   }
 
   private fallbackTitle(message: string): string {

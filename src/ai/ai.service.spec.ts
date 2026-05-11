@@ -65,6 +65,8 @@ describe('AiService.streamChat', () => {
     createConversation: ReturnType<typeof vi.fn>;
     createMessage: ReturnType<typeof vi.fn>;
     touchConversation: ReturnType<typeof vi.fn>;
+    updateConversationTitle: ReturnType<typeof vi.fn>;
+    findConversationForUser: ReturnType<typeof vi.fn>;
   };
   let llmService: {
     streamChat: ReturnType<typeof vi.fn>;
@@ -81,6 +83,8 @@ describe('AiService.streamChat', () => {
         .mockResolvedValueOnce(userMessage)
         .mockResolvedValueOnce(assistantMessage),
       touchConversation: vi.fn().mockResolvedValue(undefined),
+      updateConversationTitle: vi.fn().mockResolvedValue(conversation),
+      findConversationForUser: vi.fn().mockResolvedValue(conversation),
     };
     llmService = {
       streamChat: vi.fn(),
@@ -169,8 +173,8 @@ describe('AiService.streamChat', () => {
     );
   });
 
-  it('emits an error event when access fails', async () => {
-    repository.userCanAccessClassroom.mockResolvedValue(false);
+  it('emits an error event when the conversation is missing', async () => {
+    repository.findConversationForUser.mockResolvedValue(null);
 
     const events: MessageEvent[] = [];
 
@@ -178,7 +182,11 @@ describe('AiService.streamChat', () => {
       new Promise((resolve, reject) => {
         service
           .streamChat(
-            { message: 'Hello', classroomId: 'classroom-1' },
+            {
+              message: 'Hello',
+              classroomId: 'classroom-1',
+              conversationId: 'conversation-1',
+            },
             user as never,
           )
           .subscribe({
@@ -187,16 +195,50 @@ describe('AiService.streamChat', () => {
             complete: () => resolve(undefined),
           });
       }),
-    ).rejects.toThrow('You do not have access to this classroom');
+    ).rejects.toThrow('AI conversation not found');
 
     expect(events).toEqual([
       {
         data: {
           type: 'error',
-          payload: { message: 'You do not have access to this classroom' },
+          payload: { message: 'AI conversation not found' },
         },
       },
     ]);
+  });
+
+  it('creates new conversations with an immediate provisional title', async () => {
+    llmService.streamChat.mockImplementation(
+      streamEvents([
+        {
+          type: '_internal_final_llm',
+          payload: {
+            content: 'Hello there',
+            provider: 'google',
+            model: 'gemini-2.5-flash',
+          },
+        },
+      ]),
+    );
+
+    await collectEvents(
+      service.streamChat(
+        {
+          message: 'What are the exam rules for next week?',
+          classroomId: 'classroom-1',
+        },
+        user as never,
+      ),
+    );
+
+    expect(repository.createConversation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'What are the exam rules for next week?',
+      }),
+    );
+    expect(llmService.generateTitle).toHaveBeenCalledWith(
+      'What are the exam rules for next week?',
+    );
   });
 });
 

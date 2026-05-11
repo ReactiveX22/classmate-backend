@@ -24,6 +24,7 @@ export type AiStreamEvent =
   | { type: 'user_message'; payload: MessagePayload }
   | { type: 'content'; payload: { delta: string } }
   | { type: 'tool'; payload: { name: string; status: 'start' | 'end' } }
+  | { type: 'title_updated'; payload: ConversationPayload }
   | { type: 'final'; payload: MessagePayload }
   | { type: 'error'; payload: { message: string } };
 
