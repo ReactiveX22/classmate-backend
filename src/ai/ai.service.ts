@@ -6,7 +6,9 @@ import {
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
 import { SelectAiConversation, SelectAiMessage } from 'src/database/schema';
+import { EmbeddingVectorStoreService } from 'src/embedding/services/embedding-vector-store.service';
 import { SendAiChatDto } from './dto/send-ai-chat.dto';
+import { VectorSearchDto } from './dto/vector-search.dto';
 import { AiConversationRepository } from './repositories/ai-conversation.repository';
 import { LlmService } from './services/llm.service';
 
@@ -15,6 +17,7 @@ export class AiService {
   constructor(
     private readonly aiConversationRepository: AiConversationRepository,
     private readonly llmService: LlmService,
+    private readonly vectorStoreService: EmbeddingVectorStoreService,
   ) {}
 
   async findConversations(user: User) {
@@ -49,6 +52,29 @@ export class AiService {
     };
   }
 
+  async vectorSearch(dto: VectorSearchDto, user: User) {
+    await this.assertClassroomAccess(dto.classroomId, user);
+
+    const results = await this.vectorStoreService.similaritySearchWithScore(
+      dto.query,
+      dto.limit ?? 5,
+      { classroomId: dto.classroomId },
+    );
+
+    return results.map(([doc, score]) => {
+      const meta = doc.metadata;
+      return {
+        content: doc.pageContent,
+        score: Math.round(score * 1000) / 1000,
+        source: (meta['attachmentName'] ??
+          meta['fileName'] ??
+          meta['source'] ??
+          'Unknown') as string,
+        metadata: doc.metadata,
+      };
+    });
+  }
+
   async chat(dto: SendAiChatDto, user: User) {
     await this.assertClassroomAccess(dto.classroomId, user);
 
@@ -78,6 +104,7 @@ export class AiService {
 
     const response = await this.llmService.chat(threadId, dto.message, {
       user,
+      classroomId: conversation.classroomId,
     });
 
     const assistantMessage = await this.aiConversationRepository.createMessage({

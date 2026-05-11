@@ -158,4 +158,23 @@ export class SubmissionRepository {
       )
       .returning();
   }
+
+  async findByPostIdForTools(postId: string) {
+    const results = await this.db
+      .select({
+        studentId: assignmentSubmission.studentId,
+        status: assignmentSubmission.status,
+        submittedAt: assignmentSubmission.submittedAt,
+        studentName: user.name,
+      })
+      .from(assignmentSubmission)
+      .innerJoin(user, eq(assignmentSubmission.studentId, user.id))
+      .where(eq(assignmentSubmission.postId, postId));
+
+    return results.map((r) => ({
+      studentName: r.studentName,
+      status: r.status,
+      submittedAt: r.submittedAt?.toISOString() ?? null,
+    }));
+  }
 }

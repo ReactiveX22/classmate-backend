@@ -6,12 +6,7 @@ import {
 } from '@langchain/core/messages';
 import { RunnableConfig } from '@langchain/core/runnables';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-import {
-  END,
-  MessagesAnnotation,
-  START,
-  StateGraph,
-} from '@langchain/langgraph';
+import { MessagesAnnotation, START, StateGraph } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';
 import {
@@ -23,6 +18,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 import { User } from 'src/auth/auth.factory';
+import { AiToolsRegistry } from '../tools/ai-tools-registry.service';
 import { AiContextService } from './ai-context.service';
 
 export type LlmChatResponse = {
@@ -45,6 +41,7 @@ export class LlmService implements OnModuleInit {
     private readonly configService: ConfigService,
     @Inject('AI_PG_POOL') private readonly pool: Pool,
     private readonly aiContextService: AiContextService,
+    private readonly toolsRegistry: AiToolsRegistry,
   ) {
     this.enabled = this.configService.get<boolean>('AI_ENABLED') ?? false;
     this.modelName =
@@ -76,7 +73,7 @@ export class LlmService implements OnModuleInit {
   async chat(
     threadId: string,
     userMessage: string,
-    context: { user: User },
+    context: { user: User; classroomId: string },
   ): Promise<LlmChatResponse> {
     if (!this.enabled || !this.model) {
       throw new ServiceUnavailableException('AI chat is not enabled');
@@ -88,6 +85,7 @@ export class LlmService implements OnModuleInit {
         configurable: {
           thread_id: threadId,
           user: context.user,
+          classroomId: context.classroomId,
         },
       },
     );
@@ -146,17 +144,22 @@ export class LlmService implements OnModuleInit {
         };
         const systemPrompt = this.aiContextService.buildSystemPrompt(user);
 
+        const tools = this.toolsRegistry.getTools();
+        const modelWithTools = this.model.bindTools(tools);
+
         // System prompt is prepended dynamically each turn. It is never
         // returned in the node output, so it is never saved to the checkpointer state.
-        const response = await this.model.invoke([
+        const response = await modelWithTools.invoke([
           systemPrompt,
           ...state.messages,
         ]);
 
         return { messages: [response] };
       })
+      .addNode('tools', new ToolNode(this.toolsRegistry.getTools()))
       .addEdge(START, 'model')
-      .addEdge('model', END)
+      .addConditionalEdges('model', toolsCondition)
+      .addEdge('tools', 'model')
       .compile({ checkpointer: this.checkpointer });
   }
 

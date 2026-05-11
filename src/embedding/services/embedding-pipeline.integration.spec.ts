@@ -47,9 +47,9 @@ describe('Embedding Pipeline (Integration)', () => {
     };
 
     // 2. Mock the source service to return the real file buffer
-    vi
-      .spyOn(attachmentSourceService, 'getFileBuffer')
-      .mockResolvedValue(pdfBuffer);
+    vi.spyOn(attachmentSourceService, 'getFileBuffer').mockResolvedValue(
+      pdfBuffer,
+    );
 
     // 3. Load the document
     const documents = await loaderService.loadDocument(mockAttachment);

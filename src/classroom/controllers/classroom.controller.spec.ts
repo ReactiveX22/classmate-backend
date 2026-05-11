@@ -55,7 +55,10 @@ describe('ClassroomController', () => {
         { provide: CourseRepository, useValue: mockCourseRepository },
         { provide: ClassroomRepository, useValue: mockClassroomRepository },
         { provide: StorageService, useValue: mockStorageService },
-        { provide: ClassroomPostRepository, useValue: mockClassroomPostRepository },
+        {
+          provide: ClassroomPostRepository,
+          useValue: mockClassroomPostRepository,
+        },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
         Reflector,
         EventEmitter2,
