@@ -1,16 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, MessageEvent } from '@nestjs/common';
+import { Observable } from 'rxjs';
 import { User } from 'src/auth/auth.factory';
 import {
   ApplicationBadRequestException,
   ApplicationForbiddenException,
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
-import { SelectAiConversation, SelectAiMessage } from 'src/database/schema';
+import { SelectAiMessage } from 'src/database/schema';
 import { EmbeddingVectorStoreService } from 'src/embedding/services/embedding-vector-store.service';
 import { SendAiChatDto } from './dto/send-ai-chat.dto';
 import { VectorSearchDto } from './dto/vector-search.dto';
 import { AiConversationRepository } from './repositories/ai-conversation.repository';
 import { LlmService } from './services/llm.service';
+import {
+  AiInternalFinalLlmEvent,
+  AiStreamEvent,
+  ConversationResponseSource,
+} from './types/ai-stream-event.types';
 
 @Injectable()
 export class AiService {
@@ -137,6 +143,112 @@ export class AiService {
     };
   }
 
+  streamChat(dto: SendAiChatDto, user: User): Observable<MessageEvent> {
+    return new Observable<MessageEvent>((subscriber) => {
+      const emit = (event: AiStreamEvent) => {
+        subscriber.next({ data: event });
+      };
+
+      const run = async () => {
+        try {
+          await this.assertClassroomAccess(dto.classroomId, user);
+
+          const conversation = dto.conversationId
+            ? await this.findOwnedConversation(dto.conversationId, user)
+            : await this.aiConversationRepository.createConversation({
+                organizationId: user.organizationId,
+                userId: user.id,
+                classroomId: dto.classroomId,
+              });
+
+          if (conversation.classroomId !== dto.classroomId) {
+            throw new ApplicationBadRequestException(
+              'Conversation classroom does not match the requested classroom',
+            );
+          }
+
+          const userMessage = await this.aiConversationRepository.createMessage(
+            {
+              conversationId: conversation.id,
+              organizationId: user.organizationId,
+              userId: user.id,
+              role: 'user',
+              content: dto.message,
+            },
+          );
+
+          emit({
+            type: 'conversation',
+            payload: this.toConversationResponse({
+              ...conversation,
+              updatedAt: new Date(),
+            }),
+          });
+          emit({
+            type: 'user_message',
+            payload: this.toMessageResponse(userMessage),
+          });
+
+          const threadId = `user_${user.id}_conv_${conversation.id}`;
+          let accumulatedContent = '';
+          let finalLlmMeta: AiInternalFinalLlmEvent['payload'] | null = null;
+
+          for await (const event of this.llmService.streamChat(
+            threadId,
+            dto.message,
+            {
+              user,
+              classroomId: conversation.classroomId,
+            },
+          )) {
+            if (event.type === '_internal_final_llm') {
+              finalLlmMeta = event.payload;
+              continue;
+            }
+
+            if (event.type === 'content') {
+              accumulatedContent += event.payload.delta;
+            }
+
+            emit(event);
+          }
+
+          const assistantMessage =
+            await this.aiConversationRepository.createMessage({
+              conversationId: conversation.id,
+              organizationId: user.organizationId,
+              role: 'assistant',
+              content: finalLlmMeta?.content ?? accumulatedContent,
+              provider: finalLlmMeta?.provider,
+              model: finalLlmMeta?.model,
+              tokenUsage: finalLlmMeta?.tokenUsage,
+            });
+
+          emit({
+            type: 'final',
+            payload: this.toMessageResponse(assistantMessage),
+          });
+
+          if (!conversation.title) {
+            this.generateAndSaveTitle(conversation.id, dto.message);
+          } else {
+            await this.aiConversationRepository.touchConversation(
+              conversation.id,
+            );
+          }
+
+          subscriber.complete();
+        } catch (err) {
+          const message = err instanceof Error ? err.message : 'Stream failed';
+          emit({ type: 'error', payload: { message } });
+          subscriber.error(err);
+        }
+      };
+
+      void run();
+    });
+  }
+
   private async findOwnedConversation(conversationId: string, user: User) {
     const conversation =
       await this.aiConversationRepository.findConversationForUser(
@@ -195,7 +307,9 @@ export class AiService {
     return message.trim().replace(/\s+/g, ' ').slice(0, 80) || 'New AI chat';
   }
 
-  private toConversationSummaryResponse(conversation: SelectAiConversation) {
+  private toConversationSummaryResponse(
+    conversation: ConversationResponseSource,
+  ) {
     return {
       id: conversation.id,
       title: conversation.title,
@@ -204,7 +318,7 @@ export class AiService {
     };
   }
 
-  private toConversationResponse(conversation: SelectAiConversation) {
+  private toConversationResponse(conversation: ConversationResponseSource) {
     return {
       ...this.toConversationSummaryResponse(conversation),
       createdAt: conversation.createdAt,

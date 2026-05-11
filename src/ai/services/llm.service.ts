@@ -19,6 +19,7 @@ import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 import { User } from 'src/auth/auth.factory';
 import { AiToolsRegistry } from '../tools/ai-tools-registry.service';
+import { LlmStreamEvent } from '../types/ai-stream-event.types';
 import { AiContextService } from './ai-context.service';
 
 export type LlmChatResponse = {
@@ -98,6 +99,75 @@ export class LlmService implements OnModuleInit {
       provider: this.provider,
       model: this.modelName,
     };
+  }
+
+  async *streamChat(
+    threadId: string,
+    userMessage: string,
+    context: { user: User; classroomId: string },
+  ): AsyncGenerator<LlmStreamEvent> {
+    if (!this.enabled || !this.model) {
+      throw new ServiceUnavailableException('AI chat is not enabled');
+    }
+
+    const stream = this.graph.streamEvents(
+      { messages: [new HumanMessage(userMessage)] },
+      {
+        version: 'v2',
+        configurable: {
+          thread_id: threadId,
+          user: context.user,
+          classroomId: context.classroomId,
+        },
+      },
+    );
+
+    for await (const event of stream) {
+      if (
+        event.event === 'on_chat_model_stream' &&
+        event.metadata?.langgraph_node === 'model'
+      ) {
+        const chunk = event.data?.chunk as AIMessage | undefined;
+        const delta = this.extractText(chunk?.content ?? '');
+
+        if (delta) {
+          yield { type: 'content', payload: { delta } };
+        }
+      }
+
+      if (event.event === 'on_tool_start') {
+        yield {
+          type: 'tool',
+          payload: { name: event.name, status: 'start' },
+        };
+      }
+
+      if (event.event === 'on_tool_end') {
+        yield {
+          type: 'tool',
+          payload: { name: event.name, status: 'end' },
+        };
+      }
+
+      if (
+        event.event === 'on_chat_model_end' &&
+        event.metadata?.langgraph_node === 'model'
+      ) {
+        const last = event.data?.output as AIMessage | undefined;
+
+        if (last) {
+          yield {
+            type: '_internal_final_llm',
+            payload: {
+              content: this.extractText(last.content),
+              tokenUsage: last.usage_metadata ?? undefined,
+              provider: this.provider,
+              model: this.modelName,
+            },
+          };
+        }
+      }
+    }
   }
 
   /**

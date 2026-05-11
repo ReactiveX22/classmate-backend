@@ -4,7 +4,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EMBEDDING_EVENTS } from 'src/embedding/embedding.constants';
 import { CourseRepository } from 'src/course/repositories/course.repository';
 import { StorageService } from 'src/storage/storage.service';
+import { AttachmentType } from 'src/common/dto/attachment.dto';
 import { ClassroomRepository } from '../classroom.repository';
+import { PostType } from '../dto/create-classroom-post.dto';
 import { ClassroomPostRepository } from '../repositories/classroom-post.repository';
 import { ClassroomService } from './classroom.service';
 
@@ -89,14 +91,19 @@ describe('ClassroomService', () => {
       mockClassroomPostRepository.create.mockResolvedValue({
         id: 'post-123',
         title: 'Test Post',
-        type: 'announcement',
+        type: PostType.ANNOUNCEMENT,
         attachments: [{ id: 'attachment-1' }, { id: 'attachment-2' }],
       });
 
       await service.createPost(
         'classroom-123',
         mockUser as any,
-        { title: 'Test Post', type: 'announcement', attachments: [] },
+        {
+          title: 'Test Post',
+          content: 'Test content',
+          type: PostType.ANNOUNCEMENT,
+          attachments: [],
+        },
         'org-123',
       );
 
@@ -119,14 +126,18 @@ describe('ClassroomService', () => {
       mockClassroomPostRepository.create.mockResolvedValue({
         id: 'post-123',
         title: 'Test Post',
-        type: 'announcement',
+        type: PostType.ANNOUNCEMENT,
         attachments: [],
       });
 
       await service.createPost(
         'classroom-123',
         mockUser as any,
-        { title: 'Test Post', type: 'announcement' },
+        {
+          title: 'Test Post',
+          content: 'Test content',
+          type: PostType.ANNOUNCEMENT,
+        },
         'org-123',
       );
 
@@ -154,7 +165,17 @@ describe('ClassroomService', () => {
         'classroom-123',
         'post-123',
         'author-123',
-        { title: 'Updated Post', attachments: [{ id: 'new-attachment' }] },
+        {
+          title: 'Updated Post',
+          attachments: [
+            {
+              id: 'new-attachment',
+              name: 'new-attachment.pdf',
+              url: 'attachments/new-attachment.pdf',
+              type: AttachmentType.FILE,
+            },
+          ],
+        },
         'org-123',
       );
 
