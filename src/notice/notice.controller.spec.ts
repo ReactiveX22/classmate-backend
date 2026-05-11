@@ -1,6 +1,6 @@
-jest.mock('@thallesp/nestjs-better-auth', () => ({
-  Roles: () => jest.fn(),
-  Session: () => jest.fn(),
+vi.mock('@thallesp/nestjs-better-auth', () => ({
+  Roles: () => vi.fn(),
+  Session: () => vi.fn(),
 }));
 
 import { Reflector } from '@nestjs/core';
@@ -19,24 +19,24 @@ describe('NoticeController', () => {
   let service: NoticeService;
 
   const mockNoticeService = {
-    findAll: jest.fn(),
-    getOne: jest.fn(),
-    findOne: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    uploadAttachment: jest.fn(),
-    deleteAttachment: jest.fn(),
+    findAll: vi.fn(),
+    getOne: vi.fn(),
+    findOne: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+    uploadAttachment: vi.fn(),
+    deleteAttachment: vi.fn(),
   };
 
   const mockCacheService = {
-    get: jest.fn(),
-    set: jest.fn(),
-    del: jest.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
+    del: vi.fn(),
   };
 
   const mockEventEmitter = {
-    emit: jest.fn(),
+    emit: vi.fn(),
   };
 
   const mockSession: AppUserSession = {

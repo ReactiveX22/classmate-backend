@@ -19,7 +19,7 @@ describe('Embedding Pipeline (Integration)', () => {
         {
           provide: AttachmentSourceService,
           useValue: {
-            getFileBuffer: jest.fn(),
+            getFileBuffer: vi.fn(),
           },
         },
       ],
@@ -47,7 +47,7 @@ describe('Embedding Pipeline (Integration)', () => {
     };
 
     // 2. Mock the source service to return the real file buffer
-    jest
+    vi
       .spyOn(attachmentSourceService, 'getFileBuffer')
       .mockResolvedValue(pdfBuffer);
 

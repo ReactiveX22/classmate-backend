@@ -1,17 +1,20 @@
-jest.mock('@thallesp/nestjs-better-auth', () => ({
-  Roles: () => jest.fn(),
-  Session: () => jest.fn(),
+vi.mock('@thallesp/nestjs-better-auth', () => ({
+  Roles: () => vi.fn(),
+  Session: () => vi.fn(),
+  AuthService: class {
+    validateRequest = vi.fn();
+  },
 }));
 
-jest.mock('nanoid', () => ({
+vi.mock('nanoid', () => ({
   customAlphabet: () => () => 'mock-id',
   nanoid: () => 'mock-id',
 }));
 
-jest.mock('src/classroom/services/classroom.service');
-jest.mock('./notification.gateway');
-jest.mock('./notification.repository');
-jest.mock('src/mail/mail.service');
+vi.mock('src/classroom/services/classroom.service');
+vi.mock('./notification.gateway');
+vi.mock('./notification.repository');
+vi.mock('src/mail/mail.service');
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
@@ -24,7 +27,7 @@ describe('NotificationController', () => {
   let service: NotificationService;
 
   const mockNotificationService = {
-    findAll: jest.fn(),
+    findAll: vi.fn(),
   };
 
   const mockSession: AppUserSession = {

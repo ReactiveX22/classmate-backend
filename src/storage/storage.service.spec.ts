@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Response } from 'express';
+import { vi } from 'vitest';
 import {
   STORAGE_STRATEGY,
   StorageStrategy,
@@ -9,20 +10,20 @@ import { StorageService } from './storage.service';
 
 describe('StorageService', () => {
   let service: StorageService;
-  let mockStrategy: jest.Mocked<StorageStrategy>;
+  let mockStrategy: any;
 
   beforeEach(async () => {
     mockStrategy = {
-      uploadFile: jest.fn(),
-      uploadFiles: jest.fn(),
-      deleteFile: jest.fn(),
-      deleteFiles: jest.fn(),
-      deleteDirectory: jest.fn(),
-      getFileUrl: jest.fn(),
-      fileExists: jest.fn(),
-      serveFile: jest.fn(),
-      getFileBuffer: jest.fn(),
-      getFileStream: jest.fn(),
+      uploadFile: vi.fn(),
+      uploadFiles: vi.fn(),
+      deleteFile: vi.fn(),
+      deleteFiles: vi.fn(),
+      deleteDirectory: vi.fn(),
+      getFileUrl: vi.fn(),
+      fileExists: vi.fn(),
+      serveFile: vi.fn(),
+      getFileBuffer: vi.fn(),
+      getFileStream: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -150,9 +151,9 @@ describe('StorageService', () => {
   describe('serveFile', () => {
     it('should delegate to strategy', async () => {
       const mockRes = {
-        setHeader: jest.fn(),
-        status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
+        setHeader: vi.fn(),
+        status: vi.fn().mockReturnThis(),
+        send: vi.fn(),
       } as unknown as Response;
       mockStrategy.serveFile.mockResolvedValue(undefined);
 

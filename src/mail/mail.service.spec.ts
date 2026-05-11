@@ -3,7 +3,9 @@ import { MailService } from './mail.service';
 import { MAIL_TRANSPORTER } from './interfaces/mail-transporter.interface';
 import * as ejs from 'ejs';
 
-jest.mock('ejs');
+vi.mock('ejs', () => ({
+  renderFile: vi.fn().mockResolvedValue('<html>rendered</html>'),
+}));
 
 describe('MailService', () => {
   let service: MailService;
@@ -11,7 +13,7 @@ describe('MailService', () => {
 
   beforeEach(async () => {
     mockTransporter = {
-      send: jest.fn().mockResolvedValue(undefined),
+      send: vi.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -42,7 +44,7 @@ describe('MailService', () => {
   });
 
   it('should render template and send mail', async () => {
-    (ejs.renderFile as jest.Mock).mockResolvedValue('<html>rendered</html>');
+    (ejs.renderFile as any).mockResolvedValue('<html>rendered</html>');
 
     await service.sendTemplate('to@test.com', 'Welcome', 'welcome', {
       name: 'John',

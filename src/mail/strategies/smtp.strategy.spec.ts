@@ -1,7 +1,7 @@
 import * as nodemailer from 'nodemailer';
 import { SmtpStrategy } from './smtp.strategy';
 
-jest.mock('nodemailer');
+vi.mock('nodemailer');
 
 describe('SmtpStrategy', () => {
   let strategy: SmtpStrategy;
@@ -9,9 +9,9 @@ describe('SmtpStrategy', () => {
 
   beforeEach(() => {
     mockTransporter = {
-      sendMail: jest.fn().mockResolvedValue({ messageId: '123' }),
+      sendMail: vi.fn().mockResolvedValue({ messageId: '123' }),
     };
-    (nodemailer.createTransport as jest.Mock).mockReturnValue(mockTransporter);
+    (nodemailer.createTransport as any).mockReturnValue(mockTransporter);
 
     strategy = new SmtpStrategy({
       host: 'localhost',
