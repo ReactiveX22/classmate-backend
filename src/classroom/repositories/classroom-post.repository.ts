@@ -10,8 +10,10 @@ import {
   classroomPostComment,
   classroomResourceBookmark,
   course,
+  postType,
   user,
 } from 'src/database/schema';
+import type { QuestionData } from 'src/database/schema/classroom-post-schema';
 
 @Injectable()
 export class ClassroomPostRepository {
@@ -122,24 +124,6 @@ export class ClassroomPostRepository {
   }
 
   async fetchOne(postId: string, userId?: string) {
-    const selection: any = {
-      ...getTableColumns(classroomPost),
-      author: user,
-      isBookmarked: userId
-        ? sql<boolean>`EXISTS (
-            SELECT 1
-            FROM ${classroomResourceBookmark}
-            WHERE ${classroomResourceBookmark.postId} = ${classroomPost.id}
-              AND ${classroomResourceBookmark.userId} = ${userId}
-          )`.as('isBookmarked')
-        : sql<boolean>`false`.as('isBookmarked'),
-    };
-
-    if (userId) {
-      selection.submission = assignmentSubmission;
-    }
-
-    // Add comment data
     const commentCountSq = sql<number>`(
       SELECT COUNT(*)
       FROM ${classroomPostComment}
@@ -169,8 +153,24 @@ export class ClassroomPostRepository {
       '[]'::json
     )`.as('recentComments');
 
-    selection.commentCount = commentCountSq;
-    selection.recentComments = recentCommentsSq;
+    const selection = {
+      ...getTableColumns(classroomPost),
+      authorId: classroomPost.authorId,
+      authorName: user.name,
+      authorEmail: user.email,
+      authorImage: user.image,
+      isBookmarked: userId
+        ? sql<boolean>`EXISTS (
+            SELECT 1
+            FROM ${classroomResourceBookmark}
+            WHERE ${classroomResourceBookmark.postId} = ${classroomPost.id}
+              AND ${classroomResourceBookmark.userId} = ${userId}
+          )`.as('isBookmarked')
+        : sql<boolean>`false`.as('isBookmarked'),
+      ...(userId ? { submission: assignmentSubmission } : {}),
+      commentCount: commentCountSq,
+      recentComments: recentCommentsSq,
+    };
 
     const query = this.db
       .select(selection)
@@ -185,14 +185,18 @@ export class ClassroomPostRepository {
           eq(assignmentSubmission.postId, classroomPost.id),
           eq(assignmentSubmission.studentId, userId),
         ),
-      ) as any;
+      );
     }
 
     const [post] = await query;
-    return post as any;
+    return post ?? null;
   }
 
-  async update(postId: string, authorId: string, body: any) {
+  async update(
+    postId: string,
+    authorId: string,
+    body: Partial<typeof classroomPost.$inferInsert>,
+  ) {
     const post = await this.db.query.classroomPost.findFirst({
       where: eq(classroomPost.id, postId),
     });
@@ -212,7 +216,7 @@ export class ClassroomPostRepository {
     return updatedPost;
   }
 
-  async updateQuestionData(postId: string, questionData: any) {
+  async updateQuestionData(postId: string, questionData: QuestionData) {
     const [updatedPost] = await this.db
       .update(classroomPost)
       .set({ questionData })
@@ -251,5 +255,32 @@ export class ClassroomPostRepository {
           eq(classroomResourceBookmark.userId, userId),
         ),
       );
+  }
+
+  async findRecentForTools(
+    classroomId: string,
+    limit: number = 5,
+    type?: (typeof postType.enumValues)[number],
+  ) {
+    const filters = [eq(classroomPost.classroomId, classroomId)];
+    if (type) {
+      filters.push(eq(classroomPost.type, type));
+    }
+
+    const results = await this.db
+      .select({
+        id: classroomPost.id,
+        title: classroomPost.title,
+        type: classroomPost.type,
+        createdAt: classroomPost.createdAt,
+        authorName: user.name,
+      })
+      .from(classroomPost)
+      .innerJoin(user, eq(classroomPost.authorId, user.id))
+      .where(and(...filters))
+      .orderBy(sql`${classroomPost.createdAt} DESC`)
+      .limit(limit);
+
+    return results;
   }
 }

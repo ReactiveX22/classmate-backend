@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
+import { ClassroomModule } from 'src/classroom/classroom.module';
 import { DatabaseModule } from 'src/database/database.module';
 import { EmbeddingModule } from 'src/embedding/embedding.module';
 import { AiController } from './ai.controller';
@@ -9,12 +10,13 @@ import { AiConversationRepository } from './repositories/ai-conversation.reposit
 import { AiContextService } from './services/ai-context.service';
 import { LlmService } from './services/llm.service';
 import { AiToolsRegistry } from './tools/ai-tools-registry.service';
+import { ClassroomToolsService } from './tools/classroom-tools.service';
 import { RagToolsService } from './tools/rag-tools.service';
 
 export const AI_PG_POOL = 'AI_PG_POOL';
 
 @Module({
-  imports: [DatabaseModule, ConfigModule, EmbeddingModule],
+  imports: [DatabaseModule, ConfigModule, EmbeddingModule, ClassroomModule],
   controllers: [AiController],
   providers: [
     /**
@@ -40,6 +42,7 @@ export const AI_PG_POOL = 'AI_PG_POOL';
     AiContextService,
     LlmService,
     RagToolsService,
+    ClassroomToolsService,
     AiToolsRegistry,
   ],
 })
