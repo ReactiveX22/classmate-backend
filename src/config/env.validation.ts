@@ -39,6 +39,11 @@ export const envSchema = z
     GOOGLE_API_KEY: z.string().optional(),
     AI_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.2),
     AI_MAX_OUTPUT_TOKENS: z.coerce.number().positive().default(2048),
+
+    AI_EMBEDDING_ENABLED: z.coerce.boolean().default(false),
+    AI_EMBEDDING_PROVIDER: z.enum(['google']).default('google'),
+    AI_EMBEDDING_MODEL: z.string().min(1).default('gemini-embedding-2'),
+    QUEUE_REDIS_URL: z.string().url().optional(),
   })
   .refine(
     (data) => {
@@ -108,6 +113,34 @@ export const envSchema = z
     {
       message: "GOOGLE_API_KEY is required when AI_ENABLED is 'true'",
       path: ['GOOGLE_API_KEY'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (
+        data.AI_EMBEDDING_ENABLED &&
+        data.AI_EMBEDDING_PROVIDER === 'google'
+      ) {
+        return !!data.GOOGLE_API_KEY;
+      }
+      return true;
+    },
+    {
+      message: "GOOGLE_API_KEY is required when AI_EMBEDDING_ENABLED is 'true'",
+      path: ['GOOGLE_API_KEY'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.AI_EMBEDDING_ENABLED) {
+        return !!data.QUEUE_REDIS_URL || !!data.CACHE_REDIS_URL;
+      }
+      return true;
+    },
+    {
+      message:
+        "QUEUE_REDIS_URL or CACHE_REDIS_URL is required when AI_EMBEDDING_ENABLED is 'true'",
+      path: ['QUEUE_REDIS_URL'],
     },
   );
 

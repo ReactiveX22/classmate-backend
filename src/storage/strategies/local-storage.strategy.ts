@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { Response } from 'express';
+import { createReadStream } from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type {
@@ -14,7 +15,9 @@ export class LocalStorageStrategy implements StorageStrategy {
 
   constructor(private readonly baseUrl: string) {
     this.uploadDir = path.join(process.cwd(), 'uploads');
-    this.ensureUploadDir();
+    this.ensureUploadDir().catch((err) =>
+      this.logger.error('Failed to ensure upload directory', err),
+    );
   }
 
   private async ensureUploadDir() {
@@ -163,5 +166,20 @@ export class LocalStorageStrategy implements StorageStrategy {
     if (mimeType.startsWith('image/')) return 'image';
     if (mimeType.startsWith('video/')) return 'video';
     return 'file';
+  }
+
+  async getFileBuffer(filePath: string): Promise<Buffer> {
+    const fullPath = path.join(this.uploadDir, filePath);
+    try {
+      return await fs.readFile(fullPath);
+    } catch (error) {
+      this.logger.error(`Failed to read file buffer at ${fullPath}`, error);
+      throw error;
+    }
+  }
+
+  getFileStream(filePath: string): Promise<NodeJS.ReadableStream> {
+    const fullPath = path.join(this.uploadDir, filePath);
+    return Promise.resolve(createReadStream(fullPath));
   }
 }

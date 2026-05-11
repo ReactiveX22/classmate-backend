@@ -18,9 +18,9 @@ describe('TenantCacheInterceptor (Integration)', () => {
   let reflector: Reflector;
 
   const mockCacheManager = {
-    get: jest.fn(),
-    set: jest.fn(),
-    del: jest.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
+    del: vi.fn(),
     stores: [],
   };
 
@@ -45,7 +45,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('GET requests', () => {
@@ -60,7 +60,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
         getHandler: () => ({}),
       } as unknown as ExecutionContext;
 
-      jest.spyOn(reflector, 'get').mockImplementation((key) => {
+      vi.spyOn(reflector, 'get').mockImplementation((key) => {
         if (key === CACHE_RESOURCE_METADATA) return 'courses';
         return undefined;
       });
@@ -91,7 +91,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
         getHandler: () => ({}),
       } as unknown as ExecutionContext;
 
-      jest.spyOn(reflector, 'get').mockImplementation((key) => {
+      vi.spyOn(reflector, 'get').mockImplementation((key) => {
         if (key === CACHE_RESOURCE_METADATA) return 'courses';
         return undefined;
       });
@@ -127,12 +127,12 @@ describe('TenantCacheInterceptor (Integration)', () => {
         getHandler: () => ({}),
       } as unknown as ExecutionContext;
 
-      jest.spyOn(reflector, 'get').mockImplementation((key) => {
+      vi.spyOn(reflector, 'get').mockImplementation((key) => {
         if (key === CACHE_INVALIDATE_METADATA) return ['courses'];
         return undefined;
       });
 
-      jest.spyOn(eventEmitter, 'emit');
+      vi.spyOn(eventEmitter, 'emit');
 
       const next = {
         handle: () => of({ success: true }),

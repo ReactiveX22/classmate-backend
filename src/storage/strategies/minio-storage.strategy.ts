@@ -219,4 +219,38 @@ export class MinioStorageStrategy implements StorageStrategy {
     if (mimeType.startsWith('video/')) return 'video';
     return 'file';
   }
+
+  async getFileBuffer(filePath: string): Promise<Buffer> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: filePath,
+    });
+    try {
+      const response = await this.s3Client.send(command);
+      if (!response.Body) {
+        throw new Error('No body returned from S3');
+      }
+      return Buffer.from(await response.Body.transformToByteArray());
+    } catch (error) {
+      this.logger.error(`Failed to read file buffer at ${filePath}`, error);
+      throw error;
+    }
+  }
+
+  async getFileStream(filePath: string): Promise<NodeJS.ReadableStream> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: filePath,
+    });
+    try {
+      const response = await this.s3Client.send(command);
+      if (!response.Body) {
+        throw new Error('No body returned from S3');
+      }
+      return response.Body as NodeJS.ReadableStream;
+    } catch (error) {
+      this.logger.error(`Failed to get file stream at ${filePath}`, error);
+      throw error;
+    }
+  }
 }

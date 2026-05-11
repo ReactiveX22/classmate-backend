@@ -1,5 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { STORAGE_STRATEGY } from './interfaces/storage-strategy.interface';
+import { Response } from 'express';
+import { vi } from 'vitest';
+import {
+  STORAGE_STRATEGY,
+  StorageStrategy,
+  UploadResult,
+} from './interfaces/storage-strategy.interface';
 import { StorageService } from './storage.service';
 
 describe('StorageService', () => {
@@ -8,14 +14,16 @@ describe('StorageService', () => {
 
   beforeEach(async () => {
     mockStrategy = {
-      uploadFile: jest.fn(),
-      uploadFiles: jest.fn(),
-      deleteFile: jest.fn(),
-      deleteFiles: jest.fn(),
-      deleteDirectory: jest.fn(),
-      getFileUrl: jest.fn(),
-      fileExists: jest.fn(),
-      serveFile: jest.fn(),
+      uploadFile: vi.fn(),
+      uploadFiles: vi.fn(),
+      deleteFile: vi.fn(),
+      deleteFiles: vi.fn(),
+      deleteDirectory: vi.fn(),
+      getFileUrl: vi.fn(),
+      fileExists: vi.fn(),
+      serveFile: vi.fn(),
+      getFileBuffer: vi.fn(),
+      getFileStream: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -38,10 +46,13 @@ describe('StorageService', () => {
   describe('uploadFile', () => {
     it('should delegate to strategy', async () => {
       const mockFile = { originalname: 'test.txt' } as Express.Multer.File;
-      const mockResult = {
+      const mockResult: UploadResult = {
         id: '123',
         name: 'test.txt',
         url: 'http://test.com/test.txt',
+        type: 'file',
+        size: 100,
+        mimeType: 'text/plain',
       };
       mockStrategy.uploadFile.mockResolvedValue(mockResult);
 
@@ -58,8 +69,15 @@ describe('StorageService', () => {
   describe('uploadFiles', () => {
     it('should delegate to strategy', async () => {
       const mockFiles = [{ originalname: 'test.txt' }] as Express.Multer.File[];
-      const mockResults = [
-        { id: '123', name: 'test.txt', url: 'http://test.com/test.txt' },
+      const mockResults: UploadResult[] = [
+        {
+          id: '123',
+          name: 'test.txt',
+          url: 'http://test.com/test.txt',
+          type: 'file',
+          size: 100,
+          mimeType: 'text/plain',
+        },
       ];
       mockStrategy.uploadFiles.mockResolvedValue(mockResults);
 
@@ -132,7 +150,11 @@ describe('StorageService', () => {
 
   describe('serveFile', () => {
     it('should delegate to strategy', async () => {
-      const mockRes = {} as any;
+      const mockRes = {
+        setHeader: vi.fn(),
+        status: vi.fn().mockReturnThis(),
+        send: vi.fn(),
+      } as unknown as Response;
       mockStrategy.serveFile.mockResolvedValue(undefined);
 
       await service.serveFile('folder', 'file.txt', mockRes);

@@ -4,7 +4,7 @@ import {
   PaginatedResponse,
   PaginationQueryDto,
 } from 'src/common/dto/pagination.dto';
-import { user } from 'src/database/schema';
+import { Achievement, user } from 'src/database/schema';
 import { StorageService } from 'src/storage/storage.service';
 import { SaveProfileDto } from '../dto/save-profile.dto';
 import {
@@ -108,7 +108,7 @@ export class UserService {
   }
 
   async updateUserOrg(userId: string, orgId: string) {
-    this.userRepository.update(userId, {
+    await this.userRepository.update(userId, {
       organizationId: orgId,
     });
   }
@@ -139,18 +139,29 @@ export class UserService {
     }
 
     // Parse skills and achievements if they are strings (sent via form-data)
-    let { skills, achievements, phone, bio } = data;
+    const {
+      skills: rawSkills,
+      achievements: rawAchievements,
+      phone,
+      bio,
+    } = data;
 
-    if (typeof (skills as any) === 'string') {
+    let skills: string[] | undefined = rawSkills;
+    let achievements: Achievement[] | undefined = rawAchievements as
+      | Achievement[]
+      | undefined;
+
+    if (typeof rawSkills === 'string') {
       try {
-        skills = JSON.parse(skills as any);
+        skills = JSON.parse(rawSkills) as string[];
       } catch {
-        skills = (skills as any).split(',').map((s: string) => s.trim());
+        const str = rawSkills as string;
+        skills = str.split(',').map((s) => s.trim());
       }
     }
-    if (typeof (achievements as any) === 'string') {
+    if (typeof rawAchievements === 'string') {
       try {
-        achievements = JSON.parse(achievements as any);
+        achievements = JSON.parse(rawAchievements) as Achievement[];
       } catch {
         achievements = [];
       }
@@ -161,8 +172,12 @@ export class UserService {
       id: achievement.id || nanoid(),
     }));
 
-    // Collect profile data to update
-    const profileUpdateData: any = {};
+    const profileUpdateData: Partial<{
+      phone: string | null;
+      bio: string | null;
+      skills: string[];
+      achievements: Achievement[];
+    }> = {};
     if (phone !== undefined) profileUpdateData.phone = phone;
     if (bio !== undefined) profileUpdateData.bio = bio;
     if (skills !== undefined) profileUpdateData.skills = skills;
@@ -170,7 +185,6 @@ export class UserService {
       profileUpdateData.achievements = processedAchievements;
     }
 
-    // Only call repository if there's data to save
     if (Object.keys(profileUpdateData).length > 0) {
       await this.userProfileRepository.save({
         userId,

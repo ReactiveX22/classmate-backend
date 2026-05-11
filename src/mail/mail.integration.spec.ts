@@ -5,6 +5,30 @@ import { ConfigModule } from '../config/config.module';
 import { MailModule } from './mail.module';
 import { MailService } from './mail.service';
 
+const isPortReachable = async (
+  host: string,
+  port: number,
+): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const net = require('net');
+    const socket = new net.Socket();
+    socket.setTimeout(1000);
+    socket.on('connect', () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.on('timeout', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.on('error', () => {
+      socket.destroy();
+      resolve(false);
+    });
+    socket.connect(port, host);
+  });
+};
+
 describe('MailService Integration', () => {
   let service: MailService;
   let configService: ConfigService<EnvironmentVariables, true>;
@@ -24,11 +48,22 @@ describe('MailService Integration', () => {
     const hasCreds =
       !!configService.get('MAIL_USER') && !!configService.get('MAIL_PASS');
 
-    if (!isSmtp) return; // Silent if not the active service
+    if (!isSmtp) return;
 
     if (!hasCreds) {
       console.warn(
         'Integration test for SMTP skipped: MAIL_USER or MAIL_PASS is missing in env',
+      );
+      return;
+    }
+
+    const smtpHost = configService.get('SMTP_HOST') || 'localhost';
+    const smtpPort = configService.get('SMTP_PORT') || 25;
+    const isReachable = await isPortReachable(smtpHost, smtpPort);
+
+    if (!isReachable) {
+      console.warn(
+        `Integration test for SMTP skipped: SMTP server not reachable at ${smtpHost}:${smtpPort}`,
       );
       return;
     }
@@ -48,7 +83,7 @@ describe('MailService Integration', () => {
     const hasCreds =
       !!configService.get('MAIL_USER') && !!configService.get('MAIL_PASS');
 
-    if (!isGoogle) return; // Silent if not the active service
+    if (!isGoogle) return;
 
     if (!hasCreds) {
       console.warn(

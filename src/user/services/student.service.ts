@@ -34,7 +34,7 @@ export class StudentService {
           organizationId: orgId,
           status: UserStatus.Active,
         },
-        role: AppRole.Student as any,
+        role: AppRole.Student,
       },
     });
 

@@ -43,7 +43,7 @@ export class UserProfileRepository {
         bio: updateData.bio,
         skills: updateData.skills,
         achievements: updateData.achievements,
-      }).filter(([_, v]) => v !== undefined),
+      }).filter(([, v]) => v !== undefined),
     );
 
     if (Object.keys(set).length === 0) {

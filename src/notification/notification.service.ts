@@ -26,7 +26,7 @@ export class NotificationService {
 
   private readonly logger = new Logger(NotificationService.name);
 
-  private readonly emailEligibleTypes = [
+  private readonly emailEligibleTypes: string[] = [
     NotificationType.CLASSROOM.ASSIGNMENT,
     NotificationType.CLASSROOM.GRADE,
     NotificationType.CLASSROOM.ANNOUNCEMENT,
@@ -82,7 +82,7 @@ export class NotificationService {
 
       if (
         payload.recipientEmail &&
-        this.emailEligibleTypes.includes(payload.type as any)
+        this.emailEligibleTypes.includes(payload.type)
       ) {
         this.mailService
           .sendTemplate(payload.recipientEmail, payload.title, 'notification', {
@@ -103,7 +103,7 @@ export class NotificationService {
           return;
         }
 
-        this.notificationGateway.sendNotificationToClassroom(
+        void this.notificationGateway.sendNotificationToClassroom(
           payload.entityId,
           response,
         );
@@ -117,7 +117,7 @@ export class NotificationService {
           return;
         }
 
-        this.notificationGateway.sendNotificationToOrganization(
+        void this.notificationGateway.sendNotificationToOrganization(
           payload.organizationId,
           response,
         );

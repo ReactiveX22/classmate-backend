@@ -1,11 +1,11 @@
-jest.mock('./notification.gateway', () => ({
+vi.mock('./notification.gateway', () => ({
   NotificationGateway: class {
-    sendNotificationToClassroom = jest.fn();
-    sendNotificationToOrganization = jest.fn();
+    sendNotificationToClassroom = vi.fn();
+    sendNotificationToOrganization = vi.fn();
   },
 }));
 
-jest.mock('nanoid', () => ({
+vi.mock('nanoid', () => ({
   customAlphabet: () => () => 'mock-id',
   nanoid: () => 'mock-id',
 }));
@@ -26,11 +26,11 @@ describe('NotificationService', () => {
   let repository: NotificationRepository;
   let mailService: MailService;
 
-  const mockNotificationRepository = { create: jest.fn() };
-  const mockClassroomService = { findUserClassroomIds: jest.fn() };
+  const mockNotificationRepository = { create: vi.fn() };
+  const mockClassroomService = { findUserClassroomIds: vi.fn() };
 
   const mockMailService = {
-    sendTemplate: jest.fn().mockReturnValue(Promise.resolve()),
+    sendTemplate: vi.fn().mockReturnValue(Promise.resolve()),
   };
 
   beforeAll(async () => {
@@ -44,8 +44,10 @@ describe('NotificationService', () => {
         },
         {
           provide: NotificationGateway,
-          useClass: jest.requireMock('./notification.gateway')
-            .NotificationGateway,
+          useValue: {
+            sendNotificationToClassroom: vi.fn(),
+            sendNotificationToOrganization: vi.fn(),
+          },
         },
         { provide: MailService, useValue: mockMailService },
         { provide: ClassroomService, useValue: mockClassroomService },
@@ -60,7 +62,7 @@ describe('NotificationService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should trigger the repository and send an email when event is emitted', async () => {

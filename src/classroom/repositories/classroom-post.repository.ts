@@ -4,10 +4,12 @@ import { ApplicationForbiddenException } from 'src/common/exceptions/application
 import { type DB, InjectDb, Transaction } from 'src/database/db.provider';
 import {
   assignmentSubmission,
+  classroom,
   classroomMembers,
   classroomPost,
   classroomPostComment,
   classroomResourceBookmark,
+  course,
   user,
 } from 'src/database/schema';
 
@@ -17,6 +19,31 @@ export class ClassroomPostRepository {
 
   async runInTransaction<T>(callback: (tx: any) => Promise<T>): Promise<T> {
     return await this.db.transaction(callback);
+  }
+
+  async findAllWithAttachments() {
+    return await this.db
+      .select({
+        id: classroomPost.id,
+        classroomId: classroomPost.classroomId,
+        organizationId: course.organizationId,
+        attachments: classroomPost.attachments,
+      })
+      .from(classroomPost)
+      .innerJoin(classroom, eq(classroomPost.classroomId, classroom.id))
+      .innerJoin(course, eq(classroom.courseId, course.id))
+      .where(
+        sql`${classroomPost.attachments} IS NOT NULL AND jsonb_array_length(${classroomPost.attachments}) > 0`,
+      );
+  }
+
+  async findById(postId: string) {
+    const results = await this.db
+      .select()
+      .from(classroomPost)
+      .where(eq(classroomPost.id, postId))
+      .limit(1);
+    return results[0];
   }
 
   async create(
@@ -58,9 +85,12 @@ export class ClassroomPostRepository {
       .returning();
   }
 
-  async deleteAttachment(postId: string, attachmentId: string) {
+  async deleteAttachment(classroomId: string, attachmentId: string) {
     const post = await this.db.query.classroomPost.findFirst({
-      where: eq(classroomPost.id, postId),
+      where: and(
+        eq(classroomPost.classroomId, classroomId),
+        sql`${classroomPost.attachments} @> ${JSON.stringify([{ id: attachmentId }])}::jsonb`,
+      ),
     });
 
     if (!post || !post.attachments) return;
@@ -72,9 +102,12 @@ export class ClassroomPostRepository {
     await this.db
       .update(classroomPost)
       .set({ attachments: updatedAttachments })
-      .where(eq(classroomPost.id, postId));
+      .where(eq(classroomPost.id, post.id));
 
-    return post.attachments.find((a) => a.id === attachmentId);
+    return {
+      post,
+      deletedAttachment: post.attachments.find((a) => a.id === attachmentId),
+    };
   }
 
   async deletePost(classroomId: string, postId: string) {
