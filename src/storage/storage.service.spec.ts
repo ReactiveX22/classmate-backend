@@ -1,10 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { STORAGE_STRATEGY } from './interfaces/storage-strategy.interface';
+import { Response } from 'express';
+import {
+  STORAGE_STRATEGY,
+  StorageStrategy,
+  UploadResult,
+} from './interfaces/storage-strategy.interface';
 import { StorageService } from './storage.service';
 
 describe('StorageService', () => {
   let service: StorageService;
-  let mockStrategy: any;
+  let mockStrategy: jest.Mocked<StorageStrategy>;
 
   beforeEach(async () => {
     mockStrategy = {
@@ -16,6 +21,8 @@ describe('StorageService', () => {
       getFileUrl: jest.fn(),
       fileExists: jest.fn(),
       serveFile: jest.fn(),
+      getFileBuffer: jest.fn(),
+      getFileStream: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -38,10 +45,13 @@ describe('StorageService', () => {
   describe('uploadFile', () => {
     it('should delegate to strategy', async () => {
       const mockFile = { originalname: 'test.txt' } as Express.Multer.File;
-      const mockResult = {
+      const mockResult: UploadResult = {
         id: '123',
         name: 'test.txt',
         url: 'http://test.com/test.txt',
+        type: 'file',
+        size: 100,
+        mimeType: 'text/plain',
       };
       mockStrategy.uploadFile.mockResolvedValue(mockResult);
 
@@ -58,8 +68,15 @@ describe('StorageService', () => {
   describe('uploadFiles', () => {
     it('should delegate to strategy', async () => {
       const mockFiles = [{ originalname: 'test.txt' }] as Express.Multer.File[];
-      const mockResults = [
-        { id: '123', name: 'test.txt', url: 'http://test.com/test.txt' },
+      const mockResults: UploadResult[] = [
+        {
+          id: '123',
+          name: 'test.txt',
+          url: 'http://test.com/test.txt',
+          type: 'file',
+          size: 100,
+          mimeType: 'text/plain',
+        },
       ];
       mockStrategy.uploadFiles.mockResolvedValue(mockResults);
 
@@ -132,7 +149,11 @@ describe('StorageService', () => {
 
   describe('serveFile', () => {
     it('should delegate to strategy', async () => {
-      const mockRes = {} as any;
+      const mockRes = {
+        setHeader: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      } as unknown as Response;
       mockStrategy.serveFile.mockResolvedValue(undefined);
 
       await service.serveFile('folder', 'file.txt', mockRes);
