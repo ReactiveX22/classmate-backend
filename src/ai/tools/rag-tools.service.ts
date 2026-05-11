@@ -44,7 +44,7 @@ export class RagToolsService {
           return {
             rank: index + 1,
             content: doc.pageContent,
-            source: meta['fileName'] ?? meta['source'] ?? 'Unknown',
+            source: meta['attachmentName'] ?? meta['fileName'] ?? meta['source'] ?? 'Unknown',
             postId: meta['postId'] ?? null,
             relevanceScore: Math.round(score * 1000) / 1000,
           };
