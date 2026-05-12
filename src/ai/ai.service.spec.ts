@@ -123,10 +123,7 @@ describe('AiService.streamChat', () => {
     );
 
     const events = await collectEvents(
-      service.streamChat(
-        { message: 'Hello' },
-        user as never,
-      ),
+      service.streamChat({ message: 'Hello' }, user as never),
     );
 
     expect(events.map((event) => event.data.type)).toEqual([
@@ -157,10 +154,7 @@ describe('AiService.streamChat', () => {
     );
 
     await collectEvents(
-      service.streamChat(
-        { message: 'Hello' },
-        user as never,
-      ),
+      service.streamChat({ message: 'Hello' }, user as never),
     );
 
     expect(repository.createMessage).toHaveBeenLastCalledWith(
@@ -181,7 +175,7 @@ describe('AiService.streamChat', () => {
 
     await expect(
       new Promise((resolve, reject) => {
-          service
+        service
           .streamChat(
             {
               message: 'Hello',
@@ -249,16 +243,11 @@ describe('AiService.streamChat', () => {
 
     await expect(
       new Promise((resolve, reject) => {
-          service
-          .streamChat(
-            { message: 'Hello' },
-            user as never,
-          )
-          .subscribe({
-            next: (event) => events.push(event),
-            error: reject,
-            complete: () => resolve(undefined),
-          });
+        service.streamChat({ message: 'Hello' }, user as never).subscribe({
+          next: (event) => events.push(event),
+          error: reject,
+          complete: () => resolve(undefined),
+        });
       }),
     ).rejects.toThrow('Failed to parse stream');
 

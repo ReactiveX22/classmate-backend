@@ -70,7 +70,10 @@ export class ClassroomToolsService {
     const postRepository = this.postRepository;
 
     return tool(
-      async ({ limit, type, classroomId: argClassroomId }, config: ToolRunnableConfig) => {
+      async (
+        { limit, type, classroomId: argClassroomId },
+        config: ToolRunnableConfig,
+      ) => {
         const { classroomId: configClassroomId } = (config.configurable ??
           {}) as ToolConfigurable;
         const classroomId = argClassroomId || configClassroomId;

@@ -15,13 +15,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ClassroomService } from 'src/classroom/services/classroom.service';
 import { ConfigModule } from 'src/config/config.module';
 import { MailService } from 'src/mail/mail.service';
+import { NotificationType } from './notification.constants';
 import { NotificationGateway } from './notification.gateway';
 import { NotificationRepository } from './notification.repository';
 import { NotificationService } from './notification.service';
-import { NotificationType } from './notification.constants';
 
 describe('NotificationService', () => {
-  let service: NotificationService;
   let eventEmitter: EventEmitter2;
   let repository: NotificationRepository;
   let mailService: MailService;
@@ -55,7 +54,6 @@ describe('NotificationService', () => {
     }).compile();
 
     await module.init();
-    service = module.get<NotificationService>(NotificationService);
     eventEmitter = module.get<EventEmitter2>(EventEmitter2);
     repository = module.get<NotificationRepository>(NotificationRepository);
     mailService = module.get<MailService>(MailService);
@@ -70,6 +68,7 @@ describe('NotificationService', () => {
       title: 'Real Event Test',
       content: 'Email check content',
       organizationId: 'org-123',
+      entityId: 'classroom-123',
       type: NotificationType.CLASSROOM.ASSIGNMENT,
       recipientEmail: 'test@example.com',
       recipientName: 'Test User',
@@ -104,6 +103,7 @@ describe('NotificationService', () => {
       title: 'Ineligible event',
       content: 'Email check content',
       organizationId: 'org-123',
+      entityId: 'classroom-123',
       type: NotificationType.CLASSROOM.POST,
       recipientEmail: 'test@example.com',
       recipientName: 'Test User',

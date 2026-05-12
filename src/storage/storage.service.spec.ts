@@ -10,7 +10,7 @@ import { StorageService } from './storage.service';
 
 describe('StorageService', () => {
   let service: StorageService;
-  let mockStrategy: any;
+  let mockStrategy: { [K in keyof StorageStrategy]: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
     mockStrategy = {

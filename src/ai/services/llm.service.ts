@@ -170,7 +170,8 @@ export class LlmService implements OnModuleInit {
         }
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to stream AI response';
+      const message =
+        error instanceof Error ? error.message : 'Failed to stream AI response';
       throw new ServiceUnavailableException(message);
     }
   }
