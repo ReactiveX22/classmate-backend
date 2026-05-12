@@ -13,11 +13,16 @@ import {
   Inject,
   Injectable,
   OnModuleInit,
-  ServiceUnavailableException,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 import { User } from 'src/auth/auth.factory';
+import { AiProviderException } from '../exceptions/ai-provider.exception';
+import {
+  classifyAiProviderError,
+  toSafeAiProviderMessage,
+} from '../errors/ai-provider-error.util';
 import { AiToolsRegistry } from '../tools/ai-tools-registry.service';
 import { LlmStreamEvent } from '../types/ai-stream-event.types';
 import { AiContextService } from './ai-context.service';
@@ -31,6 +36,7 @@ export type LlmChatResponse = {
 
 @Injectable()
 export class LlmService implements OnModuleInit {
+  private readonly logger = new Logger(LlmService.name);
   private readonly provider = 'google';
   private readonly modelName: string;
   private readonly enabled: boolean;
@@ -77,18 +83,23 @@ export class LlmService implements OnModuleInit {
     context: { user: User; classroomId?: string },
   ): Promise<LlmChatResponse> {
     if (!this.enabled || !this.model) {
-      throw new ServiceUnavailableException('AI chat is not enabled');
+      throw new AiProviderException(
+        'AI_PROVIDER_UNAVAILABLE',
+        'AI chat is not enabled',
+      );
     }
 
-    const result = await this.graph.invoke(
-      { messages: [new HumanMessage(userMessage)] },
-      {
-        configurable: {
-          thread_id: threadId,
-          user: context.user,
-          classroomId: context.classroomId,
+    const result = await this.invokeWithRetry(() =>
+      this.graph.invoke(
+        { messages: [new HumanMessage(userMessage)] },
+        {
+          configurable: {
+            thread_id: threadId,
+            user: context.user,
+            classroomId: context.classroomId,
+          },
         },
-      },
+      ),
     );
 
     const last = result.messages.at(-1) as AIMessage;
@@ -107,7 +118,10 @@ export class LlmService implements OnModuleInit {
     context: { user: User; classroomId?: string },
   ): AsyncGenerator<LlmStreamEvent> {
     if (!this.enabled || !this.model) {
-      throw new ServiceUnavailableException('AI chat is not enabled');
+      throw new AiProviderException(
+        'AI_PROVIDER_UNAVAILABLE',
+        'AI chat is not enabled',
+      );
     }
 
     try {
@@ -170,9 +184,11 @@ export class LlmService implements OnModuleInit {
         }
       }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to stream AI response';
-      throw new ServiceUnavailableException(message);
+      const classified = classifyAiProviderError(error);
+      this.logger.warn(
+        `AI stream failed: ${classified.code} retryable=${classified.retryable}`,
+      );
+      throw new AiProviderException(classified.code, classified.message);
     }
   }
 
@@ -184,20 +200,22 @@ export class LlmService implements OnModuleInit {
     if (!this.enabled || !this.model) return undefined;
 
     try {
-      const response = await this.model.invoke([
-        new SystemMessage(
-          [
-            'Generate a short title for a chat conversation.',
-            'Rules:',
-            '- Use 3 to 6 words.',
-            '- Use title case.',
-            '- Do not use quotes.',
-            '- Do not use ending punctuation.',
-            '- Return only the title.',
-          ].join('\n'),
-        ),
-        new HumanMessage(userMessage),
-      ]);
+      const response = await this.invokeWithRetry(() =>
+        this.model!.invoke([
+          new SystemMessage(
+            [
+              'Generate a short title for a chat conversation.',
+              'Rules:',
+              '- Use 3 to 6 words.',
+              '- Use title case.',
+              '- Do not use quotes.',
+              '- Do not use ending punctuation.',
+              '- Return only the title.',
+            ].join('\n'),
+          ),
+          new HumanMessage(userMessage),
+        ]),
+      );
 
       return this.sanitizeTitle(this.extractText(response.content));
     } catch {
@@ -212,7 +230,10 @@ export class LlmService implements OnModuleInit {
     return new StateGraph(MessagesAnnotation)
       .addNode('model', async (state, config?: RunnableConfig) => {
         if (!this.model) {
-          throw new ServiceUnavailableException('AI chat is not enabled');
+          throw new AiProviderException(
+            'AI_PROVIDER_UNAVAILABLE',
+            'AI chat is not enabled',
+          );
         }
 
         const { user } = (config?.configurable ?? {}) as {
@@ -250,6 +271,55 @@ export class LlmService implements OnModuleInit {
             : '',
       )
       .join('');
+  }
+
+  private async invokeWithRetry<T>(
+    fn: () => Promise<T>,
+    maxAttempts = 3,
+  ): Promise<T> {
+    let attempt = 0;
+    let lastError: unknown;
+
+    while (attempt < maxAttempts) {
+      attempt += 1;
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error;
+        const classified = classifyAiProviderError(error);
+
+        this.logger.warn(
+          `AI provider failure on attempt ${attempt}/${maxAttempts}: ${classified.code}`,
+        );
+
+        if (!classified.retryable || attempt >= maxAttempts) {
+          throw new AiProviderException(
+            classified.code,
+            toSafeAiProviderMessage(error),
+            classified.statusCode,
+          );
+        }
+
+        await this.sleep(this.backoffMs(attempt));
+      }
+    }
+
+    const classified = classifyAiProviderError(lastError);
+    throw new AiProviderException(
+      classified.code,
+      classified.message,
+      classified.statusCode,
+    );
+  }
+
+  private backoffMs(attempt: number): number {
+    const base = 250 * 2 ** (attempt - 1);
+    const jitter = Math.floor(Math.random() * 100);
+    return base + jitter;
+  }
+
+  private async sleep(ms: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private sanitizeTitle(title?: string): string | undefined {
