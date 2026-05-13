@@ -122,6 +122,7 @@ export class AiService {
       provider: response.provider,
       model: response.model,
       tokenUsage: response.tokenUsage,
+      metadata: {},
     });
 
     // Refine the provisional title in the background so the UI is immediate
@@ -181,6 +182,7 @@ export class AiService {
           const threadId = `user_${user.id}_conv_${conversation.id}`;
           let accumulatedContent = '';
           let finalLlmMeta: AiInternalFinalLlmEvent['payload'] | null = null;
+          const toolCalls = new Map<string, { name: string; status: 'start' | 'end' }>();
 
           for await (const event of this.llmService.streamChat(
             threadId,
@@ -199,6 +201,13 @@ export class AiService {
               accumulatedContent += event.payload.delta;
             }
 
+            if (event.type === 'tool') {
+              toolCalls.set(event.payload.name, {
+                name: event.payload.name,
+                status: event.payload.status,
+              });
+            }
+
             emit(event);
           }
 
@@ -211,6 +220,9 @@ export class AiService {
               provider: finalLlmMeta?.provider,
               model: finalLlmMeta?.model,
               tokenUsage: finalLlmMeta?.tokenUsage,
+              metadata: {
+                toolCalls: Array.from(toolCalls.values()),
+              },
             });
 
           emit({
@@ -340,6 +352,7 @@ export class AiService {
       id: message.id,
       role: message.role,
       content: message.content,
+      metadata: (message.metadata ?? {}) as Record<string, unknown>,
       createdAt: message.createdAt,
     };
   }

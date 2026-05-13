@@ -47,7 +47,7 @@ const assistantMessage = {
   provider: 'google',
   model: 'gemini-2.5-flash',
   tokenUsage: { input_tokens: 1, output_tokens: 2, total_tokens: 3 },
-  metadata: {},
+  metadata: { toolCalls: [{ name: 'search_classroom_documents', status: 'end' }] },
   createdAt: new Date('2026-01-01T00:00:02.000Z'),
 };
 
@@ -141,6 +141,11 @@ describe('AiService.streamChat', () => {
         provider: 'google',
         model: 'gemini-2.5-flash',
         tokenUsage: { input_tokens: 1, output_tokens: 2, total_tokens: 3 },
+        metadata: {
+          toolCalls: [
+            { name: 'search_classroom_documents', status: 'end' },
+          ],
+        },
       }),
     );
   });

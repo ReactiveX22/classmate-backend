@@ -16,6 +16,7 @@ export type MessagePayload = {
   id: string;
   role: SelectAiMessage['role'];
   content: string;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
 };
 
