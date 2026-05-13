@@ -178,23 +178,20 @@ describe('AiService.streamChat', () => {
 
     const events: MessageEvent[] = [];
 
-    await expect(
-      new Promise((resolve, reject) => {
-        service
-          .streamChat(
-            {
-              message: 'Hello',
-              conversationId: 'conversation-1',
-            },
-            user as never,
-          )
-          .subscribe({
-            next: (event) => events.push(event),
-            error: reject,
-            complete: () => resolve(undefined),
-          });
-      }),
-    ).rejects.toThrow('AI conversation not found');
+    await new Promise((resolve) => {
+      service
+        .streamChat(
+          {
+            message: 'Hello',
+            conversationId: 'conversation-1',
+          },
+          user as never,
+        )
+        .subscribe({
+          next: (event) => events.push(event),
+          complete: () => resolve(undefined),
+        });
+    });
 
     expect(events).toEqual([
       {
@@ -246,20 +243,17 @@ describe('AiService.streamChat', () => {
 
     const events: MessageEvent[] = [];
 
-    await expect(
-      new Promise((resolve, reject) => {
-        service.streamChat({ message: 'Hello' }, user as never).subscribe({
-          next: (event) => events.push(event),
-          error: reject,
-          complete: () => resolve(undefined),
-        });
-      }),
-    ).rejects.toThrow('Failed to parse stream');
+    await new Promise((resolve) => {
+      service.streamChat({ message: 'Hello' }, user as never).subscribe({
+        next: (event) => events.push(event),
+        complete: () => resolve(undefined),
+      });
+    });
 
     expect(events.at(-1)).toEqual({
       data: {
         type: 'error',
-        payload: { message: 'Failed to parse stream' },
+        payload: { message: 'The AI provider returned an invalid response.' },
       },
     });
   });

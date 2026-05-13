@@ -5,7 +5,7 @@ import {
   SystemMessage,
 } from '@langchain/core/messages';
 import { RunnableConfig } from '@langchain/core/runnables';
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import { ChatGoogle } from '@langchain/google/node';
 import { MessagesAnnotation, START, StateGraph } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';
@@ -40,7 +40,7 @@ export class LlmService implements OnModuleInit {
   private readonly provider = 'google';
   private readonly modelName: string;
   private readonly enabled: boolean;
-  private readonly model?: ChatGoogleGenerativeAI;
+  private readonly model?: ChatGoogle;
   private readonly checkpointer: PostgresSaver;
   private readonly graph: ReturnType<typeof this.buildChatGraph>;
 
@@ -55,7 +55,7 @@ export class LlmService implements OnModuleInit {
       this.configService.get<string>('AI_MODEL') ?? 'gemini-2.5-flash';
 
     if (this.enabled) {
-      this.model = new ChatGoogleGenerativeAI({
+      this.model = new ChatGoogle({
         model: this.modelName,
         apiKey: this.configService.get<string>('GOOGLE_API_KEY'),
         temperature: this.configService.get<number>('AI_TEMPERATURE') ?? 0.2,
@@ -125,10 +125,10 @@ export class LlmService implements OnModuleInit {
     }
 
     try {
-      const stream = this.graph.streamEvents(
+      const stream = await this.graph.stream(
         { messages: [new HumanMessage(userMessage)] },
         {
-          version: 'v2',
+          streamMode: ['messages', 'tools'],
           configurable: {
             thread_id: threadId,
             user: context.user,
@@ -137,53 +137,62 @@ export class LlmService implements OnModuleInit {
         },
       );
 
-      for await (const event of stream) {
-        if (
-          event.event === 'on_chat_model_stream' &&
-          event.metadata?.langgraph_node === 'model'
-        ) {
-          const chunk = event.data?.chunk as AIMessage | undefined;
-          const delta = this.extractText(chunk?.content ?? '');
+      for await (const chunk of stream) {
+        const [mode, data] = chunk as [
+          'messages' | 'tools',
+          unknown,
+        ];
 
-          if (delta) {
-            yield { type: 'content', payload: { delta } };
-          }
-        }
+        if (mode === 'tools') {
+          const toolEvent = data as
+            | { event?: 'on_tool_start' | 'on_tool_end'; name?: string }
+            | undefined;
 
-        if (event.event === 'on_tool_start') {
-          yield {
-            type: 'tool',
-            payload: { name: event.name, status: 'start' },
-          };
-        }
-
-        if (event.event === 'on_tool_end') {
-          yield {
-            type: 'tool',
-            payload: { name: event.name, status: 'end' },
-          };
-        }
-
-        if (
-          event.event === 'on_chat_model_end' &&
-          event.metadata?.langgraph_node === 'model'
-        ) {
-          const last = event.data?.output as AIMessage | undefined;
-
-          if (last) {
+          if (toolEvent?.name && toolEvent.event === 'on_tool_start') {
             yield {
-              type: '_internal_final_llm',
-              payload: {
-                content: this.extractText(last.content),
-                tokenUsage: last.usage_metadata ?? undefined,
-                provider: this.provider,
-                model: this.modelName,
-              },
+              type: 'tool',
+              payload: { name: toolEvent.name, status: 'start' },
             };
           }
+
+          if (toolEvent?.name && toolEvent.event === 'on_tool_end') {
+            yield {
+              type: 'tool',
+              payload: { name: toolEvent.name, status: 'end' },
+            };
+          }
+
+          continue;
+        }
+
+        const [message, metadata] = data as [
+          AIMessage,
+          Record<string, unknown> | undefined,
+        ];
+
+        if (metadata?.langgraph_node !== 'model') {
+          continue;
+        }
+
+        const delta = this.extractText(message?.content ?? '');
+        if (delta) {
+          yield { type: 'content', payload: { delta } };
+        }
+
+        if (message instanceof AIMessage) {
+          yield {
+            type: '_internal_final_llm',
+            payload: {
+              content: this.extractText(message.content),
+              tokenUsage: message.usage_metadata ?? undefined,
+              provider: this.provider,
+              model: this.modelName,
+            },
+          };
         }
       }
     } catch (error) {
+      this.logger.debug(`AI stream raw error: ${this.summarizeError(error)}`);
       const classified = classifyAiProviderError(error);
       this.logger.warn(
         `AI stream failed: ${classified.code} retryable=${classified.retryable}`,
@@ -331,6 +340,18 @@ export class LlmService implements OnModuleInit {
       .slice(0, 80);
 
     return sanitized || undefined;
+  }
+
+  private summarizeError(error: unknown): string {
+    if (error instanceof Error) {
+      return `${error.name}: ${error.message}`;
+    }
+
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
   }
 }
 

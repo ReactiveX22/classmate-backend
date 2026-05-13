@@ -73,7 +73,10 @@ export function classifyAiProviderError(error: unknown): AiProviderError {
   if (
     normalizedMessage.includes('invalid') ||
     normalizedMessage.includes('malformed') ||
-    normalizedMessage.includes('unsupported')
+    normalizedMessage.includes('unsupported') ||
+    normalizedMessage.includes('parse stream') ||
+    normalizedMessage.includes('failed to parse stream') ||
+    normalizedMessage.includes('invalid response')
   ) {
     return {
       code: 'AI_PROVIDER_INVALID_RESPONSE',
@@ -96,4 +99,3 @@ export function classifyAiProviderError(error: unknown): AiProviderError {
 export function toSafeAiProviderMessage(error: unknown): string {
   return classifyAiProviderError(error).message;
 }
-

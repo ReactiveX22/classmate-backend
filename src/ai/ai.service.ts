@@ -10,6 +10,8 @@ import { SelectAiMessage } from 'src/database/schema';
 import { EmbeddingVectorStoreService } from 'src/embedding/services/embedding-vector-store.service';
 import { SendAiChatDto } from './dto/send-ai-chat.dto';
 import { VectorSearchDto } from './dto/vector-search.dto';
+import { AiProviderException } from './exceptions/ai-provider.exception';
+import { classifyAiProviderError } from './errors/ai-provider-error.util';
 import { AiConversationRepository } from './repositories/ai-conversation.repository';
 import { LlmService } from './services/llm.service';
 import {
@@ -17,6 +19,7 @@ import {
   AiStreamEvent,
   ConversationResponseSource,
 } from './types/ai-stream-event.types';
+import { toSafeAiProviderMessage } from './errors/ai-provider-error.util';
 
 @Injectable()
 export class AiService {
@@ -243,9 +246,15 @@ export class AiService {
 
           subscriber.complete();
         } catch (err) {
-          const message = err instanceof Error ? err.message : 'Stream failed';
+          const classified = classifyAiProviderError(err);
+          const message =
+            err instanceof AiProviderException || classified.code !== 'AI_PROVIDER_UNKNOWN'
+              ? classified.message
+              : err instanceof Error
+                ? err.message
+                : toSafeAiProviderMessage(err);
           emit({ type: 'error', payload: { message } });
-          subscriber.error(err);
+          subscriber.complete();
         }
       };
 
