@@ -1,4 +1,4 @@
-import type { UsageMetadata } from '@langchain/core/messages';
+import type { UsageMetadata, ContentBlock } from '@langchain/core/messages';
 import {
   AIMessage,
   HumanMessage,
@@ -32,6 +32,7 @@ export type LlmChatResponse = {
   tokenUsage?: UsageMetadata;
   provider: string;
   model: string;
+  reasoning?: string;
 };
 
 @Injectable()
@@ -105,10 +106,11 @@ export class LlmService implements OnModuleInit {
     const last = result.messages.at(-1) as AIMessage;
 
     return {
-      content: this.extractText(last.content),
+      content: this.extractTextFromBlocks(last.contentBlocks),
       tokenUsage: last.usage_metadata ?? undefined,
       provider: this.provider,
       model: this.modelName,
+      reasoning: this.extractReasoningFromBlocks(last.contentBlocks) || undefined,
     };
   }
 
@@ -174,19 +176,28 @@ export class LlmService implements OnModuleInit {
           continue;
         }
 
-        const delta = this.extractText(message?.content ?? '');
-        if (delta) {
-          yield { type: 'content', payload: { delta } };
+        const contentBlocks = message.contentBlocks;
+
+        const textDelta = this.extractTextFromBlocks(contentBlocks);
+        if (textDelta) {
+          yield { type: 'content', payload: { delta: textDelta } };
+        }
+
+        const reasoningDelta = this.extractReasoningFromBlocks(contentBlocks);
+        if (reasoningDelta) {
+          yield { type: 'reasoning', payload: { delta: reasoningDelta } };
         }
 
         if (message instanceof AIMessage) {
+          const reasoning = this.extractReasoningFromBlocks(message.contentBlocks);
           yield {
             type: '_internal_final_llm',
             payload: {
-              content: this.extractText(message.content),
+              content: this.extractTextFromBlocks(message.contentBlocks),
               tokenUsage: message.usage_metadata ?? undefined,
               provider: this.provider,
               model: this.modelName,
+              reasoning: reasoning || undefined,
             },
           };
         }
@@ -213,16 +224,13 @@ export class LlmService implements OnModuleInit {
         this.model!.invoke([
           new SystemMessage(
             [
-              'Generate a short title for a chat conversation.',
-              'Rules:',
-              '- Use 3 to 6 words.',
-              '- Use title case.',
-              '- Do not use quotes.',
-              '- Do not use ending punctuation.',
-              '- Return only the title.',
+              'You will receive a user message from a conversation.',
+              'Generate a title (3-6 words, title case) that summarizes the topic.',
+              'Rules: No quotes, no ending punctuation, output title only.',
+              'Example: Input: "How do I reset my password?" → Output: Password Reset Help',
             ].join('\n'),
           ),
-          new HumanMessage(userMessage),
+          new HumanMessage(`User message: ${userMessage}`),
         ]),
       );
 
@@ -272,13 +280,36 @@ export class LlmService implements OnModuleInit {
   private extractText(content: AIMessage['content']): string {
     if (typeof content === 'string') return content;
     return content
-      .map((block) =>
-        typeof block === 'string'
-          ? block
-          : 'text' in block
-            ? String(block.text)
-            : '',
-      )
+      .map((block) => {
+        if (typeof block === 'string') return block;
+        if ('thought' in block && block.thought === true) return '';
+        if ('text' in block) return String(block.text);
+        return '';
+      })
+      .join('');
+  }
+
+private extractTextFromBlocks(blocks?: ContentBlock[]): string {
+    if (!blocks) return '';
+    return blocks
+      .map((block) => {
+        if (block.type === 'text') {
+          return String((block as unknown as { text: string }).text);
+        }
+        return '';
+      })
+      .join('');
+  }
+
+  private extractReasoningFromBlocks(blocks?: ContentBlock[]): string {
+    if (!blocks) return '';
+    return blocks
+      .map((block) => {
+        if (block.type === 'reasoning') {
+          return String((block as unknown as { reasoning: string }).reasoning ?? '');
+        }
+        return '';
+      })
       .join('');
   }
 

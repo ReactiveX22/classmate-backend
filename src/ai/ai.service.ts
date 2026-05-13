@@ -125,7 +125,7 @@ export class AiService {
       provider: response.provider,
       model: response.model,
       tokenUsage: response.tokenUsage,
-      metadata: {},
+      metadata: { reasoning: response.reasoning },
     });
 
     // Refine the provisional title in the background so the UI is immediate
@@ -225,6 +225,7 @@ export class AiService {
               tokenUsage: finalLlmMeta?.tokenUsage,
               metadata: {
                 toolCalls: Array.from(toolCalls.values()),
+                reasoning: finalLlmMeta?.reasoning,
               },
             });
 
