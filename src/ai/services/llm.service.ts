@@ -1,4 +1,4 @@
-import type { UsageMetadata, ContentBlock } from '@langchain/core/messages';
+import type { ContentBlock, UsageMetadata } from '@langchain/core/messages';
 import {
   AIMessage,
   HumanMessage,
@@ -9,20 +9,15 @@ import { ChatGoogle } from '@langchain/google/node';
 import { MessagesAnnotation, START, StateGraph } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';
-import {
-  Inject,
-  Injectable,
-  OnModuleInit,
-  Logger,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 import { User } from 'src/auth/auth.factory';
-import { AiProviderException } from '../exceptions/ai-provider.exception';
 import {
   classifyAiProviderError,
   toSafeAiProviderMessage,
 } from '../errors/ai-provider-error.util';
+import { AiProviderException } from '../exceptions/ai-provider.exception';
 import { AiToolsRegistry } from '../tools/ai-tools-registry.service';
 import { LlmStreamEvent } from '../types/ai-stream-event.types';
 import { AiContextService } from './ai-context.service';
@@ -34,6 +29,8 @@ export type LlmChatResponse = {
   model: string;
   reasoning?: string;
 };
+
+type AIMessageWithBlocks = AIMessage & { contentBlocks?: ContentBlock[] };
 
 @Injectable()
 export class LlmService implements OnModuleInit {
@@ -103,14 +100,15 @@ export class LlmService implements OnModuleInit {
       ),
     );
 
-    const last = result.messages.at(-1) as AIMessage;
+    const last = result.messages.at(-1) as AIMessageWithBlocks;
 
     return {
       content: this.extractTextFromBlocks(last.contentBlocks),
       tokenUsage: last.usage_metadata ?? undefined,
       provider: this.provider,
       model: this.modelName,
-      reasoning: this.extractReasoningFromBlocks(last.contentBlocks) || undefined,
+      reasoning:
+        this.extractReasoningFromBlocks(last.contentBlocks) || undefined,
     };
   }
 
@@ -140,10 +138,7 @@ export class LlmService implements OnModuleInit {
       );
 
       for await (const chunk of stream) {
-        const [mode, data] = chunk as [
-          'messages' | 'tools',
-          unknown,
-        ];
+        const [mode, data] = chunk as ['messages' | 'tools', unknown];
 
         if (mode === 'tools') {
           const toolEvent = data as
@@ -168,7 +163,7 @@ export class LlmService implements OnModuleInit {
         }
 
         const [message, metadata] = data as [
-          AIMessage,
+          AIMessageWithBlocks,
           Record<string, unknown> | undefined,
         ];
 
@@ -189,7 +184,9 @@ export class LlmService implements OnModuleInit {
         }
 
         if (message instanceof AIMessage) {
-          const reasoning = this.extractReasoningFromBlocks(message.contentBlocks);
+          const reasoning = this.extractReasoningFromBlocks(
+            message.contentBlocks,
+          );
           yield {
             type: '_internal_final_llm',
             payload: {
@@ -289,12 +286,14 @@ export class LlmService implements OnModuleInit {
       .join('');
   }
 
-private extractTextFromBlocks(blocks?: ContentBlock[]): string {
+  private extractTextFromBlocks(blocks?: ContentBlock[]): string {
     if (!blocks) return '';
     return blocks
       .map((block) => {
         if (block.type === 'text') {
-          return String((block as unknown as { text: string }).text);
+          return 'text' in block
+            ? String((block as unknown as { text: string }).text)
+            : '';
         }
         return '';
       })
@@ -306,7 +305,11 @@ private extractTextFromBlocks(blocks?: ContentBlock[]): string {
     return blocks
       .map((block) => {
         if (block.type === 'reasoning') {
-          return String((block as unknown as { reasoning: string }).reasoning ?? '');
+          return 'reasoning' in block
+            ? String(
+                (block as unknown as { reasoning: string }).reasoning ?? '',
+              )
+            : '';
         }
         return '';
       })

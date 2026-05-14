@@ -10,8 +10,11 @@ import { SelectAiMessage } from 'src/database/schema';
 import { EmbeddingVectorStoreService } from 'src/embedding/services/embedding-vector-store.service';
 import { SendAiChatDto } from './dto/send-ai-chat.dto';
 import { VectorSearchDto } from './dto/vector-search.dto';
+import {
+  classifyAiProviderError,
+  toSafeAiProviderMessage,
+} from './errors/ai-provider-error.util';
 import { AiProviderException } from './exceptions/ai-provider.exception';
-import { classifyAiProviderError } from './errors/ai-provider-error.util';
 import { AiConversationRepository } from './repositories/ai-conversation.repository';
 import { LlmService } from './services/llm.service';
 import {
@@ -19,7 +22,6 @@ import {
   AiStreamEvent,
   ConversationResponseSource,
 } from './types/ai-stream-event.types';
-import { toSafeAiProviderMessage } from './errors/ai-provider-error.util';
 
 @Injectable()
 export class AiService {
@@ -184,8 +186,12 @@ export class AiService {
 
           const threadId = `user_${user.id}_conv_${conversation.id}`;
           let accumulatedContent = '';
+          let accumulatedReasoning = '';
           let finalLlmMeta: AiInternalFinalLlmEvent['payload'] | null = null;
-          const toolCalls = new Map<string, { name: string; status: 'start' | 'end' }>();
+          const toolCalls = new Map<
+            string,
+            { name: string; status: 'start' | 'end' }
+          >();
 
           for await (const event of this.llmService.streamChat(
             threadId,
@@ -202,6 +208,10 @@ export class AiService {
 
             if (event.type === 'content') {
               accumulatedContent += event.payload.delta;
+            }
+
+            if (event.type === 'reasoning') {
+              accumulatedReasoning += event.payload.delta;
             }
 
             if (event.type === 'tool') {
@@ -225,7 +235,8 @@ export class AiService {
               tokenUsage: finalLlmMeta?.tokenUsage,
               metadata: {
                 toolCalls: Array.from(toolCalls.values()),
-                reasoning: finalLlmMeta?.reasoning,
+                reasoning:
+                  finalLlmMeta?.reasoning || accumulatedReasoning || undefined,
               },
             });
 
@@ -249,7 +260,8 @@ export class AiService {
         } catch (err) {
           const classified = classifyAiProviderError(err);
           const message =
-            err instanceof AiProviderException || classified.code !== 'AI_PROVIDER_UNKNOWN'
+            err instanceof AiProviderException ||
+            classified.code !== 'AI_PROVIDER_UNKNOWN'
               ? classified.message
               : err instanceof Error
                 ? err.message
@@ -362,7 +374,7 @@ export class AiService {
       id: message.id,
       role: message.role,
       content: message.content,
-      metadata: (message.metadata ?? {}) as Record<string, unknown>,
+      metadata: message.metadata ?? {},
       createdAt: message.createdAt,
     };
   }
