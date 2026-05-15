@@ -9,6 +9,7 @@ import {
 import { SelectAiMessage } from 'src/database/schema';
 import { EmbeddingVectorStoreService } from 'src/embedding/services/embedding-vector-store.service';
 import { SendAiChatDto } from './dto/send-ai-chat.dto';
+import { CreateAiChatDto } from './dto/create-ai-chat.dto';
 import { VectorSearchDto } from './dto/vector-search.dto';
 import {
   classifyAiProviderError,
@@ -95,6 +96,27 @@ export class AiService {
     });
   }
 
+  async createChat(dto: CreateAiChatDto, user: User) {
+    if (dto.classroomId) {
+      await this.assertClassroomAccess(dto.classroomId, user);
+    }
+
+    const conversation = await this.aiConversationRepository.createConversation({
+      organizationId: user.organizationId,
+      userId: user.id,
+      classroomId: dto.classroomId ?? null,
+      title: dto.message ? this.fallbackTitle(dto.message) : null,
+    });
+
+    return {
+      conversationId: conversation.id,
+      conversation: this.toConversationResponse({
+        ...conversation,
+        updatedAt: new Date(),
+      }),
+    };
+  }
+
   async chat(dto: SendAiChatDto, user: User) {
     const conversation = dto.conversationId
       ? await this.findOwnedConversation(dto.conversationId, user)
@@ -154,13 +176,10 @@ export class AiService {
 
       const run = async () => {
         try {
-          const conversation = dto.conversationId
-            ? await this.findOwnedConversation(dto.conversationId, user)
-            : await this.aiConversationRepository.createConversation({
-                organizationId: user.organizationId,
-                userId: user.id,
-                title: this.fallbackTitle(dto.message),
-              });
+          const conversation = await this.findOwnedConversation(
+            dto.conversationId,
+            user,
+          );
 
           const userMessage = await this.aiConversationRepository.createMessage(
             {
@@ -172,13 +191,6 @@ export class AiService {
             },
           );
 
-          emit({
-            type: 'conversation',
-            payload: this.toConversationResponse({
-              ...conversation,
-              updatedAt: new Date(),
-            }),
-          });
           emit({
             type: 'user_message',
             payload: this.toMessageResponse(userMessage),

@@ -18,6 +18,7 @@ import { Observable } from 'rxjs';
 import { AppRole } from 'src/common/enums/role.enum';
 import { type AppUserSession } from 'src/common/types/session.types';
 import { AiService } from './ai.service';
+import { CreateAiChatDto } from './dto/create-ai-chat.dto';
 import { SendAiChatDto } from './dto/send-ai-chat.dto';
 import { UpdateAiConversationDto } from './dto/update-ai-conversation.dto';
 import { VectorSearchDto } from './dto/vector-search.dto';
@@ -30,6 +31,15 @@ export class AiController {
   @Post('chat')
   chat(@Body() dto: SendAiChatDto, @Session() session: AppUserSession) {
     return this.aiService.chat(dto, session.user);
+  }
+
+  @Roles([AppRole.Instructor, AppRole.Student])
+  @Post('chat/new')
+  async chatNew(
+    @Body() dto: CreateAiChatDto,
+    @Session() session: AppUserSession,
+  ) {
+    return this.aiService.createChat(dto, session.user);
   }
 
   @Roles([AppRole.Instructor, AppRole.Student])
