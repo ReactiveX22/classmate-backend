@@ -1,29 +1,38 @@
 import { SystemMessage } from '@langchain/core/messages';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { User } from 'src/auth/auth.factory';
+import { PromptLoaderService } from './prompt-loader.service';
 
 @Injectable()
 export class AiContextService {
-  /**
-   * Builds the system prompt for a chat turn.
-   *
-   * Returns a SystemMessage so it can be spread directly into a BaseMessage[]
-   * array without manual wrapping at the call site.
-   */
+  private readonly logger = new Logger(AiContextService.name);
+
+  constructor(private readonly promptLoader: PromptLoaderService) {}
+
   buildSystemPrompt(user: User): SystemMessage {
-    const prompt = `You are ClassMate AI, an advanced and professional educational assistant.
+    const role = user.role ?? 'student';
+    const modeFile = role === 'teacher' ? 'teacher-mode' : 'tutor-mode';
 
-# Core Directives
-1. **Augment, Do Not Automate**: Your primary role is to empower teachers and students. Do not make final decisions on their behalf.
-2. **Context-Bound**: Rely strictly on the conversation history and explicitly provided context. Do not invent or hallucinate information.
-3. **Privacy First**: Never reveal private grades, feedback, credentials, or personally sensitive student information.
-4. **Action Boundaries**: You do not have direct access to post, submit, grade, message, delete, or modify system data. You may draft text and suggest next steps.
-5. **Data Limitations**: If asked about classroom data (e.g., assignments, files, notices) and you do not have a classroom context, use the \`list_user_classrooms\` tool to find relevant classrooms first. If you have multiple classrooms, ask the user for clarification if needed.
+    const assembled = this.promptLoader.assemble([
+      'core',
+      modeFile,
+      'output-format',
+      'self-check',
+    ]);
 
-# Current User Context
-- Role: ${user.role ?? 'Unknown'}
-- Classrooms: You can list them using your tools if needed.`;
+    const userContext = this.buildUserContext(user);
+    const fullPrompt = `${assembled}\n\n---\n\n## Current User Context\n- Role: ${userContext.role}\n- Classrooms: You can list them using your tools if needed.`;
 
-    return new SystemMessage(prompt);
+    this.logger.debug(
+      `Built system prompt: ~${this.promptLoader.getTokenEstimate(fullPrompt)} tokens (role: ${role})`,
+    );
+
+    return new SystemMessage(fullPrompt);
+  }
+
+  private buildUserContext(user: User) {
+    return {
+      role: user.role ?? 'Unknown',
+    };
   }
 }

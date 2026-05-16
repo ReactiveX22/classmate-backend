@@ -9,6 +9,7 @@ import { AiService } from './ai.service';
 import { AiConversationRepository } from './repositories/ai-conversation.repository';
 import { AiContextService } from './services/ai-context.service';
 import { LlmService } from './services/llm.service';
+import { PromptLoaderService } from './services/prompt-loader.service';
 import { AiToolsRegistry } from './tools/ai-tools-registry.service';
 import { ClassroomToolsService } from './tools/classroom-tools.service';
 import { RagToolsService } from './tools/rag-tools.service';
@@ -37,6 +38,7 @@ export const AI_PG_POOL = 'AI_PG_POOL';
         });
       },
     },
+    PromptLoaderService,
     AiService,
     AiConversationRepository,
     AiContextService,
