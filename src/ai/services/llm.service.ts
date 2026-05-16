@@ -55,7 +55,7 @@ export class LlmService implements OnModuleInit {
         apiKey: this.configService.get<string>('GOOGLE_API_KEY'),
         temperature: this.configService.get<number>('AI_TEMPERATURE') ?? 0.2,
         maxOutputTokens:
-          this.configService.get<number>('AI_MAX_OUTPUT_TOKENS') ?? 2048,
+          this.configService.get<number>('AI_MAX_OUTPUT_TOKENS') ?? 8192,
         maxRetries: 0,
       });
     }
@@ -124,8 +124,17 @@ export class LlmService implements OnModuleInit {
       yield* this.runStream(threadId, userMessage, context);
     } catch (error) {
       const classified = classifyAiProviderError(error);
+      const errObj = error as Record<string, unknown>;
+      const rawStatus =
+        errObj?.status ??
+        (errObj?.response as Record<string, unknown> | undefined)?.status;
+      const status =
+        typeof rawStatus === 'number' || typeof rawStatus === 'string'
+          ? String(rawStatus)
+          : 'N/A';
+      const message = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `AI stream failed: threadId=${threadId} model=${this.modelName}`,
+        `AI stream failed [${status}]: threadId=${threadId} model=${this.modelName} - ${message}`,
         error instanceof Error ? error.stack : error,
       );
       throw new AiProviderException(classified.code, classified.message);
