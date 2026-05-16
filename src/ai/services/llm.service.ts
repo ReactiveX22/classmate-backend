@@ -56,7 +56,8 @@ export class LlmService implements OnModuleInit {
         temperature: this.configService.get<number>('AI_TEMPERATURE') ?? 0.2,
         maxOutputTokens:
           this.configService.get<number>('AI_MAX_OUTPUT_TOKENS') ?? 8192,
-        maxRetries: 0,
+        maxRetries: 1,
+        reasoningEffort: 'low',
       });
     }
 
@@ -230,7 +231,15 @@ export class LlmService implements OnModuleInit {
     if (!this.enabled || !this.model) return undefined;
 
     try {
-      const response = await this.model.invoke([
+      const titleModel = new ChatGoogle({
+        model: 'gemma-4-31b-it',
+        apiKey: this.configService.get<string>('GOOGLE_API_KEY'),
+        temperature: 0.2,
+        maxOutputTokens: 64,
+        maxRetries: 0,
+      });
+
+      const response = await titleModel.invoke([
         new SystemMessage(
           [
             'You will receive a user message from a conversation.',

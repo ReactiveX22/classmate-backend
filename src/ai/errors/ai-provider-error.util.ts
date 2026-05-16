@@ -17,10 +17,32 @@ export function classifyAiProviderError(error: unknown): AiProviderError {
   const message = err?.message ?? 'Unknown AI provider error';
   const normalizedMessage = message.toLowerCase();
 
-  if (status === 429 || code === 'RESOURCE_EXHAUSTED') {
+  if (
+    status === 429 ||
+    code === 'RESOURCE_EXHAUSTED' ||
+    normalizedMessage.includes('quota exceeded') ||
+    normalizedMessage.includes('rate limit') ||
+    normalizedMessage.includes('too many requests')
+  ) {
     return {
       code: 'AI_PROVIDER_RATE_LIMITED',
-      message: 'The AI provider is rate limited.',
+      message: 'The AI provider is rate limited. Please try again later.',
+      retryable: true,
+      statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+      cause: error,
+    };
+  }
+
+  if (
+    normalizedMessage.includes('high demand') ||
+    normalizedMessage.includes('overloaded') ||
+    normalizedMessage.includes('capacity') ||
+    normalizedMessage.includes('spikes in demand')
+  ) {
+    return {
+      code: 'AI_PROVIDER_OVERLOADED',
+      message:
+        'The AI model is experiencing high demand. Please try again later.',
       retryable: true,
       statusCode: HttpStatus.SERVICE_UNAVAILABLE,
       cause: error,
