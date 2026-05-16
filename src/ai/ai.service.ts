@@ -105,7 +105,7 @@ export class AiService {
       organizationId: user.organizationId,
       userId: user.id,
       classroomId: dto.classroomId ?? null,
-      title: dto.message ? this.fallbackTitle(dto.message) : null,
+      title: null,
     });
 
     return {
@@ -205,6 +205,10 @@ export class AiService {
             { name: string; status: 'start' | 'end' }
           >();
 
+          const titlePromise = !conversation.title
+            ? this.generateAndSaveTitle(conversation.id, dto.message)
+            : Promise.resolve(null);
+
           for await (const event of this.llmService.streamChat(
             threadId,
             dto.message,
@@ -252,21 +256,23 @@ export class AiService {
               },
             });
 
+          let conversationTitle: ConversationResponseSource | null = null;
+          try {
+            conversationTitle = await titlePromise;
+          } catch {
+            // Title generation failed — chat still works, just no title update
+          }
+
+          const finalPayload: MessagePayload & { conversation?: ConversationPayload } =
+            this.toMessageResponse(assistantMessage);
+          if (conversationTitle) {
+            finalPayload.conversation = this.toConversationResponse(conversationTitle);
+          }
+
           emit({
             type: 'final',
-            payload: this.toMessageResponse(assistantMessage),
+            payload: finalPayload,
           });
-
-          void this.generateAndSaveTitle(conversation.id, dto.message).then(
-            (updatedConversation) => {
-              if (updatedConversation) {
-                emit({
-                  type: 'title_updated',
-                  payload: this.toConversationResponse(updatedConversation),
-                });
-              }
-            },
-          );
 
           subscriber.complete();
         } catch (err) {
