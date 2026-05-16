@@ -71,6 +71,27 @@ export function classifyAiProviderError(error: unknown): AiProviderError {
   }
 
   if (
+    code === 'ERR_NETWORK' ||
+    code === 'ECONNREFUSED' ||
+    code === 'ENOTFOUND' ||
+    code === 'UND_ERR_SOCKET' ||
+    code === 'ECONNRESET' ||
+    normalizedMessage.includes('fetch failed') ||
+    normalizedMessage.includes('socket hang up') ||
+    normalizedMessage.includes('network') ||
+    normalizedMessage.includes('connect econnrefused') ||
+    error instanceof TypeError
+  ) {
+    return {
+      code: 'AI_PROVIDER_UNAVAILABLE',
+      message: 'The AI provider is temporarily unavailable.',
+      retryable: true,
+      statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+      cause: error,
+    };
+  }
+
+  if (
     normalizedMessage.includes('invalid') ||
     normalizedMessage.includes('malformed') ||
     normalizedMessage.includes('unsupported') ||

@@ -125,7 +125,10 @@ describe('AiService.streamChat', () => {
     );
 
     const events = await collectEvents(
-      service.streamChat({ message: 'Hello', conversationId: 'conversation-1' }, user as never),
+      service.streamChat(
+        { message: 'Hello', conversationId: 'conversation-1' },
+        user as never,
+      ),
     );
 
     expect(events.map((event) => event.data.type)).toEqual([
@@ -159,7 +162,10 @@ describe('AiService.streamChat', () => {
     );
 
     await collectEvents(
-      service.streamChat({ message: 'Hello', conversationId: 'conversation-1' }, user as never),
+      service.streamChat(
+        { message: 'Hello', conversationId: 'conversation-1' },
+        user as never,
+      ),
     );
 
     expect(repository.createMessage).toHaveBeenLastCalledWith(
@@ -245,10 +251,15 @@ describe('AiService.streamChat', () => {
     const events: MessageEvent[] = [];
 
     await new Promise((resolve) => {
-      service.streamChat({ message: 'Hello', conversationId: 'conversation-1' }, user as never).subscribe({
-        next: (event) => events.push(event),
-        complete: () => resolve(undefined),
-      });
+      service
+        .streamChat(
+          { message: 'Hello', conversationId: 'conversation-1' },
+          user as never,
+        )
+        .subscribe({
+          next: (event) => events.push(event),
+          complete: () => resolve(undefined),
+        });
     });
 
     expect(events.at(-1)).toEqual({

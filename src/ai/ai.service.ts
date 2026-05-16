@@ -1,4 +1,4 @@
-import { Injectable, MessageEvent } from '@nestjs/common';
+import { Injectable, Logger, MessageEvent } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { User } from 'src/auth/auth.factory';
 import { ClassroomRepository } from 'src/classroom/classroom.repository';
@@ -29,6 +29,8 @@ import {
 
 @Injectable()
 export class AiService {
+  private readonly logger = new Logger(AiService.name);
+
   constructor(
     private readonly aiConversationRepository: AiConversationRepository,
     private readonly llmService: LlmService,
@@ -284,6 +286,9 @@ export class AiService {
           subscriber.complete();
         } catch (err) {
           const classified = classifyAiProviderError(err);
+          this.logger.warn(
+            `AI stream error: ${classified.code} conversationId=${dto.conversationId} userId=${user.id}`,
+          );
           const message =
             err instanceof AiProviderException ||
             classified.code !== 'AI_PROVIDER_UNKNOWN'
@@ -397,6 +402,9 @@ export class AiService {
           subscriber.complete();
         } catch (err) {
           const classified = classifyAiProviderError(err);
+          this.logger.warn(
+            `AI retry stream error: ${classified.code} conversationId=${dto.conversationId} userId=${user.id}`,
+          );
           const message =
             err instanceof AiProviderException ||
             classified.code !== 'AI_PROVIDER_UNKNOWN'

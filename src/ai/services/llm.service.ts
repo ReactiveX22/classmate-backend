@@ -13,10 +13,7 @@ import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 import { User } from 'src/auth/auth.factory';
-import {
-  classifyAiProviderError,
-  toSafeAiProviderMessage,
-} from '../errors/ai-provider-error.util';
+import { classifyAiProviderError } from '../errors/ai-provider-error.util';
 import { AiProviderException } from '../exceptions/ai-provider.exception';
 import { AiToolsRegistry } from '../tools/ai-tools-registry.service';
 import { LlmStreamEvent } from '../types/ai-stream-event.types';
@@ -59,6 +56,7 @@ export class LlmService implements OnModuleInit {
         temperature: this.configService.get<number>('AI_TEMPERATURE') ?? 0.2,
         maxOutputTokens:
           this.configService.get<number>('AI_MAX_OUTPUT_TOKENS') ?? 2048,
+        maxRetries: 0,
       });
     }
 
@@ -87,17 +85,15 @@ export class LlmService implements OnModuleInit {
       );
     }
 
-    const result = await this.invokeWithRetry(() =>
-      this.graph.invoke(
-        { messages: [new HumanMessage(userMessage)] },
-        {
-          configurable: {
-            thread_id: threadId,
-            user: context.user,
-            classroomId: context.classroomId,
-          },
+    const result = await this.graph.invoke(
+      { messages: [new HumanMessage(userMessage)] },
+      {
+        configurable: {
+          thread_id: threadId,
+          user: context.user,
+          classroomId: context.classroomId,
         },
-      ),
+      },
     );
 
     const last = result.messages.at(-1) as AIMessageWithBlocks;
@@ -125,87 +121,97 @@ export class LlmService implements OnModuleInit {
     }
 
     try {
-      const stream = await this.graph.stream(
-        { messages: [new HumanMessage(userMessage)] },
-        {
-          streamMode: ['messages', 'tools'],
-          configurable: {
-            thread_id: threadId,
-            user: context.user,
-            classroomId: context.classroomId,
-          },
-        },
-      );
-
-      for await (const chunk of stream) {
-        const [mode, data] = chunk as ['messages' | 'tools', unknown];
-
-        if (mode === 'tools') {
-          const toolEvent = data as
-            | { event?: 'on_tool_start' | 'on_tool_end'; name?: string }
-            | undefined;
-
-          if (toolEvent?.name && toolEvent.event === 'on_tool_start') {
-            yield {
-              type: 'tool',
-              payload: { name: toolEvent.name, status: 'start' },
-            };
-          }
-
-          if (toolEvent?.name && toolEvent.event === 'on_tool_end') {
-            yield {
-              type: 'tool',
-              payload: { name: toolEvent.name, status: 'end' },
-            };
-          }
-
-          continue;
-        }
-
-        const [message, metadata] = data as [
-          AIMessageWithBlocks,
-          Record<string, unknown> | undefined,
-        ];
-
-        if (metadata?.langgraph_node !== 'model') {
-          continue;
-        }
-
-        const contentBlocks = message.contentBlocks;
-
-        const textDelta = this.extractTextFromBlocks(contentBlocks);
-        if (textDelta) {
-          yield { type: 'content', payload: { delta: textDelta } };
-        }
-
-        const reasoningDelta = this.extractReasoningFromBlocks(contentBlocks);
-        if (reasoningDelta) {
-          yield { type: 'reasoning', payload: { delta: reasoningDelta } };
-        }
-
-        if (message instanceof AIMessage) {
-          const reasoning = this.extractReasoningFromBlocks(
-            message.contentBlocks,
-          );
-          yield {
-            type: '_internal_final_llm',
-            payload: {
-              content: this.extractTextFromBlocks(message.contentBlocks),
-              tokenUsage: message.usage_metadata ?? undefined,
-              provider: this.provider,
-              model: this.modelName,
-              reasoning: reasoning || undefined,
-            },
-          };
-        }
-      }
+      yield* this.runStream(threadId, userMessage, context);
     } catch (error) {
-      this.logger.debug(`AI stream raw error: ${this.summarizeError(error)}`);
       const classified = classifyAiProviderError(error);
       this.logger.warn(
-        `AI stream failed: ${classified.code} retryable=${classified.retryable}`,
+        `AI stream failed: ${classified.code} threadId=${threadId} model=${this.modelName}`,
+      );
+      this.logger.debug(
+        `AI stream raw error: ${this.summarizeError(error)} threadId=${threadId}`,
       );
       throw new AiProviderException(classified.code, classified.message);
+    }
+  }
+
+  private async *runStream(
+    threadId: string,
+    userMessage: string,
+    context: { user: User; classroomId?: string },
+  ): AsyncGenerator<LlmStreamEvent> {
+    const stream = await this.graph.stream(
+      { messages: [new HumanMessage(userMessage)] },
+      {
+        streamMode: ['messages', 'tools'],
+        configurable: {
+          thread_id: threadId,
+          user: context.user,
+          classroomId: context.classroomId,
+        },
+      },
+    );
+
+    for await (const chunk of stream) {
+      const [mode, data] = chunk as ['messages' | 'tools', unknown];
+
+      if (mode === 'tools') {
+        const toolEvent = data as
+          | { event?: 'on_tool_start' | 'on_tool_end'; name?: string }
+          | undefined;
+
+        if (toolEvent?.name && toolEvent.event === 'on_tool_start') {
+          yield {
+            type: 'tool',
+            payload: { name: toolEvent.name, status: 'start' },
+          };
+        }
+
+        if (toolEvent?.name && toolEvent.event === 'on_tool_end') {
+          yield {
+            type: 'tool',
+            payload: { name: toolEvent.name, status: 'end' },
+          };
+        }
+
+        continue;
+      }
+
+      const [message, metadata] = data as [
+        AIMessageWithBlocks,
+        Record<string, unknown> | undefined,
+      ];
+
+      if (metadata?.langgraph_node !== 'model') {
+        continue;
+      }
+
+      const contentBlocks = message.contentBlocks;
+
+      const textDelta = this.extractTextFromBlocks(contentBlocks);
+      if (textDelta) {
+        yield { type: 'content', payload: { delta: textDelta } };
+      }
+
+      const reasoningDelta = this.extractReasoningFromBlocks(contentBlocks);
+      if (reasoningDelta) {
+        yield { type: 'reasoning', payload: { delta: reasoningDelta } };
+      }
+
+      if (message instanceof AIMessage) {
+        const reasoning = this.extractReasoningFromBlocks(
+          message.contentBlocks,
+        );
+        yield {
+          type: '_internal_final_llm',
+          payload: {
+            content: this.extractTextFromBlocks(message.contentBlocks),
+            tokenUsage: message.usage_metadata ?? undefined,
+            provider: this.provider,
+            model: this.modelName,
+            reasoning: reasoning || undefined,
+          },
+        };
+      }
     }
   }
 
@@ -217,19 +223,17 @@ export class LlmService implements OnModuleInit {
     if (!this.enabled || !this.model) return undefined;
 
     try {
-      const response = await this.invokeWithRetry(() =>
-        this.model!.invoke([
-          new SystemMessage(
-            [
-              'You will receive a user message from a conversation.',
-              'Generate a title (3-6 words, title case) that summarizes the topic.',
-              'Rules: No quotes, no ending punctuation, output title only.',
-              'Example: Input: "How do I reset my password?" → Output: Password Reset Help',
-            ].join('\n'),
-          ),
-          new HumanMessage(`User message: ${userMessage}`),
-        ]),
-      );
+      const response = await this.model.invoke([
+        new SystemMessage(
+          [
+            'You will receive a user message from a conversation.',
+            'Generate a title (3-6 words, title case) that summarizes the topic.',
+            'Rules: No quotes, no ending punctuation, output title only.',
+            'Example: Input: "How do I reset my password?" → Output: Password Reset Help',
+          ].join('\n'),
+        ),
+        new HumanMessage(`User message: ${userMessage}`),
+      ]);
 
       return this.sanitizeTitle(this.extractText(response.content));
     } catch {
@@ -258,8 +262,6 @@ export class LlmService implements OnModuleInit {
         const tools = this.toolsRegistry.getTools();
         const modelWithTools = this.model.bindTools(tools);
 
-        // System prompt is prepended dynamically each turn. It is never
-        // returned in the node output, so it is never saved to the checkpointer state.
         const response = await modelWithTools.invoke([
           systemPrompt,
           ...state.messages,
@@ -329,55 +331,6 @@ export class LlmService implements OnModuleInit {
         return '';
       })
       .join('');
-  }
-
-  private async invokeWithRetry<T>(
-    fn: () => Promise<T>,
-    maxAttempts = 3,
-  ): Promise<T> {
-    let attempt = 0;
-    let lastError: unknown;
-
-    while (attempt < maxAttempts) {
-      attempt += 1;
-      try {
-        return await fn();
-      } catch (error) {
-        lastError = error;
-        const classified = classifyAiProviderError(error);
-
-        this.logger.warn(
-          `AI provider failure on attempt ${attempt}/${maxAttempts}: ${classified.code}`,
-        );
-
-        if (!classified.retryable || attempt >= maxAttempts) {
-          throw new AiProviderException(
-            classified.code,
-            toSafeAiProviderMessage(error),
-            classified.statusCode,
-          );
-        }
-
-        await this.sleep(this.backoffMs(attempt));
-      }
-    }
-
-    const classified = classifyAiProviderError(lastError);
-    throw new AiProviderException(
-      classified.code,
-      classified.message,
-      classified.statusCode,
-    );
-  }
-
-  private backoffMs(attempt: number): number {
-    const base = 250 * 2 ** (attempt - 1);
-    const jitter = Math.floor(Math.random() * 100);
-    return base + jitter;
-  }
-
-  private async sleep(ms: number): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private sanitizeTitle(title?: string): string | undefined {
