@@ -1,6 +1,7 @@
 import { tool, type ToolRunnableConfig } from '@langchain/core/tools';
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
+import { ClassroomRepository } from '../../classroom/classroom.repository';
 import { ClassroomPostRepository } from '../../classroom/repositories/classroom-post.repository';
 import { SubmissionRepository } from '../../classroom/repositories/submission.repository';
 
@@ -15,23 +16,70 @@ interface ToolConfigurable {
 @Injectable()
 export class ClassroomToolsService {
   constructor(
+    private readonly classroomRepository: ClassroomRepository,
     private readonly postRepository: ClassroomPostRepository,
     private readonly submissionRepository: SubmissionRepository,
   ) {}
 
   getTools() {
-    return [this.buildGetPostsTool(), this.buildGetSubmissionsTool()];
+    return [
+      this.buildListClassroomsTool(),
+      this.buildGetPostsTool(),
+      this.buildGetSubmissionsTool(),
+    ];
+  }
+
+  private buildListClassroomsTool() {
+    const classroomRepository = this.classroomRepository;
+
+    return tool(
+      async (_, config: ToolRunnableConfig) => {
+        const { user } = (config.configurable ?? {}) as ToolConfigurable;
+
+        if (!user?.id) {
+          return 'No user context available. Cannot fetch classrooms.';
+        }
+
+        const classrooms = await classroomRepository.findJoinedClassrooms(
+          user.id,
+        );
+
+        if (!classrooms.length) {
+          return 'You are not enrolled in any classrooms.';
+        }
+
+        const formatted = classrooms.map((c) => ({
+          id: c.id,
+          name: c.name,
+          section: c.section,
+        }));
+
+        return JSON.stringify(formatted, null, 2);
+      },
+      {
+        name: 'list_user_classrooms',
+        description:
+          'List all classrooms the user is enrolled in (as a student or teacher). ' +
+          'Use this to find classroom IDs when the user asks about their classes or when you need to switch context.',
+        schema: z.object({}),
+      },
+    );
   }
 
   private buildGetPostsTool() {
     const postRepository = this.postRepository;
 
     return tool(
-      async ({ limit, type }, config: ToolRunnableConfig) => {
-        const { classroomId } = (config.configurable ?? {}) as ToolConfigurable;
+      async (
+        { limit, type, classroomId: argClassroomId },
+        config: ToolRunnableConfig,
+      ) => {
+        const { classroomId: configClassroomId } = (config.configurable ??
+          {}) as ToolConfigurable;
+        const classroomId = argClassroomId || configClassroomId;
 
         if (!classroomId) {
-          return 'No classroom context available. Cannot fetch posts.';
+          return 'No classroom context available. Please provide a classroomId or call list_user_classrooms first.';
         }
 
         const posts = await postRepository.findRecentForTools(
@@ -61,6 +109,11 @@ export class ClassroomToolsService {
           'Use when the user asks what was posted, assigned, or announced. ' +
           'Optionally filter by post type.',
         schema: z.object({
+          classroomId: z
+            .string()
+            .uuid()
+            .optional()
+            .describe('The ID of the classroom to fetch posts from.'),
           limit: z
             .number()
             .int()
@@ -79,14 +132,28 @@ export class ClassroomToolsService {
 
   private buildGetSubmissionsTool() {
     const submissionRepository = this.submissionRepository;
+    const classroomRepository = this.classroomRepository;
 
     return tool(
-      async ({ postId }, config: ToolRunnableConfig) => {
-        const { user, classroomId } = (config.configurable ??
+      async (
+        { postId, classroomId: argClassroomId },
+        config: ToolRunnableConfig,
+      ) => {
+        const { user, classroomId: configClassroomId } = (config.configurable ??
           {}) as ToolConfigurable;
+        const classroomId = argClassroomId || configClassroomId;
 
         if (!classroomId) {
-          return 'No classroom context available. Cannot fetch submissions.';
+          return 'No classroom context available. Please provide a classroomId or call list_user_classrooms first.';
+        }
+
+        if (argClassroomId && user?.id) {
+          const joined = await classroomRepository.findJoinedClassrooms(
+            user.id,
+          );
+          if (!joined.some((c) => c.id === argClassroomId)) {
+            return 'Access denied to the specified classroom.';
+          }
         }
 
         const userRole = user?.role ?? '';
@@ -117,6 +184,13 @@ export class ClassroomToolsService {
           'Get submission status for an assignment. Shows which students have submitted, are pending, or are missing. Only available to teachers.',
         schema: z.object({
           postId: z.string().describe('The assignment post ID'),
+          classroomId: z
+            .string()
+            .uuid()
+            .optional()
+            .describe(
+              'The ID of the classroom. While not strictly needed for this tool if postId is known, it helps with consistency.',
+            ),
         }),
       },
     );

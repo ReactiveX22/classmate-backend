@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DB } from 'better-auth/adapters/drizzle';
+import { DB } from 'src/database/db.provider';
 import {
   and,
   count,

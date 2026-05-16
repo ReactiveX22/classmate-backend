@@ -48,14 +48,14 @@ export class NotificationGateway implements OnGatewayConnection {
     }
   }
 
-  async sendNotificationToClassroom(
+  sendNotificationToClassroom(
     classroomId: string,
     notification: NotificationResponse,
   ) {
     this.server.to(`class_${classroomId}`).emit('notification', notification);
   }
 
-  async sendNotificationToOrganization(
+  sendNotificationToOrganization(
     organizationId: string,
     notification: NotificationResponse,
   ) {
@@ -71,10 +71,10 @@ export class NotificationGateway implements OnGatewayConnection {
       );
 
       classrooms.forEach((classroomId) => {
-        client.join(`class_${classroomId}`);
+        void client.join(`class_${classroomId}`);
       });
     }
 
-    client.join(`org_${user.organizationId}`);
+    void client.join(`org_${user.organizationId}`);
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DB } from 'better-auth/adapters/drizzle';
+import { DB } from 'src/database/db.provider';
 import { and, count, eq, SQL } from 'drizzle-orm';
 import { notice, user } from 'src/database/schema';
 import { PaginationConfig } from 'src/lib/pagination/pagination.config';

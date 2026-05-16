@@ -53,13 +53,16 @@ describe('TenantCacheInterceptor (Integration)', () => {
       const mockRequest = {
         method: 'GET',
         organizationId: 'org-1',
+        path: '/courses',
         query: { page: '1' },
       };
       const mockContext = {
         switchToHttp: () => ({ getRequest: () => mockRequest }),
         getHandler: () => ({}),
+        getClass: () => ({}),
       } as unknown as ExecutionContext;
 
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue('courses');
       vi.spyOn(reflector, 'get').mockImplementation((key) => {
         if (key === CACHE_RESOURCE_METADATA) return 'courses';
         return undefined;
@@ -75,7 +78,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
       const result = await result$.toPromise();
 
       expect(mockCacheManager.get).toHaveBeenCalledWith(
-        'cache:org-1:courses:page=1',
+        'cache:org-1:courses:/courses:page=1',
       );
       expect(result).toEqual({ data: 'cached' });
     });
@@ -84,13 +87,16 @@ describe('TenantCacheInterceptor (Integration)', () => {
       const mockRequest = {
         method: 'GET',
         organizationId: 'org-1',
+        path: '/courses',
         query: {},
       };
       const mockContext = {
         switchToHttp: () => ({ getRequest: () => mockRequest }),
         getHandler: () => ({}),
+        getClass: () => ({}),
       } as unknown as ExecutionContext;
 
+      vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue('courses');
       vi.spyOn(reflector, 'get').mockImplementation((key) => {
         if (key === CACHE_RESOURCE_METADATA) return 'courses';
         return undefined;
@@ -106,9 +112,11 @@ describe('TenantCacheInterceptor (Integration)', () => {
       const result$ = await interceptor.intercept(mockContext, next as any);
       const result = await result$.toPromise();
 
-      expect(mockCacheManager.get).toHaveBeenCalledWith('cache:org-1:courses');
+      expect(mockCacheManager.get).toHaveBeenCalledWith(
+        'cache:org-1:courses:/courses',
+      );
       expect(mockCacheManager.set).toHaveBeenCalledWith(
-        'cache:org-1:courses',
+        'cache:org-1:courses:/courses',
         { data: 'fresh' },
         undefined,
       );
@@ -121,16 +129,15 @@ describe('TenantCacheInterceptor (Integration)', () => {
       const mockRequest = {
         method: 'POST',
         organizationId: 'org-1',
+        path: '/courses',
       };
       const mockContext = {
         switchToHttp: () => ({ getRequest: () => mockRequest }),
         getHandler: () => ({}),
+        getClass: () => ({}),
       } as unknown as ExecutionContext;
 
-      vi.spyOn(reflector, 'get').mockImplementation((key) => {
-        if (key === CACHE_INVALIDATE_METADATA) return ['courses'];
-        return undefined;
-      });
+      vi.spyOn(reflector, 'getAllAndMerge').mockReturnValue(['courses']);
 
       vi.spyOn(eventEmitter, 'emit');
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { DB } from 'better-auth/adapters/drizzle';
+import { DB } from 'src/database/db.provider';
 import { and, count, eq, sql, SQL } from 'drizzle-orm';
+import { PgSelect } from 'drizzle-orm/pg-core';
 import { notification, notificationRead, user } from 'src/database/schema';
 import { PaginationConfig } from 'src/lib/pagination/pagination.config';
 
@@ -18,7 +19,7 @@ export class NotificationPaginationConfig extends PaginationConfig<
   defaultSortField = 'createdAt';
   defaultSortOrder: 'asc' | 'desc' = 'desc';
 
-  getBaseQuery(db: DB) {
+  getBaseQuery(db: DB): PgSelect {
     return db
       .select({
         notification: notification,
@@ -33,7 +34,7 @@ export class NotificationPaginationConfig extends PaginationConfig<
       .$dynamic();
   }
 
-  getAuthorizedQuery(db: DB, userId: string) {
+  getAuthorizedQuery(db: DB, userId: string): PgSelect {
     return db
       .select({
         notification: notification,

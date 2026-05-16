@@ -55,7 +55,9 @@ export class NotificationRepository {
       not(eq(notification.actorId, userId)),
     ];
 
-    const configWithUser = Object.create(this.notificationPaginationConfig);
+    const configWithUser = Object.create(
+      this.notificationPaginationConfig,
+    ) as NotificationPaginationConfig;
     configWithUser.getBaseQuery = (db: DB) =>
       this.notificationPaginationConfig.getAuthorizedQuery(db, userId);
 
