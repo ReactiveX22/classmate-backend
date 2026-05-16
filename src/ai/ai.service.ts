@@ -9,6 +9,7 @@ import {
 import { SelectAiMessage } from 'src/database/schema';
 import { EmbeddingVectorStoreService } from 'src/embedding/services/embedding-vector-store.service';
 import { SendAiChatDto } from './dto/send-ai-chat.dto';
+import { RetryAiChatDto } from './dto/retry-ai-chat.dto';
 import { CreateAiChatDto } from './dto/create-ai-chat.dto';
 import { VectorSearchDto } from './dto/vector-search.dto';
 import {
@@ -21,7 +22,9 @@ import { LlmService } from './services/llm.service';
 import {
   AiInternalFinalLlmEvent,
   AiStreamEvent,
+  ConversationPayload,
   ConversationResponseSource,
+  MessagePayload,
 } from './types/ai-stream-event.types';
 
 @Injectable()
@@ -101,12 +104,14 @@ export class AiService {
       await this.assertClassroomAccess(dto.classroomId, user);
     }
 
-    const conversation = await this.aiConversationRepository.createConversation({
-      organizationId: user.organizationId,
-      userId: user.id,
-      classroomId: dto.classroomId ?? null,
-      title: null,
-    });
+    const conversation = await this.aiConversationRepository.createConversation(
+      {
+        organizationId: user.organizationId,
+        userId: user.id,
+        classroomId: dto.classroomId ?? null,
+        title: null,
+      },
+    );
 
     return {
       conversationId: conversation.id,
@@ -263,11 +268,126 @@ export class AiService {
             // Title generation failed — chat still works, just no title update
           }
 
-          const finalPayload: MessagePayload & { conversation?: ConversationPayload } =
-            this.toMessageResponse(assistantMessage);
+          const finalPayload: MessagePayload & {
+            conversation?: ConversationPayload;
+          } = this.toMessageResponse(assistantMessage);
           if (conversationTitle) {
-            finalPayload.conversation = this.toConversationResponse(conversationTitle);
+            finalPayload.conversation =
+              this.toConversationResponse(conversationTitle);
           }
+
+          emit({
+            type: 'final',
+            payload: finalPayload,
+          });
+
+          subscriber.complete();
+        } catch (err) {
+          const classified = classifyAiProviderError(err);
+          const message =
+            err instanceof AiProviderException ||
+            classified.code !== 'AI_PROVIDER_UNKNOWN'
+              ? classified.message
+              : err instanceof Error
+                ? err.message
+                : toSafeAiProviderMessage(err);
+          emit({ type: 'error', payload: { message } });
+          subscriber.complete();
+        }
+      };
+
+      void run();
+    });
+  }
+
+  retryStreamChat(dto: RetryAiChatDto, user: User): Observable<MessageEvent> {
+    return new Observable<MessageEvent>((subscriber) => {
+      const emit = (event: AiStreamEvent) => {
+        subscriber.next({ data: event });
+      };
+
+      const run = async () => {
+        try {
+          const conversation = await this.findOwnedConversation(
+            dto.conversationId,
+            user,
+          );
+
+          const lastUserMessage =
+            await this.aiConversationRepository.findLastUserMessage(
+              conversation.id,
+            );
+
+          if (!lastUserMessage) {
+            throw new ApplicationNotFoundException(
+              'No user message found to retry',
+            );
+          }
+
+          emit({
+            type: 'user_message',
+            payload: this.toMessageResponse(lastUserMessage),
+          });
+
+          const threadId = `user_${user.id}_conv_${conversation.id}`;
+          let accumulatedContent = '';
+          let accumulatedReasoning = '';
+          let finalLlmMeta: AiInternalFinalLlmEvent['payload'] | null = null;
+          const toolCalls = new Map<
+            string,
+            { name: string; status: 'start' | 'end' }
+          >();
+
+          for await (const event of this.llmService.streamChat(
+            threadId,
+            lastUserMessage.content,
+            {
+              user,
+              classroomId: conversation.classroomId ?? undefined,
+            },
+          )) {
+            if (event.type === '_internal_final_llm') {
+              finalLlmMeta = event.payload;
+              continue;
+            }
+
+            if (event.type === 'content') {
+              accumulatedContent += event.payload.delta;
+            }
+
+            if (event.type === 'reasoning') {
+              accumulatedReasoning += event.payload.delta;
+            }
+
+            if (event.type === 'tool') {
+              toolCalls.set(event.payload.name, {
+                name: event.payload.name,
+                status: event.payload.status,
+              });
+            }
+
+            emit(event);
+          }
+
+          const assistantMessage =
+            await this.aiConversationRepository.createMessage({
+              conversationId: conversation.id,
+              organizationId: user.organizationId,
+              role: 'assistant',
+              content: finalLlmMeta?.content ?? accumulatedContent,
+              provider: finalLlmMeta?.provider,
+              model: finalLlmMeta?.model,
+              tokenUsage: finalLlmMeta?.tokenUsage,
+              metadata: {
+                toolCalls: Array.from(toolCalls.values()),
+                reasoning:
+                  finalLlmMeta?.reasoning || accumulatedReasoning || undefined,
+              },
+            });
+
+          const finalPayload: MessagePayload & {
+            conversation?: ConversationPayload;
+          } = this.toMessageResponse(assistantMessage);
 
           emit({
             type: 'final',

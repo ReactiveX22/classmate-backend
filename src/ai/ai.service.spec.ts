@@ -47,7 +47,9 @@ const assistantMessage = {
   provider: 'google',
   model: 'gemini-2.5-flash',
   tokenUsage: { input_tokens: 1, output_tokens: 2, total_tokens: 3 },
-  metadata: { toolCalls: [{ name: 'search_classroom_documents', status: 'end' }] },
+  metadata: {
+    toolCalls: [{ name: 'search_classroom_documents', status: 'end' }],
+  },
   createdAt: new Date('2026-01-01T00:00:02.000Z'),
 };
 
@@ -123,7 +125,7 @@ describe('AiService.streamChat', () => {
     );
 
     const events = await collectEvents(
-      service.streamChat({ message: 'Hello' }, user as never),
+      service.streamChat({ message: 'Hello', conversationId: 'conversation-1' }, user as never),
     );
 
     expect(events.map((event) => event.data.type)).toEqual([
@@ -142,9 +144,7 @@ describe('AiService.streamChat', () => {
         model: 'gemini-2.5-flash',
         tokenUsage: { input_tokens: 1, output_tokens: 2, total_tokens: 3 },
         metadata: {
-          toolCalls: [
-            { name: 'search_classroom_documents', status: 'end' },
-          ],
+          toolCalls: [{ name: 'search_classroom_documents', status: 'end' }],
         },
       }),
     );
@@ -159,7 +159,7 @@ describe('AiService.streamChat', () => {
     );
 
     await collectEvents(
-      service.streamChat({ message: 'Hello' }, user as never),
+      service.streamChat({ message: 'Hello', conversationId: 'conversation-1' }, user as never),
     );
 
     expect(repository.createMessage).toHaveBeenLastCalledWith(
@@ -221,6 +221,7 @@ describe('AiService.streamChat', () => {
       service.streamChat(
         {
           message: 'What are the exam rules for next week?',
+          conversationId: 'conversation-1',
         },
         user as never,
       ),
@@ -244,7 +245,7 @@ describe('AiService.streamChat', () => {
     const events: MessageEvent[] = [];
 
     await new Promise((resolve) => {
-      service.streamChat({ message: 'Hello' }, user as never).subscribe({
+      service.streamChat({ message: 'Hello', conversationId: 'conversation-1' }, user as never).subscribe({
         next: (event) => events.push(event),
         complete: () => resolve(undefined),
       });

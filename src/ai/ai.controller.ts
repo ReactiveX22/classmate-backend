@@ -20,6 +20,7 @@ import { type AppUserSession } from 'src/common/types/session.types';
 import { AiService } from './ai.service';
 import { CreateAiChatDto } from './dto/create-ai-chat.dto';
 import { SendAiChatDto } from './dto/send-ai-chat.dto';
+import { RetryAiChatDto } from './dto/retry-ai-chat.dto';
 import { UpdateAiConversationDto } from './dto/update-ai-conversation.dto';
 import { VectorSearchDto } from './dto/vector-search.dto';
 
@@ -51,6 +52,17 @@ export class AiController {
     @Session() session: AppUserSession,
   ): Observable<MessageEvent> {
     return this.aiService.streamChat(dto, session.user);
+  }
+
+  @Roles([AppRole.Instructor, AppRole.Student])
+  @Sse('chat/stream/retry', { [METHOD_METADATA]: RequestMethod.POST })
+  @Header('Cache-Control', 'no-cache')
+  @Header('X-Accel-Buffering', 'no')
+  retryChatStream(
+    @Body() dto: RetryAiChatDto,
+    @Session() session: AppUserSession,
+  ): Observable<MessageEvent> {
+    return this.aiService.retryStreamChat(dto, session.user);
   }
 
   @Roles([AppRole.Instructor, AppRole.Student])

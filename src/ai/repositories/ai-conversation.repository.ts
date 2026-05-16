@@ -113,6 +113,21 @@ export class AiConversationRepository {
       .where(and(eq(aiConversation.id, id), eq(aiConversation.userId, userId)));
   }
 
+  async findLastUserMessage(conversationId: string) {
+    const [result] = await this.db
+      .select()
+      .from(aiMessage)
+      .where(
+        and(
+          eq(aiMessage.conversationId, conversationId),
+          eq(aiMessage.role, 'user' as const),
+        ),
+      )
+      .orderBy(desc(aiMessage.createdAt))
+      .limit(1);
+    return result;
+  }
+
   async userCanAccessClassroom(
     classroomId: string,
     userId: string,

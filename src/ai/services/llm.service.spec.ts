@@ -5,7 +5,10 @@ import { LlmService } from './llm.service';
 
 describe('classifyAiProviderError', () => {
   it('classifies rate limit errors as retryable', () => {
-    const error = classifyAiProviderError({ status: 429, message: 'Too Many Requests' });
+    const error = classifyAiProviderError({
+      status: 429,
+      message: 'Too Many Requests',
+    });
 
     expect(error).toMatchObject({
       code: 'AI_PROVIDER_RATE_LIMITED',
@@ -15,7 +18,10 @@ describe('classifyAiProviderError', () => {
   });
 
   it('classifies timeouts as retryable', () => {
-    const error = classifyAiProviderError({ code: 'ETIMEDOUT', message: 'socket timeout' });
+    const error = classifyAiProviderError({
+      code: 'ETIMEDOUT',
+      message: 'socket timeout',
+    });
 
     expect(error).toMatchObject({
       code: 'AI_PROVIDER_TIMEOUT',
@@ -24,7 +30,10 @@ describe('classifyAiProviderError', () => {
   });
 
   it('classifies auth failures as non-retryable', () => {
-    const error = classifyAiProviderError({ status: 401, message: 'Unauthorized' });
+    const error = classifyAiProviderError({
+      status: 401,
+      message: 'Unauthorized',
+    });
 
     expect(error).toMatchObject({
       code: 'AI_PROVIDER_AUTH_FAILED',
@@ -56,7 +65,9 @@ describe('LlmService invokeWithRetry', () => {
   });
 
   it('retries transient failures and eventually succeeds', async () => {
-    const sleepSpy = vi.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
+    const sleepSpy = vi
+      .spyOn(service as any, 'sleep')
+      .mockResolvedValue(undefined);
     const fn = vi
       .fn()
       .mockRejectedValueOnce({ status: 429, message: 'Too Many Requests' })
@@ -68,7 +79,9 @@ describe('LlmService invokeWithRetry', () => {
   });
 
   it('fails fast on non-retryable provider errors', async () => {
-    const fn = vi.fn().mockRejectedValue({ status: 401, message: 'Unauthorized' });
+    const fn = vi
+      .fn()
+      .mockRejectedValue({ status: 401, message: 'Unauthorized' });
 
     await expect((service as any).invokeWithRetry(fn)).rejects.toThrow(
       AiProviderException,

@@ -291,7 +291,10 @@ export class LlmService implements OnModuleInit {
     return blocks
       .map((block) => {
         if (block.type === 'text') {
-          const textBlock = block as unknown as { text: string; thought?: boolean };
+          const textBlock = block as unknown as {
+            text: string;
+            thought?: boolean;
+          };
           if (textBlock.thought === true) return '';
           return 'text' in textBlock ? String(textBlock.text) : '';
         }
@@ -311,8 +314,16 @@ export class LlmService implements OnModuleInit {
               )
             : '';
         }
-        const textBlock = block as unknown as { type: string; text: string; thought?: boolean };
-        if (textBlock.type === 'text' && textBlock.thought === true && 'text' in textBlock) {
+        const textBlock = block as unknown as {
+          type: string;
+          text: string;
+          thought?: boolean;
+        };
+        if (
+          textBlock.type === 'text' &&
+          textBlock.thought === true &&
+          'text' in textBlock
+        ) {
           return String(textBlock.text);
         }
         return '';
