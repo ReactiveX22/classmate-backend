@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { and, desc, eq, or } from 'drizzle-orm';
-import { type DB, InjectDb } from 'src/database/db.provider';
+import { InjectDb, type DB } from 'src/database/db.provider';
 import {
   aiConversation,
   aiMessage,
+  checkpointBlobs,
+  checkpointWrites,
+  checkpoints,
   classroom,
   classroomMembers,
   course,
@@ -108,9 +111,22 @@ export class AiConversationRepository {
   }
 
   async deleteConversation(id: string, userId: string) {
-    await this.db
-      .delete(aiConversation)
-      .where(and(eq(aiConversation.id, id), eq(aiConversation.userId, userId)));
+    const threadId = `user_${userId}_conv_${id}`;
+
+    await this.db.transaction(async (tx) => {
+      await tx
+        .delete(checkpointBlobs)
+        .where(eq(checkpointBlobs.threadId, threadId));
+      await tx
+        .delete(checkpointWrites)
+        .where(eq(checkpointWrites.threadId, threadId));
+      await tx.delete(checkpoints).where(eq(checkpoints.threadId, threadId));
+      await tx
+        .delete(aiConversation)
+        .where(
+          and(eq(aiConversation.id, id), eq(aiConversation.userId, userId)),
+        );
+    });
   }
 
   async findLastUserMessage(conversationId: string) {
