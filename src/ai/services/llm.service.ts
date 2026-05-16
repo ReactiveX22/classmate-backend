@@ -124,11 +124,9 @@ export class LlmService implements OnModuleInit {
       yield* this.runStream(threadId, userMessage, context);
     } catch (error) {
       const classified = classifyAiProviderError(error);
-      this.logger.warn(
-        `AI stream failed: ${classified.code} threadId=${threadId} model=${this.modelName}`,
-      );
-      this.logger.debug(
-        `AI stream raw error: ${this.summarizeError(error)} threadId=${threadId}`,
+      this.logger.error(
+        `AI stream failed: threadId=${threadId} model=${this.modelName}`,
+        error instanceof Error ? error.stack : error,
       );
       throw new AiProviderException(classified.code, classified.message);
     }
@@ -342,18 +340,6 @@ export class LlmService implements OnModuleInit {
       .slice(0, 80);
 
     return sanitized || undefined;
-  }
-
-  private summarizeError(error: unknown): string {
-    if (error instanceof Error) {
-      return `${error.name}: ${error.message}`;
-    }
-
-    try {
-      return JSON.stringify(error);
-    } catch {
-      return String(error);
-    }
   }
 }
 
