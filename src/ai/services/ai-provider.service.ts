@@ -85,6 +85,7 @@ export class AiProviderService {
           temperature: options.temperature,
           maxTokens: Math.min(options.maxOutputTokens, 2048),
           maxRetries: options.maxRetries,
+          reasoningEffort: overrides?.reasoningEffort ?? 'low',
         });
 
       default:
