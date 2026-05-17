@@ -105,7 +105,6 @@
     "@types/nodemailer": "^7.0.9",
     "@types/pg": "^8.15.6",
     "@types/supertest": "^6.0.2",
-    "@types/uuid": "^11.0.0",
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9.39.2",
@@ -126,5 +125,10 @@
     "unplugin-swc": "^1.5.9",
     "vitest": "^4.1.5",
     "vitest-tsconfig-paths": "^3.4.1"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@langchain/core@1.1.46": "patches/@langchain__core.patch"
+    }
   }
 }
