@@ -1,15 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  and,
-  eq,
-  exists,
-  gte,
-  inArray,
-  notExists,
-  or,
-  SQL,
-  sql,
-} from 'drizzle-orm';
+import { and, eq, exists, gte, inArray, notExists, or, sql } from 'drizzle-orm';
 import {
   ClassroomPaginationConfig,
   ClassroomPostPaginationConfig,
@@ -24,6 +14,7 @@ import {
   classroomResourceBookmark,
   course,
   SelectClassroom,
+  user,
 } from 'src/database/schema';
 import { PaginationService } from 'src/lib/pagination/pagination.service';
 import { ListClassroomPostsDto } from './dto/list-classroom-posts.dto';
@@ -48,7 +39,7 @@ export class ClassroomRepository {
   }
 
   async findAll(query: PaginationQueryDto, orgId: string, userId: string) {
-    const filters: SQL[] = [
+    const filters = [
       eq(course.organizationId, orgId),
       or(
         eq(classroom.teacherId, userId),
@@ -145,7 +136,7 @@ export class ClassroomRepository {
     teacherId: string,
     userId?: string,
   ) {
-    const filters: SQL[] = [eq(classroomPost.classroomId, classroomId)];
+    const filters = [eq(classroomPost.classroomId, classroomId)];
 
     if (query.type) {
       filters.push(eq(classroomPost.type, query.type));
@@ -291,7 +282,7 @@ export class ClassroomRepository {
     userId: string,
     isStudent: boolean,
   ) {
-    const filters: SQL[] = [
+    const filters = [
       eq(classroomPost.classroomId, classroomId),
       eq(classroomPost.type, 'assignment'),
       gte(
@@ -352,5 +343,186 @@ export class ClassroomRepository {
     });
 
     return classrooms;
+  }
+
+  async getAllStudentsGradeStats(classroomId: string) {
+    const members: { studentId: string; studentName: string | null }[] =
+      await this.db
+        .select({
+          studentId: classroomMembers.studentId,
+          studentName: user.name,
+        })
+        .from(classroomMembers)
+        .innerJoin(user, eq(classroomMembers.studentId, user.id))
+        .where(eq(classroomMembers.classroomId, classroomId));
+
+    const assignments = await this.db.query.classroomPost.findMany({
+      where: and(
+        eq(classroomPost.classroomId, classroomId),
+        eq(classroomPost.type, 'assignment'),
+      ),
+      with: {
+        submissions: true,
+      },
+    });
+
+    const studentStats = new Map<
+      string,
+      { name: string; earned: number; possible: number; missing: number }
+    >();
+
+    for (const member of members) {
+      studentStats.set(member.studentId, {
+        name: member.studentName ?? member.studentId,
+        earned: 0,
+        possible: 0,
+        missing: 0,
+      });
+    }
+
+    for (const assignment of assignments) {
+      const maxPoints = assignment.assignmentData?.points || 0;
+      const dueDate = assignment.assignmentData?.dueDate;
+
+      for (const member of members) {
+        const submission = assignment.submissions.find(
+          (s) => s.studentId === member.studentId,
+        );
+        const stats = studentStats.get(member.studentId)!;
+
+        if (
+          submission &&
+          submission.status === 'graded' &&
+          submission.grade !== null &&
+          maxPoints > 0
+        ) {
+          stats.earned += submission.grade;
+          stats.possible += maxPoints;
+        } else if (maxPoints > 0) {
+          stats.possible += maxPoints;
+        }
+
+        if (dueDate) {
+          const dueDateTime = new Date(dueDate).getTime();
+          const now = new Date().getTime();
+          if (dueDateTime < now && (!submission || !submission.submittedAt)) {
+            stats.missing++;
+          } else if (
+            submission?.submittedAt &&
+            new Date(submission.submittedAt).getTime() > dueDateTime
+          ) {
+            stats.missing++;
+          }
+        }
+      }
+    }
+
+    return Array.from(studentStats.entries()).map(([studentId, data]) => ({
+      studentId,
+      name: data.name,
+      overall_grade:
+        data.possible > 0 ? Math.round((data.earned / data.possible) * 100) : 0,
+      missing_work: data.missing,
+    }));
+  }
+
+  async getStudentGradeDetails(classroomId: string, studentId: string) {
+    const student = await this.db
+      .select({ name: user.name })
+      .from(user)
+      .where(eq(user.id, studentId))
+      .then((res) => res[0]);
+
+    const assignments = await this.db.query.classroomPost.findMany({
+      where: and(
+        eq(classroomPost.classroomId, classroomId),
+        eq(classroomPost.type, 'assignment'),
+      ),
+      orderBy: (posts, { desc }) => [desc(posts.createdAt)],
+    });
+
+    const submissions = await this.db
+      .select()
+      .from(assignmentSubmission)
+      .where(
+        and(
+          eq(assignmentSubmission.studentId, studentId),
+          inArray(
+            assignmentSubmission.postId,
+            assignments.map((a) => a.id),
+          ),
+        ),
+      );
+
+    const submissionMap = new Map<string, (typeof submissions)[0]>();
+    for (const sub of submissions) {
+      submissionMap.set(sub.postId, sub);
+    }
+
+    let totalEarnedPoints = 0;
+    let totalPossiblePoints = 0;
+    let missingWorkCount = 0;
+
+    const assignmentDetails = assignments.map((assignment) => {
+      const submission = submissionMap.get(assignment.id);
+      const maxPoints = assignment.assignmentData?.points || 0;
+      const dueDate = assignment.assignmentData?.dueDate;
+
+      let grade: number | null = null;
+      let feedback: string | null = null;
+      let status = 'not_started';
+      let percentage: number | null = null;
+
+      if (submission) {
+        status = submission.status;
+        if (submission.status === 'graded' && submission.grade !== null) {
+          grade = submission.grade;
+          feedback = submission.feedback ?? null;
+          percentage =
+            maxPoints > 0
+              ? Math.round((submission.grade / maxPoints) * 100)
+              : null;
+          totalEarnedPoints += submission.grade;
+          totalPossiblePoints += maxPoints;
+        } else if (maxPoints > 0) {
+          totalPossiblePoints += maxPoints;
+        }
+      }
+
+      if (dueDate) {
+        const dueDateTime = new Date(dueDate).getTime();
+        const now = new Date().getTime();
+        if (dueDateTime < now && (!submission || !submission.submittedAt)) {
+          missingWorkCount++;
+        } else if (
+          submission?.submittedAt &&
+          new Date(submission.submittedAt).getTime() > dueDateTime
+        ) {
+          missingWorkCount++;
+        }
+      }
+
+      return {
+        title: assignment.title,
+        grade,
+        maxPoints,
+        percentage,
+        feedback,
+        status,
+        dueDate: dueDate ?? null,
+      };
+    });
+
+    const overallGradePercentage =
+      totalPossiblePoints > 0
+        ? Math.round((totalEarnedPoints / totalPossiblePoints) * 100)
+        : 0;
+
+    return {
+      studentName: student?.name ?? studentId,
+      overall_grade: overallGradePercentage,
+      missing_work: missingWorkCount,
+      assignments: assignmentDetails,
+    };
   }
 }

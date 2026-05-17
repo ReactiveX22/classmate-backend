@@ -49,6 +49,7 @@ import { SubmissionService } from './services/submission.service';
     ClassroomRepository,
     ClassroomPostRepository,
     SubmissionRepository,
+    AttendanceRepository,
   ],
 })
 export class ClassroomModule {}

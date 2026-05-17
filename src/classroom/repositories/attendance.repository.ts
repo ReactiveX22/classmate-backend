@@ -106,4 +106,44 @@ export class AttendanceRepository {
 
     return result;
   }
+
+  async getMonthlyAttendance(
+    classroomId: string,
+    studentId?: string,
+    year?: number,
+    month?: number,
+  ) {
+    const now = new Date();
+    const targetYear = year ?? now.getFullYear();
+    const targetMonth = month ?? now.getMonth() + 1;
+
+    const startDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-01`;
+    const lastDay = new Date(targetYear, targetMonth, 0).getDate();
+    const endDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+    const conditions = [
+      eq(attendance.classroomId, classroomId),
+      sql`${attendance.date} >= ${startDate}`,
+      sql`${attendance.date} <= ${endDate}`,
+    ];
+
+    if (studentId) {
+      conditions.push(eq(attendance.studentId, studentId));
+    }
+
+    const records = await this.db
+      .select({
+        studentId: attendance.studentId,
+        studentName: user.name,
+        date: attendance.date,
+        status: attendance.status,
+        remarks: attendance.remarks,
+      })
+      .from(attendance)
+      .innerJoin(user, eq(attendance.studentId, user.id))
+      .where(and(...conditions))
+      .orderBy(attendance.date, user.name);
+
+    return records;
+  }
 }
