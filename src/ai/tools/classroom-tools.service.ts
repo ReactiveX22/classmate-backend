@@ -162,29 +162,45 @@ export class ClassroomToolsService {
         const userRole = user?.role ?? '';
         const isTeacher = userRole === 'instructor' || userRole === 'admin';
 
-        if (!isTeacher) {
-          return 'This tool is only available to teachers.';
+        if (isTeacher) {
+          const submissions =
+            await submissionRepository.findByPostIdForTools(postId);
+
+          if (!submissions.length) {
+            return 'No submissions found for this assignment.';
+          }
+
+          const formatted = submissions.map((sub) => ({
+            studentName: sub.studentName,
+            status: sub.status,
+            submittedAt: sub.submittedAt,
+          }));
+
+          return JSON.stringify(formatted, null, 2);
         }
 
-        const submissions =
-          await submissionRepository.findByPostIdForTools(postId);
+        const submission = await submissionRepository.fetchOneByUser(
+          user!.id,
+          postId,
+        );
 
-        if (!submissions.length) {
-          return 'No submissions found for this assignment.';
+        if (!submission) {
+          return 'You have not submitted anything for this assignment yet.';
         }
 
-        const formatted = submissions.map((sub) => ({
-          studentName: sub.studentName,
-          status: sub.status,
-          submittedAt: sub.submittedAt,
-        }));
+        const formatted = {
+          status: submission.status,
+          submittedAt: submission.submittedAt?.toISOString() ?? null,
+          grade: submission.grade,
+          feedback: submission.feedback,
+        };
 
         return JSON.stringify(formatted, null, 2);
       },
       {
         name: 'get_assignment_submissions',
         description:
-          'Get submission status for an assignment. Shows which students have submitted, are pending, or are missing. Only available to teachers.',
+          "Get submission information for an assignment. For teachers: shows all students' submission status. For students: shows their own submission status, grade, and feedback.",
         schema: z.object({
           postId: z.string().describe('The assignment post ID'),
           classroomId: z

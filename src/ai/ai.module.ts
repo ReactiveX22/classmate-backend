@@ -13,6 +13,7 @@ import { LlmService } from './services/llm.service';
 import { PromptLoaderService } from './services/prompt-loader.service';
 import { AiToolsRegistry } from './tools/ai-tools-registry.service';
 import { ClassroomToolsService } from './tools/classroom-tools.service';
+import { DeadlineToolsService } from './tools/deadline-tools.service';
 import { NoticeToolsService } from './tools/notice-tools.service';
 import { RagToolsService } from './tools/rag-tools.service';
 import { AiProviderService } from './services/ai-provider.service';
@@ -55,6 +56,7 @@ export const AI_PG_POOL = 'AI_PG_POOL';
     LlmService,
     RagToolsService,
     ClassroomToolsService,
+    DeadlineToolsService,
     NoticeToolsService,
     AiToolsRegistry,
   ],
