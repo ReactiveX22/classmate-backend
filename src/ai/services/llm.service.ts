@@ -86,12 +86,15 @@ export class LlmService implements OnModuleInit {
       );
     }
 
+    const systemPrompt = this.aiContextService.buildSystemPrompt(context.user);
+
     const result = await this.graph.invoke(
       { messages: [new HumanMessage(userMessage)] },
       {
         configurable: {
           thread_id: threadId,
           user: context.user,
+          systemPrompt,
           classroomId: context.classroomId,
         },
       },
@@ -147,6 +150,8 @@ export class LlmService implements OnModuleInit {
     userMessage: string,
     context: { user: User; classroomId?: string },
   ): AsyncGenerator<LlmStreamEvent> {
+    const systemPrompt = this.aiContextService.buildSystemPrompt(context.user);
+
     const stream = await this.graph.stream(
       { messages: [new HumanMessage(userMessage)] },
       {
@@ -154,6 +159,7 @@ export class LlmService implements OnModuleInit {
         configurable: {
           thread_id: threadId,
           user: context.user,
+          systemPrompt,
           classroomId: context.classroomId,
         },
       },
@@ -194,6 +200,12 @@ export class LlmService implements OnModuleInit {
       }
 
       const contentBlocks = message.contentBlocks;
+
+      if (contentBlocks?.length) {
+        this.logger.debug(
+          `Stream blocks: ${JSON.stringify(contentBlocks, null, 2)}`,
+        );
+      }
 
       const textDelta = this.extractTextFromBlocks(contentBlocks);
       if (textDelta) {
@@ -270,10 +282,10 @@ export class LlmService implements OnModuleInit {
           );
         }
 
-        const { user } = (config?.configurable ?? {}) as {
+        const { systemPrompt } = (config?.configurable ?? {}) as {
           user: User;
+          systemPrompt: SystemMessage;
         };
-        const systemPrompt = this.aiContextService.buildSystemPrompt(user);
 
         const tools = this.toolsRegistry.getTools();
         const modelWithTools = this.model.bindTools(tools);

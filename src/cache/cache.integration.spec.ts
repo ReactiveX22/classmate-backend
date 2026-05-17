@@ -74,7 +74,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
         handle: () => of({ data: 'fresh' }),
       };
 
-      const result$ = await interceptor.intercept(mockContext, next as any);
+      const result$ = await interceptor.intercept(mockContext, next);
       const result = await result$.toPromise();
 
       expect(mockCacheManager.get).toHaveBeenCalledWith(
@@ -109,7 +109,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
         handle: () => of({ data: 'fresh' }),
       };
 
-      const result$ = await interceptor.intercept(mockContext, next as any);
+      const result$ = await interceptor.intercept(mockContext, next);
       const result = await result$.toPromise();
 
       expect(mockCacheManager.get).toHaveBeenCalledWith(
@@ -145,7 +145,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
         handle: () => of({ success: true }),
       };
 
-      const result$ = await interceptor.intercept(mockContext, next as any);
+      const result$ = await interceptor.intercept(mockContext, next);
       await result$.toPromise();
 
       expect(eventEmitter.emit).toHaveBeenCalledWith('cache.invalidate', {
