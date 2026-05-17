@@ -91,6 +91,12 @@ export class AiController {
   }
 
   @Roles([AppRole.Instructor, AppRole.Student])
+  @Delete('conversations')
+  deleteAllConversations(@Session() session: AppUserSession) {
+    return this.aiService.deleteAllConversations(session.user);
+  }
+
+  @Roles([AppRole.Instructor, AppRole.Student])
   @Delete('conversations/:id')
   deleteConversation(
     @Param('id', ParseUUIDPipe) id: string,

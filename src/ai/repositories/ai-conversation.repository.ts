@@ -129,6 +129,18 @@ export class AiConversationRepository {
     });
   }
 
+  async deleteAllConversations(userId: string) {
+    const conversations = await this.findConversationsForUser(userId);
+
+    if (!conversations.length) return;
+
+    await this.db.transaction(async (tx) => {
+      await tx.delete(aiMessage).where(eq(aiMessage.userId, userId));
+
+      await tx.delete(aiConversation).where(eq(aiConversation.userId, userId));
+    });
+  }
+
   async findLastUserMessage(conversationId: string) {
     const [result] = await this.db
       .select()

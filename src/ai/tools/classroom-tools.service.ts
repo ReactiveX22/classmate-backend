@@ -25,6 +25,7 @@ export class ClassroomToolsService {
     return [
       this.buildListClassroomsTool(),
       this.buildGetPostsTool(),
+      this.buildGetPostByIdTool(),
       this.buildGetSubmissionsTool(),
     ];
   }
@@ -128,6 +129,114 @@ export class ClassroomToolsService {
             .enum(['announcement', 'assignment', 'question', 'material'])
             .optional()
             .describe('Filter by post type'),
+        }),
+      },
+    );
+  }
+
+  private buildGetPostByIdTool() {
+    const postRepository = this.postRepository;
+    const classroomRepository = this.classroomRepository;
+
+    return tool(
+      async (
+        { postId, classroomId: argClassroomId },
+        config: ToolRunnableConfig,
+      ) => {
+        const { user, classroomId: configClassroomId } = (config.configurable ??
+          {}) as ToolConfigurable;
+        const classroomId = argClassroomId || configClassroomId;
+
+        if (!classroomId) {
+          return 'No classroom context available. Please provide a classroomId or call list_user_classrooms first.';
+        }
+
+        if (argClassroomId && user?.id) {
+          const joined = await classroomRepository.findJoinedClassrooms(
+            user.id,
+          );
+          if (!joined.some((c) => c.id === argClassroomId)) {
+            return 'Access denied to the specified classroom.';
+          }
+        }
+
+        const post = await postRepository.fetchOne(postId, user?.id);
+
+        if (!post) {
+          return 'Post not found.';
+        }
+
+        if (post.classroomId !== classroomId) {
+          return 'Post does not belong to the specified classroom.';
+        }
+
+        const formatted: Record<string, unknown> = {
+          id: post.id,
+          title: post.title,
+          type: post.type,
+          content: post.content,
+          authorName: post.authorName,
+          createdAt: post.createdAt,
+        };
+
+        if (post.type === 'assignment' && post.assignmentData) {
+          formatted.dueDate = post.assignmentData.dueDate;
+          formatted.points = post.assignmentData.points;
+          formatted.allowLateSubmission =
+            post.assignmentData.allowLateSubmission;
+        }
+
+        if (
+          post.type === 'question' &&
+          post.questionData &&
+          post.questionData.mode === 'poll'
+        ) {
+          formatted.options = post.questionData.options;
+          formatted.selectionMode = post.questionData.selectionMode;
+        }
+
+        if (post.attachments?.length) {
+          formatted.attachments = post.attachments.map(
+            (a: { id: string; name: string; url: string }) => ({
+              name: a.name,
+              url: a.url,
+            }),
+          );
+        }
+
+        if (user?.role === 'student' && user.id) {
+          const submission = await this.submissionRepository.fetchOneByUser(
+            user.id,
+            postId,
+          );
+          if (submission) {
+            formatted.mySubmission = {
+              status: submission.status,
+              submittedAt: submission.submittedAt?.toISOString() ?? null,
+              grade: submission.grade,
+              feedback: submission.feedback,
+            };
+          }
+        }
+
+        return JSON.stringify(formatted, null, 2);
+      },
+      {
+        name: 'get_classroom_post_by_id',
+        description:
+          'Get detailed information about a specific classroom post by its ID. ' +
+          'Includes full content, assignment details (due date, points), question options, attachments, ' +
+          "and the student's own submission status if applicable. " +
+          'Use when the user asks for details about a specific post or assignment.',
+        schema: z.object({
+          postId: z.string().describe('The ID of the post to fetch'),
+          classroomId: z
+            .string()
+            .uuid()
+            .optional()
+            .describe(
+              'The ID of the classroom. Helps verify the post belongs to the expected classroom.',
+            ),
         }),
       },
     );

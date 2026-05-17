@@ -437,6 +437,10 @@ export class AiService {
     await this.aiConversationRepository.deleteConversation(id, user.id);
   }
 
+  async deleteAllConversations(user: User) {
+    await this.aiConversationRepository.deleteAllConversations(user.id);
+  }
+
   private async findOwnedConversation(conversationId: string, user: User) {
     const conversation =
       await this.aiConversationRepository.findConversationForUser(
