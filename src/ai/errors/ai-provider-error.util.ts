@@ -22,7 +22,9 @@ export function classifyAiProviderError(error: unknown): AiProviderError {
     code === 'RESOURCE_EXHAUSTED' ||
     normalizedMessage.includes('quota exceeded') ||
     normalizedMessage.includes('rate limit') ||
-    normalizedMessage.includes('too many requests')
+    normalizedMessage.includes('rate_limit') ||
+    normalizedMessage.includes('too many requests') ||
+    normalizedMessage.includes('tokens per minute')
   ) {
     return {
       code: 'AI_PROVIDER_RATE_LIMITED',

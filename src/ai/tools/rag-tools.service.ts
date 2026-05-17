@@ -89,7 +89,7 @@ export class RagToolsService {
             .optional()
             .describe('The ID of the classroom to search documents in.'),
           query: z.string().describe('Natural language search query'),
-          limit: z
+          limit: z.coerce
             .number()
             .int()
             .min(1)

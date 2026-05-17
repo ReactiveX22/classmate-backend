@@ -66,7 +66,7 @@ export class AiProviderService {
         return new ChatGoogle({
           model:
             overrides?.model ??
-            this.configService.get('AI_MODEL') ??
+            this.configService.get('GOOGLE_MODEL') ??
             'gemini-2.5-flash',
           apiKey,
           temperature: options.temperature,
@@ -77,10 +77,13 @@ export class AiProviderService {
 
       case 'groq':
         return new ChatGroq({
-          model: overrides?.model ?? 'llama-3.3-70b-versatile',
+          model:
+            overrides?.model ??
+            this.configService.get('GROQ_MODEL') ??
+            'llama-3.3-70b-versatile',
           apiKey,
           temperature: options.temperature,
-          maxTokens: options.maxOutputTokens,
+          maxTokens: Math.min(options.maxOutputTokens, 2048),
           maxRetries: options.maxRetries,
         });
 
@@ -111,6 +114,7 @@ export class AiProviderService {
     for (const provider of candidates) {
       // Skip if not configured
       if (!this.isConfigured(provider)) continue;
+
       lastProvider = provider;
 
       try {

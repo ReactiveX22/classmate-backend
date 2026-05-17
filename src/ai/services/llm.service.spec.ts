@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 import { beforeEach, describe, expect, it, vi, Mocked } from 'vitest';
 import { classifyAiProviderError } from '../errors/ai-provider-error.util';
@@ -69,6 +70,7 @@ describe('LlmService', () => {
       } as unknown as AiContextService,
       toolsRegistry,
       aiProviderService,
+      { get: vi.fn() } as unknown as ConfigService,
     );
   });
 
