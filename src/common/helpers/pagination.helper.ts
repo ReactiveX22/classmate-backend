@@ -1,6 +1,4 @@
 import { eq, SQL } from 'drizzle-orm';
-import { PgSelect } from 'drizzle-orm/pg-core';
-import { type DB } from 'src/database/db.provider';
 import { user } from 'src/database/schema';
 import {
   PaginatedResponse,

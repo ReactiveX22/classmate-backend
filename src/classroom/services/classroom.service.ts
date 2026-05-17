@@ -244,7 +244,7 @@ export class ClassroomService {
       async (tx) => {
         const post = await this.classroomPostRepository.create(
           tx,
-          normalizedBody as any,
+          normalizedBody,
           classroom.id,
           user.id,
         );
@@ -303,7 +303,7 @@ export class ClassroomService {
       new NotificationCreatedEvent({
         title: formatted.title,
         content: formatted.content,
-        type: mapping.type as any,
+        type: mapping.type,
         organizationId: classroom.course.organizationId,
         recipientId: null,
         actorId: user.id,

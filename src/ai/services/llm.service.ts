@@ -16,8 +16,10 @@ import { User } from 'src/auth/auth.factory';
 import { classifyAiProviderError } from '../errors/ai-provider-error.util';
 import { AiProviderException } from '../exceptions/ai-provider.exception';
 import { AiToolsRegistry } from '../tools/ai-tools-registry.service';
+import { AiProvider } from '../types/ai-provider.types';
 import { LlmStreamEvent } from '../types/ai-stream-event.types';
 import { AiContextService } from './ai-context.service';
+import { AiProviderService } from './ai-provider.service';
 
 export type LlmChatResponse = {
   content: string;
@@ -32,34 +34,16 @@ type AIMessageWithBlocks = AIMessage & { contentBlocks?: ContentBlock[] };
 @Injectable()
 export class LlmService implements OnModuleInit {
   private readonly logger = new Logger(LlmService.name);
-  private readonly provider = 'google';
-  private readonly modelName: string;
-  private readonly enabled: boolean;
-  private readonly model?: ChatGoogle;
   private readonly checkpointer: PostgresSaver;
   private readonly graph: ReturnType<typeof this.buildChatGraph>;
 
   constructor(
-    private readonly configService: ConfigService,
     @Inject('AI_PG_POOL') private readonly pool: Pool,
     private readonly aiContextService: AiContextService,
     private readonly toolsRegistry: AiToolsRegistry,
+    private readonly aiProviderService: AiProviderService,
+    private readonly configService: ConfigService,
   ) {
-    this.enabled = this.configService.get<boolean>('AI_ENABLED') ?? false;
-    this.modelName =
-      this.configService.get<string>('AI_MODEL') ?? 'gemini-2.5-flash';
-
-    if (this.enabled) {
-      this.model = new ChatGoogle({
-        model: this.modelName,
-        apiKey: this.configService.get<string>('GOOGLE_API_KEY'),
-        temperature: this.configService.get<number>('AI_TEMPERATURE') ?? 0.2,
-        maxOutputTokens:
-          this.configService.get<number>('AI_MAX_OUTPUT_TOKENS') ?? 2048,
-        maxRetries: 0,
-      });
-    }
-
     this.checkpointer = new PostgresSaver(this.pool);
     this.graph = this.buildChatGraph();
   }
@@ -78,12 +62,14 @@ export class LlmService implements OnModuleInit {
     userMessage: string,
     context: { user: User; classroomId?: string },
   ): Promise<LlmChatResponse> {
-    if (!this.enabled || !this.model) {
+    if (!this.aiProviderService.isEnabled()) {
       throw new AiProviderException(
         'AI_PROVIDER_UNAVAILABLE',
         'AI chat is not enabled',
       );
     }
+
+    const systemPrompt = this.aiContextService.buildSystemPrompt(context.user);
 
     const result = await this.graph.invoke(
       { messages: [new HumanMessage(userMessage)] },
@@ -91,18 +77,26 @@ export class LlmService implements OnModuleInit {
         configurable: {
           thread_id: threadId,
           user: context.user,
+          systemPrompt,
           classroomId: context.classroomId,
         },
       },
     );
 
     const last = result.messages.at(-1) as AIMessageWithBlocks;
+    const provider =
+      (last.response_metadata?.provider as AiProvider) ?? 'unknown';
+    const model = (last.response_metadata?.model as string) ?? 'unknown';
+
+    this.logger.log(
+      `AI chat completed: threadId=${threadId}, provider=${provider}, model=${model}`,
+    );
 
     return {
       content: this.extractTextFromBlocks(last.contentBlocks),
       tokenUsage: last.usage_metadata ?? undefined,
-      provider: this.provider,
-      model: this.modelName,
+      provider,
+      model,
       reasoning:
         this.extractReasoningFromBlocks(last.contentBlocks) || undefined,
     };
@@ -113,7 +107,7 @@ export class LlmService implements OnModuleInit {
     userMessage: string,
     context: { user: User; classroomId?: string },
   ): AsyncGenerator<LlmStreamEvent> {
-    if (!this.enabled || !this.model) {
+    if (!this.aiProviderService.isEnabled()) {
       throw new AiProviderException(
         'AI_PROVIDER_UNAVAILABLE',
         'AI chat is not enabled',
@@ -124,11 +118,20 @@ export class LlmService implements OnModuleInit {
       yield* this.runStream(threadId, userMessage, context);
     } catch (error) {
       const classified = classifyAiProviderError(error);
+      const provider =
+        error instanceof AiProviderException ? error.provider : undefined;
+      const providerSuffix = provider ? ` [${provider}]` : '';
+
       this.logger.error(
-        `AI stream failed: threadId=${threadId} model=${this.modelName}`,
+        `AI stream failed: threadId=${threadId}${providerSuffix} - ${classified.message}`,
         error instanceof Error ? error.stack : error,
       );
-      throw new AiProviderException(classified.code, classified.message);
+      throw new AiProviderException(
+        classified.code,
+        classified.message,
+        undefined,
+        provider,
+      );
     }
   }
 
@@ -137,6 +140,8 @@ export class LlmService implements OnModuleInit {
     userMessage: string,
     context: { user: User; classroomId?: string },
   ): AsyncGenerator<LlmStreamEvent> {
+    const systemPrompt = this.aiContextService.buildSystemPrompt(context.user);
+
     const stream = await this.graph.stream(
       { messages: [new HumanMessage(userMessage)] },
       {
@@ -144,6 +149,7 @@ export class LlmService implements OnModuleInit {
         configurable: {
           thread_id: threadId,
           user: context.user,
+          systemPrompt,
           classroomId: context.classroomId,
         },
       },
@@ -185,6 +191,13 @@ export class LlmService implements OnModuleInit {
 
       const contentBlocks = message.contentBlocks;
 
+      // DO NOT REMOVE THIS. Debug log for AI streaming
+      if (contentBlocks?.length) {
+        this.logger.debug(
+          `Stream blocks: ${JSON.stringify(contentBlocks, null, 2)}`,
+        );
+      }
+
       const textDelta = this.extractTextFromBlocks(contentBlocks);
       if (textDelta) {
         yield { type: 'content', payload: { delta: textDelta } };
@@ -199,13 +212,21 @@ export class LlmService implements OnModuleInit {
         const reasoning = this.extractReasoningFromBlocks(
           message.contentBlocks,
         );
+        const provider =
+          (message.response_metadata?.provider as AiProvider) ?? 'unknown';
+        const model = (message.response_metadata?.model as string) ?? 'unknown';
+
+        this.logger.log(
+          `AI stream completed: threadId=${threadId}, provider=${provider}, model=${model}`,
+        );
+
         yield {
           type: '_internal_final_llm',
           payload: {
             content: this.extractTextFromBlocks(message.contentBlocks),
             tokenUsage: message.usage_metadata ?? undefined,
-            provider: this.provider,
-            model: this.modelName,
+            provider,
+            model,
             reasoning: reasoning || undefined,
           },
         };
@@ -218,10 +239,18 @@ export class LlmService implements OnModuleInit {
    * Returns undefined on failure so the caller can fall back gracefully.
    */
   async generateTitle(userMessage: string): Promise<string | undefined> {
-    if (!this.enabled || !this.model) return undefined;
+    if (!this.aiProviderService.isEnabled()) return undefined;
 
     try {
-      const response = await this.model.invoke([
+      const titleModel = new ChatGoogle({
+        model: 'gemma-4-31b-it',
+        apiKey: this.configService.get<string>('GOOGLE_API_KEY'),
+        temperature: 0.2,
+        maxOutputTokens: 64,
+        maxRetries: 0,
+      });
+
+      const response = await titleModel.invoke([
         new SystemMessage(
           [
             'You will receive a user message from a conversation.',
@@ -245,27 +274,36 @@ export class LlmService implements OnModuleInit {
   private buildChatGraph() {
     return new StateGraph(MessagesAnnotation)
       .addNode('model', async (state, config?: RunnableConfig) => {
-        if (!this.model) {
-          throw new AiProviderException(
-            'AI_PROVIDER_UNAVAILABLE',
-            'AI chat is not enabled',
-          );
-        }
-
-        const { user } = (config?.configurable ?? {}) as {
-          user: User;
+        const { systemPrompt } = (config?.configurable ?? {}) as {
+          systemPrompt: SystemMessage;
         };
-        const systemPrompt = this.aiContextService.buildSystemPrompt(user);
 
         const tools = this.toolsRegistry.getTools();
-        const modelWithTools = this.model.bindTools(tools);
 
-        const response = await modelWithTools.invoke([
-          systemPrompt,
-          ...state.messages,
-        ]);
+        // Use invokeWithFailover for robustness within the graph
+        const { result, provider } =
+          await this.aiProviderService.invokeWithFailover(async (model) => {
+            if (!model.bindTools) {
+              throw new AiProviderException(
+                'AI_PROVIDER_UNAVAILABLE',
+                `Model ${model.constructor.name} does not support tool calling`,
+              );
+            }
+            const modelWithTools = model.bindTools(tools);
+            return await modelWithTools.invoke([
+              systemPrompt,
+              ...state.messages,
+            ]);
+          });
 
-        return { messages: [response] };
+        // Inject provider/model info into response metadata for tracking
+        result.response_metadata = {
+          ...result.response_metadata,
+          provider,
+          model: result.response_metadata?.model_name ?? 'unknown',
+        };
+
+        return { messages: [result] };
       })
       .addNode('tools', new ToolNode(this.toolsRegistry.getTools()))
       .addEdge(START, 'model')

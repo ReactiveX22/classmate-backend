@@ -61,7 +61,10 @@ export class ClassroomToolsService {
         description:
           'List all classrooms the user is enrolled in (as a student or teacher). ' +
           'Use this to find classroom IDs when the user asks about their classes or when you need to switch context.',
-        schema: z.object({}),
+        // Groq cannot handle empty schemas; use a dummy optional parameter
+        schema: z.object({
+          _dummy: z.string().optional().describe('Internal parameter'),
+        }),
       },
     );
   }
@@ -114,7 +117,7 @@ export class ClassroomToolsService {
             .uuid()
             .optional()
             .describe('The ID of the classroom to fetch posts from.'),
-          limit: z
+          limit: z.coerce
             .number()
             .int()
             .min(1)

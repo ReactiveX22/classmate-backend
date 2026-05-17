@@ -4,10 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test, TestingModule } from '@nestjs/testing';
 import { of } from 'rxjs';
-import {
-  CACHE_INVALIDATE_METADATA,
-  CACHE_RESOURCE_METADATA,
-} from './cache.constants';
+import { CACHE_RESOURCE_METADATA } from './cache.constants';
 import { CacheService } from './cache.service';
 import { TenantCacheInterceptor } from './interceptors/tenant-cache.interceptor';
 
@@ -74,7 +71,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
         handle: () => of({ data: 'fresh' }),
       };
 
-      const result$ = await interceptor.intercept(mockContext, next as any);
+      const result$ = await interceptor.intercept(mockContext, next);
       const result = await result$.toPromise();
 
       expect(mockCacheManager.get).toHaveBeenCalledWith(
@@ -109,7 +106,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
         handle: () => of({ data: 'fresh' }),
       };
 
-      const result$ = await interceptor.intercept(mockContext, next as any);
+      const result$ = await interceptor.intercept(mockContext, next);
       const result = await result$.toPromise();
 
       expect(mockCacheManager.get).toHaveBeenCalledWith(
@@ -145,7 +142,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
         handle: () => of({ success: true }),
       };
 
-      const result$ = await interceptor.intercept(mockContext, next as any);
+      const result$ = await interceptor.intercept(mockContext, next);
       await result$.toPromise();
 
       expect(eventEmitter.emit).toHaveBeenCalledWith('cache.invalidate', {

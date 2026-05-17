@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, type SQL } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import {
   PaginatedResponse,
   PaginationQueryDto,
 } from 'src/common/dto/pagination.dto';
 import { buildOrganizationFilters } from 'src/common/helpers/pagination.helper';
 import { type DB, InjectDb } from 'src/database/db.provider';
-import { semester, SelectSemester } from 'src/database/schema';
+import { SelectSemester, semester } from 'src/database/schema';
 import { semesterPaginationConfig } from 'src/lib/pagination/config/semester.config';
 import { PaginationService } from 'src/lib/pagination/pagination.service';
 

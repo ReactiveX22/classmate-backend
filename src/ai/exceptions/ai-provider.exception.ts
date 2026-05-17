@@ -2,9 +2,11 @@ import { HttpStatus } from '@nestjs/common';
 import { ERROR_CODES } from 'src/common/constants/error.codes';
 import { ApplicationException } from 'src/common/exceptions/application.exception';
 import { AiProviderErrorCode } from '../errors/ai-provider-error';
+import { AiProvider } from '../types/ai-provider.types';
 
 const AI_PROVIDER_ERROR_CODES: Record<AiProviderErrorCode, string> = {
   AI_PROVIDER_RATE_LIMITED: ERROR_CODES.INFRA.AI_PROVIDER_RATE_LIMITED,
+  AI_PROVIDER_OVERLOADED: ERROR_CODES.INFRA.AI_PROVIDER_OVERLOADED,
   AI_PROVIDER_UNAVAILABLE: ERROR_CODES.INFRA.AI_PROVIDER_UNAVAILABLE,
   AI_PROVIDER_TIMEOUT: ERROR_CODES.INFRA.AI_PROVIDER_TIMEOUT,
   AI_PROVIDER_AUTH_FAILED: ERROR_CODES.INFRA.AI_PROVIDER_AUTH_FAILED,
@@ -17,6 +19,7 @@ export class AiProviderException extends ApplicationException {
     public readonly code: AiProviderErrorCode,
     message: string,
     status: HttpStatus = HttpStatus.SERVICE_UNAVAILABLE,
+    public readonly provider?: AiProvider,
   ) {
     super(status, message, AI_PROVIDER_ERROR_CODES[code]);
   }
