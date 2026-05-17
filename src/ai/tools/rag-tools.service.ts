@@ -9,6 +9,7 @@ interface ToolConfigurable {
   user?: {
     id: string;
     role?: string;
+    organizationId?: string | null;
   };
 }
 
@@ -20,7 +21,10 @@ export class RagToolsService {
   ) {}
 
   getTools() {
-    return [this.buildSearchDocumentsTool()];
+    return [
+      this.buildSearchDocumentsTool(),
+      this.buildSearchNoticeDocumentsTool(),
+    ];
   }
 
   private buildSearchDocumentsTool() {
@@ -88,6 +92,67 @@ export class RagToolsService {
             .uuid()
             .optional()
             .describe('The ID of the classroom to search documents in.'),
+          query: z.string().describe('Natural language search query'),
+          limit: z.coerce
+            .number()
+            .int()
+            .min(1)
+            .max(10)
+            .default(5)
+            .describe('Number of results to return (1–10, default 5)'),
+        }),
+      },
+    );
+  }
+
+  private buildSearchNoticeDocumentsTool() {
+    const vectorStoreService = this.vectorStoreService;
+
+    return tool(
+      async ({ query, limit }, config: ToolRunnableConfig) => {
+        const { user } = (config.configurable ?? {}) as ToolConfigurable;
+
+        if (!user?.organizationId) {
+          return 'No organization context available. Cannot search notice documents.';
+        }
+
+        const results = await vectorStoreService.similaritySearchWithScore(
+          query,
+          limit,
+          {
+            organizationId: user.organizationId,
+            resourceType: 'notice_attachment',
+          },
+        );
+
+        if (!results.length) {
+          return 'No relevant notice documents found.';
+        }
+
+        const formatted = results.map(([doc, score], index) => {
+          const meta = doc.metadata as Record<string, string | null>;
+          return {
+            rank: index + 1,
+            content: doc.pageContent,
+            source:
+              meta['attachmentName'] ??
+              meta['fileName'] ??
+              meta['source'] ??
+              'Unknown',
+            noticeId: meta['noticeId'] ?? null,
+            relevanceScore: Math.round(score * 1000) / 1000,
+          };
+        });
+
+        return JSON.stringify(formatted, null, 2);
+      },
+      {
+        name: 'search_notice_documents',
+        description:
+          'Search uploaded PDFs, slides, and attachments in organization notices. ' +
+          'Use when the user asks about content in files attached to official notices or announcements. ' +
+          'Returns relevant text excerpts with source file names.',
+        schema: z.object({
           query: z.string().describe('Natural language search query'),
           limit: z.coerce
             .number()

@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 import { ClassroomModule } from 'src/classroom/classroom.module';
 import { DatabaseModule } from 'src/database/database.module';
 import { EmbeddingModule } from 'src/embedding/embedding.module';
+import { NoticeModule } from 'src/notice/notice.module';
 import { AiController } from './ai.controller';
 import { AiService } from './ai.service';
 import { AiConversationRepository } from './repositories/ai-conversation.repository';
@@ -12,13 +13,20 @@ import { LlmService } from './services/llm.service';
 import { PromptLoaderService } from './services/prompt-loader.service';
 import { AiToolsRegistry } from './tools/ai-tools-registry.service';
 import { ClassroomToolsService } from './tools/classroom-tools.service';
+import { NoticeToolsService } from './tools/notice-tools.service';
 import { RagToolsService } from './tools/rag-tools.service';
 import { AiProviderService } from './services/ai-provider.service';
 
 export const AI_PG_POOL = 'AI_PG_POOL';
 
 @Module({
-  imports: [DatabaseModule, ConfigModule, EmbeddingModule, ClassroomModule],
+  imports: [
+    DatabaseModule,
+    ConfigModule,
+    EmbeddingModule,
+    ClassroomModule,
+    NoticeModule,
+  ],
   controllers: [AiController],
   providers: [
     /**
@@ -47,6 +55,7 @@ export const AI_PG_POOL = 'AI_PG_POOL';
     LlmService,
     RagToolsService,
     ClassroomToolsService,
+    NoticeToolsService,
     AiToolsRegistry,
   ],
 })

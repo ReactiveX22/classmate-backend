@@ -11,10 +11,12 @@ import {
 } from 'drizzle-orm/pg-core';
 import { classroomPost } from './classroom-post-schema';
 import { classroom } from './classroom-schema';
+import { notice } from './notice-schema';
 import { organization } from './organization-schema';
 
 export const embeddingResourceType = pgEnum('embedding_resource_type', [
   'classroom_post_attachment',
+  'notice_attachment',
 ]);
 
 export const embeddingStatus = pgEnum('embedding_status', [
@@ -33,12 +35,15 @@ export const embeddingTracking = pgTable(
     organizationId: uuid('organization_id')
       .references(() => organization.id, { onDelete: 'cascade' })
       .notNull(),
-    classroomId: uuid('classroom_id')
-      .references(() => classroom.id, { onDelete: 'cascade' })
-      .notNull(),
-    postId: uuid('post_id')
-      .references(() => classroomPost.id, { onDelete: 'cascade' })
-      .notNull(),
+    classroomId: uuid('classroom_id').references(() => classroom.id, {
+      onDelete: 'cascade',
+    }),
+    postId: uuid('post_id').references(() => classroomPost.id, {
+      onDelete: 'cascade',
+    }),
+    noticeId: uuid('notice_id').references(() => notice.id, {
+      onDelete: 'cascade',
+    }),
     attachmentId: text('attachment_id').notNull(),
     sourceHash: text('source_hash'),
     embeddingProvider: text('embedding_provider').notNull(),
@@ -69,8 +74,6 @@ export const embeddingTracking = pgTable(
     unique('embedding_tracking_unq').on(
       t.resourceType,
       t.organizationId,
-      t.classroomId,
-      t.postId,
       t.attachmentId,
       t.embeddingProvider,
       t.embeddingModel,
@@ -93,6 +96,10 @@ export const embeddingTrackingRelations = relations(
     classroomPost: one(classroomPost, {
       fields: [embeddingTracking.postId],
       references: [classroomPost.id],
+    }),
+    notice: one(notice, {
+      fields: [embeddingTracking.noticeId],
+      references: [notice.id],
     }),
   }),
 );
