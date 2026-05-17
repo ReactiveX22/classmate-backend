@@ -46,7 +46,7 @@ export const authFactory = (
         hash: hashPassword,
         verify: verifyPassword,
       },
-      sendResetPassword: async ({ user, url, token }) => {
+      sendResetPassword: async ({ user, token }) => {
         const resetUrl = `${config.clientURL}/reset-password?token=${token}`;
         config.eventEmitter.emit(
           ResetPasswordEvent.signature,

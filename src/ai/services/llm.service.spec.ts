@@ -1,6 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Pool } from 'pg';
+import { beforeEach, describe, expect, it, vi, Mocked } from 'vitest';
 import { classifyAiProviderError } from '../errors/ai-provider-error.util';
 import { AiProviderException } from '../exceptions/ai-provider.exception';
+import { AiToolsRegistry } from '../tools/ai-tools-registry.service';
+import { AiContextService } from './ai-context.service';
+import { AiProviderService } from './ai-provider.service';
 import { LlmService } from './llm.service';
 
 describe('classifyAiProviderError', () => {
@@ -13,7 +17,7 @@ describe('classifyAiProviderError', () => {
     expect(error).toMatchObject({
       code: 'AI_PROVIDER_RATE_LIMITED',
       retryable: true,
-      message: 'The AI provider is rate limited.',
+      message: 'The AI provider is rate limited. Please try again later.',
     });
   });
 
@@ -42,50 +46,37 @@ describe('classifyAiProviderError', () => {
   });
 });
 
-describe('LlmService invokeWithRetry', () => {
+describe('LlmService', () => {
   let service: LlmService;
+  let aiProviderService: Mocked<AiProviderService>;
+  let toolsRegistry: Mocked<AiToolsRegistry>;
 
   beforeEach(() => {
+    aiProviderService = {
+      isEnabled: vi.fn().mockReturnValue(true),
+      getModel: vi.fn(),
+      invokeWithFailover: vi.fn(),
+    } as unknown as Mocked<AiProviderService>;
+
+    toolsRegistry = {
+      getTools: vi.fn().mockReturnValue([]),
+    } as unknown as Mocked<AiToolsRegistry>;
+
     service = new LlmService(
-      {
-        get: vi.fn().mockImplementation((key: string) => {
-          if (key === 'AI_ENABLED') return false;
-          if (key === 'AI_MODEL') return 'gemini-2.5-flash';
-          return undefined;
-        }),
-      } as never,
-      {} as never,
+      {} as Pool,
       {
         buildSystemPrompt: vi.fn(),
-      } as never,
-      {
-        getTools: vi.fn().mockReturnValue([]),
-      } as never,
+      } as unknown as AiContextService,
+      toolsRegistry,
+      aiProviderService,
     );
   });
 
-  it('retries transient failures and eventually succeeds', async () => {
-    const sleepSpy = vi
-      .spyOn(service as any, 'sleep')
-      .mockResolvedValue(undefined);
-    const fn = vi
-      .fn()
-      .mockRejectedValueOnce({ status: 429, message: 'Too Many Requests' })
-      .mockResolvedValueOnce('ok');
+  it('throws when AI is disabled', async () => {
+    aiProviderService.isEnabled.mockReturnValue(false);
 
-    await expect((service as any).invokeWithRetry(fn)).resolves.toBe('ok');
-    expect(fn).toHaveBeenCalledTimes(2);
-    expect(sleepSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('fails fast on non-retryable provider errors', async () => {
-    const fn = vi
-      .fn()
-      .mockRejectedValue({ status: 401, message: 'Unauthorized' });
-
-    await expect((service as any).invokeWithRetry(fn)).rejects.toThrow(
-      AiProviderException,
-    );
-    expect(fn).toHaveBeenCalledTimes(1);
+    await expect(
+      service.chat('thread-1', 'hi', { user: { id: '1' } as any }),
+    ).rejects.toThrow(AiProviderException);
   });
 });

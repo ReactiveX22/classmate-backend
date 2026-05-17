@@ -34,11 +34,15 @@ export const envSchema = z
     CACHE_REDIS_URL: z.string().url().optional(),
 
     AI_ENABLED: z.coerce.boolean().default(false),
-    AI_PROVIDER: z.enum(['google']).default('google'),
-    AI_MODEL: z.string().min(1).default('gemini-2.5-flash'),
-    GOOGLE_API_KEY: z.string().optional(),
+    AI_PROVIDER: z.enum(['google', 'groq']).default('google'),
     AI_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.2),
     AI_MAX_OUTPUT_TOKENS: z.coerce.number().positive().default(2048),
+
+    GOOGLE_API_KEY: z.string().optional(),
+    GOOGLE_MODEL: z.string().min(1).default('gemini-2.5-flash'),
+
+    GROQ_API_KEY: z.string().optional(),
+    GROQ_MODEL: z.string().min(1).default('llama-3.3-70b-versatile'),
 
     AI_EMBEDDING_ENABLED: z.coerce.boolean().default(false),
     AI_EMBEDDING_PROVIDER: z.enum(['google']).default('google'),
