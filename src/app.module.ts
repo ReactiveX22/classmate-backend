@@ -19,6 +19,7 @@ import { StorageModule } from './storage/storage.module';
 import { UserModule } from './user/user.module';
 import { AiModule } from './ai/ai.module';
 import { EmbeddingModule } from './embedding/embedding.module';
+import { TodoModule } from './todo/todo.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { EmbeddingModule } from './embedding/embedding.module';
     ImpersonationModule,
     AiModule,
     EmbeddingModule,
+    TodoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

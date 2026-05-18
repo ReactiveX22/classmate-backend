@@ -19,6 +19,7 @@ export * from './semester-schema';
 export * from './session-schema';
 export * from './student-schema';
 export * from './teacher-schema';
+export * from './todo-schema';
 export * from './types';
 export * from './user-profile-schema';
 export * from './langgraph/checkpoint-schema';

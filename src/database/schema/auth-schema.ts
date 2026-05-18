@@ -14,6 +14,7 @@ import { organization } from './organization-schema';
 import { student } from './student-schema';
 import { teacher } from './teacher-schema';
 import { userProfile } from './user-profile-schema';
+import { todo } from './todo-schema';
 
 export const userStatusEnum = pgEnum(
   'user_status',
@@ -140,6 +141,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
     references: [organization.id],
   }),
   classroomMembers: many(classroomMembers),
+  todos: many(todo),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
