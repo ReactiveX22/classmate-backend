@@ -8,7 +8,7 @@ export const EMBEDDING_DEFAULTS = {
   vectorTableName: 'embedding_documents',
   vectorCollectionTableName: 'embedding_collections',
   vectorCollectionName: 'classroom_post_attachments',
-  embeddingDimensions: 768,
+  embeddingDimensions: 3072,
 } as const;
 
 export const EMBEDDING_QUEUE_NAME = 'embedding';

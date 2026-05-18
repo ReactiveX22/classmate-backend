@@ -12,7 +12,7 @@ export const todoPriority = pgEnum('todo_priority', ['low', 'medium', 'high']);
 
 export const todo = pgTable('todo', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
+  userId: text('user_id')
     .references(() => user.id, { onDelete: 'cascade' })
     .notNull(),
   title: text('title').notNull(),

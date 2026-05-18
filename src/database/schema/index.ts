@@ -9,6 +9,7 @@ export * from './classroom-post-schema';
 export * from './classroom-resource-bookmark-schema';
 export * from './classroom-schema';
 export * from './course-schema';
+export * from './embedding-schema';
 export * from './embedding-tracking-schema';
 export * from './enrollment-schema';
 export * from './notice-schema';
