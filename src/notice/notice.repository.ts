@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, SQL } from 'drizzle-orm';
+import { and, eq, sql, SQL } from 'drizzle-orm';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { type DB, InjectDb } from 'src/database/db.provider';
 import {
   type InsertNotice,
   notice,
   type SelectNotice,
+  user,
 } from 'src/database/schema';
 import { PaginationService } from 'src/lib/pagination/pagination.service';
 import { NoticePaginationConfig } from './notice.config';
 
-@Injectable()
 @Injectable()
 export class NoticeRepository {
   constructor(
@@ -63,5 +63,49 @@ export class NoticeRepository {
       .where(and(eq(notice.id, id), eq(notice.organizationId, organizationId)))
       .returning();
     return result;
+  }
+
+  async findRecentForTools(organizationId: string, limit: number = 5) {
+    const results = await this.db
+      .select({
+        id: notice.id,
+        title: notice.title,
+        content: notice.content,
+        createdAt: notice.createdAt,
+        authorName: user.name,
+      })
+      .from(notice)
+      .innerJoin(user, eq(notice.authorId, user.id))
+      .where(eq(notice.organizationId, organizationId))
+      .orderBy(notice.createdAt)
+      .limit(limit);
+
+    return results;
+  }
+
+  async findByAttachmentId(organizationId: string, attachmentId: string) {
+    const [result] = await this.db
+      .select()
+      .from(notice)
+      .where(
+        and(
+          eq(notice.organizationId, organizationId),
+          sql`${notice.attachments} @> ${JSON.stringify([{ id: attachmentId }])}::jsonb`,
+        ),
+      );
+    return result;
+  }
+
+  async findAllWithAttachments() {
+    return await this.db
+      .select({
+        id: notice.id,
+        organizationId: notice.organizationId,
+        attachments: notice.attachments,
+      })
+      .from(notice)
+      .where(
+        sql`${notice.attachments} IS NOT NULL AND jsonb_array_length(${notice.attachments}) > 0`,
+      );
   }
 }

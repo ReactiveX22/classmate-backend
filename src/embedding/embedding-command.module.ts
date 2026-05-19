@@ -3,6 +3,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClassroomPostRepository } from '../classroom/repositories/classroom-post.repository';
 import { DatabaseModule } from '../database/database.module';
+import { PaginationModule } from 'src/lib/pagination/pagination.module';
+import { NoticeRepository } from '../notice/notice.repository';
+import { NoticePaginationConfig } from '../notice/notice.config';
 import { EMBEDDING_QUEUE_NAME } from './embedding.constants';
 import { EmbeddingTrackingRepository } from './repositories/embedding-tracking.repository';
 import { EmbeddingJobService } from './services/embedding-job.service';
@@ -12,6 +15,7 @@ import { EmbeddingModelService } from './services/embedding-model.service';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
+    PaginationModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -27,6 +31,8 @@ import { EmbeddingModelService } from './services/embedding-model.service';
   ],
   providers: [
     ClassroomPostRepository,
+    NoticeRepository,
+    NoticePaginationConfig,
     EmbeddingTrackingRepository,
     EmbeddingModelService,
     EmbeddingJobService,

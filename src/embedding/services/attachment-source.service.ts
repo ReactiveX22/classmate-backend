@@ -23,18 +23,26 @@ export class AttachmentSourceService {
       throw new Error('Attachment URL is missing');
     }
 
-    // Example URL: /api/v1/uploads/attachments/123-abc.pdf
-    const prefix = '/api/v1/uploads/';
-    if (!url.startsWith(prefix)) {
-      throw new Error(`Unsupported attachment URL format: ${url}`);
+    const classroomPrefix = '/api/v1/uploads/';
+    const noticePrefix = '/api/v1/uploads/notice-attachments/';
+
+    if (url.startsWith(noticePrefix)) {
+      const storagePath = url.slice(classroomPrefix.length);
+      if (!storagePath || storagePath.includes('..')) {
+        throw new Error(`Unsafe attachment storage path: ${storagePath}`);
+      }
+      return storagePath;
     }
 
-    const storagePath = url.slice(prefix.length);
-    if (!storagePath || storagePath.includes('..')) {
-      throw new Error(`Unsafe attachment storage path: ${storagePath}`);
+    if (url.startsWith(classroomPrefix)) {
+      const storagePath = url.slice(classroomPrefix.length);
+      if (!storagePath || storagePath.includes('..')) {
+        throw new Error(`Unsafe attachment storage path: ${storagePath}`);
+      }
+      return storagePath;
     }
 
-    return storagePath;
+    throw new Error(`Unsupported attachment URL format: ${url}`);
   }
 
   async getFileBuffer(attachment: Attachment): Promise<Buffer> {

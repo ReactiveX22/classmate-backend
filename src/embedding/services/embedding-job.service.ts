@@ -18,11 +18,15 @@ export class EmbeddingJobService {
   async enqueueAttachmentEmbedding(job: EmbedAttachmentJob) {
     const model = this.embeddingModelService.modelName;
 
-    // Deterministic job ID to prevent duplicate queued jobs for the same attachment/model
-    const jobId = `embed-classroom-post-attachment-${job.postId}-${job.attachmentId}-${model}`;
+    const resourceId =
+      job.resourceType === 'classroom_post_attachment'
+        ? job.postId
+        : job.noticeId;
+
+    const jobId = `embed-${job.resourceType}-${resourceId}-${job.attachmentId}-${model}`;
 
     this.logger.log(
-      `Enqueuing embedding job for attachment ${job.attachmentId} in post ${job.postId} (Reason: ${job.reason})`,
+      `Enqueuing embedding job for attachment ${job.attachmentId} in ${job.resourceType} ${resourceId} (Reason: ${job.reason})`,
     );
 
     await this.embeddingQueue.add('embed-attachment', job, {

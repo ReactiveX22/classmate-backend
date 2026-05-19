@@ -7,6 +7,12 @@ import {
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
 import { type InsertNotice } from 'src/database/schema';
+import {
+  EMBEDDING_EVENTS,
+  type NoticeAttachmentDeletedEventPayload,
+  type NoticeAttachmentsChangedEventPayload,
+  type NoticeDeletedEventPayload,
+} from 'src/embedding/embedding.constants';
 import { NotificationCreatedEvent } from 'src/notification/notification-created.event';
 import { NotificationType } from 'src/notification/notification.constants';
 import { NotificationTemplate } from 'src/notification/template/notification.template';
@@ -73,6 +79,15 @@ export class NoticeService {
       }),
     );
 
+    if (dto.attachments && dto.attachments.length > 0) {
+      this.eventEmitter.emit(EMBEDDING_EVENTS.NOTICE_ATTACHMENTS_CHANGED, {
+        organizationId: newNotice.organizationId,
+        noticeId: newNotice.id,
+        attachmentIds: dto.attachments.map((a) => a.id),
+        userId: user.id,
+      });
+    }
+
     return newNotice;
   }
 
@@ -91,6 +106,15 @@ export class NoticeService {
       throw new ApplicationNotFoundException('Notice not found');
     }
 
+    if (dto.attachments && dto.attachments.length > 0) {
+      this.eventEmitter.emit(EMBEDDING_EVENTS.NOTICE_ATTACHMENTS_CHANGED, {
+        organizationId: user.organizationId,
+        noticeId: updated.id,
+        attachmentIds: dto.attachments.map((a) => a.id),
+        userId: user.id,
+      });
+    }
+
     return updated;
   }
 
@@ -99,11 +123,20 @@ export class NoticeService {
       throw new ApplicationForbiddenException('Organization not found');
     }
 
-    const deleted = await this.noticeRepository.delete(user.organizationId, id);
-
-    if (!deleted) {
+    const existing = await this.noticeRepository.findById(
+      user.organizationId,
+      id,
+    );
+    if (!existing) {
       throw new ApplicationNotFoundException('Notice not found');
     }
+
+    this.eventEmitter.emit(EMBEDDING_EVENTS.NOTICE_DELETED, {
+      organizationId: user.organizationId,
+      noticeId: id,
+    });
+
+    const deleted = await this.noticeRepository.delete(user.organizationId, id);
 
     return deleted;
   }
@@ -116,6 +149,19 @@ export class NoticeService {
   }
 
   async deleteAttachment(orgId: string, attachmentId: string) {
+    const notice = await this.noticeRepository.findByAttachmentId(
+      orgId,
+      attachmentId,
+    );
+
+    if (notice) {
+      this.eventEmitter.emit(EMBEDDING_EVENTS.NOTICE_ATTACHMENT_DELETED, {
+        organizationId: orgId,
+        noticeId: notice.id,
+        attachmentId,
+      });
+    }
+
     await this.storageService.deleteFile(
       `notice-attachments/${orgId}/${attachmentId}`,
     );

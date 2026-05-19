@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DatabaseModule } from '../database/database.module';
+import { NoticeModule } from '../notice/notice.module';
 import { ClassroomModule } from '../classroom/classroom.module';
 import { StorageModule } from '../storage/storage.module';
 import { EMBEDDING_QUEUE_NAME } from './embedding.constants';
@@ -20,6 +21,7 @@ import { EmbeddingVectorStoreService } from './services/embedding-vector-store.s
     StorageModule,
     ConfigModule,
     DatabaseModule,
+    NoticeModule,
     ClassroomModule,
     BullModule.forRootAsync({
       imports: [ConfigModule],

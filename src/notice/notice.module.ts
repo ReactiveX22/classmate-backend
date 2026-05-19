@@ -1,3 +1,4 @@
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from 'src/database/database.module';
 import { PaginationModule } from 'src/lib/pagination/pagination.module';
@@ -8,8 +9,14 @@ import { NoticeRepository } from './notice.repository';
 import { NoticeService } from './notice.service';
 
 @Module({
-  imports: [DatabaseModule, PaginationModule, StorageModule],
+  imports: [
+    DatabaseModule,
+    PaginationModule,
+    StorageModule,
+    EventEmitterModule.forRoot(),
+  ],
   providers: [NoticeService, NoticeRepository, NoticePaginationConfig],
   controllers: [NoticeController],
+  exports: [NoticeRepository],
 })
 export class NoticeModule {}
