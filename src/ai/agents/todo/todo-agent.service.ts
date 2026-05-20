@@ -4,7 +4,7 @@ import {
   SystemMessage,
 } from '@langchain/core/messages';
 import { RunnableConfig } from '@langchain/core/runnables';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { MessagesAnnotation, START, StateGraph } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';
@@ -19,12 +19,14 @@ import { TodoToolsService } from '../../tools/todo-tools.service';
 export class TodoAgentService {
   private readonly checkpointer: PostgresSaver;
   private readonly graph: ReturnType<typeof this.buildGraph>;
+  private readonly logger = new Logger(TodoAgentService.name)
 
   constructor(
     @Inject('AI_PG_POOL') pool: Pool,
     private readonly aiProviderService: AiProviderService,
     private readonly promptLoader: PromptLoaderService,
     private readonly todoToolsService: TodoToolsService,
+
   ) {
     this.checkpointer = new PostgresSaver(pool);
     this.graph = this.buildGraph();
@@ -95,6 +97,8 @@ export class TodoAgentService {
   }
 
   private normalizeAssistantText(content: AIMessage['content']) {
+    this.logger.log("task-agent-raw-response", content)
+
     if (typeof content === 'string') return content;
 
     return content

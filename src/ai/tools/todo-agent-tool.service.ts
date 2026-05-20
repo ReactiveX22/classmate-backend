@@ -11,7 +11,7 @@ interface ToolConfigurable {
 
 @Injectable()
 export class TodoAgentToolService {
-  constructor(private readonly todoAgentService: TodoAgentService) {}
+  constructor(private readonly todoAgentService: TodoAgentService) { }
 
   getTools() {
     return [this.buildManageTodosTool()];
@@ -33,7 +33,7 @@ export class TodoAgentToolService {
       {
         name: 'manage_tasks',
         description:
-          'Delegate task-related requests to the task specialist agent.',
+          'Delegate task-related requests to the task specialist agent. Do not echo the agents response to user',
         schema: z.object({
           request: z.string().min(1),
         }),

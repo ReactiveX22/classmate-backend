@@ -2,11 +2,16 @@ import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ChatGoogle } from '@langchain/google/node';
+import { z } from 'zod';
 import { MainAgentService } from '../agents/main/main-agent.service';
 import { AiProviderService } from './ai-provider.service';
 
 @Injectable()
 export class LlmService {
+  private static readonly titleSchema = z.object({
+    title: z.string().min(1).max(80),
+  });
+
   constructor(
     private readonly mainAgentService: MainAgentService,
     private readonly aiProviderService: AiProviderService,
@@ -29,34 +34,21 @@ export class LlmService {
         temperature: 0.2,
         maxOutputTokens: 64,
         maxRetries: 0,
-      });
+      }).withStructuredOutput(LlmService.titleSchema);
 
       const response = await titleModel.invoke([
         new SystemMessage(
           [
             'You will receive a user message from a conversation.',
-            'Generate a title (3-6 words, title case) that summarizes the topic.',
-            'Rules: No quotes, no ending punctuation, output title only.',
+            'Generate a concise title (3-6 words, title case) that summarizes the topic.',
+            'Rules: No quotes, no ending punctuation, keep it short, output JSON only through the schema.',
             'Example: Input: "How do I reset my password?" → Output: Password Reset Help',
           ].join('\n'),
         ),
         new HumanMessage(`User message: ${userMessage}`),
       ]);
 
-      const content =
-        typeof response.content === 'string'
-          ? response.content
-          : response.content
-              .map((block) =>
-                typeof block === 'string'
-                  ? block
-                  : 'text' in block
-                    ? String(block.text)
-                    : '',
-              )
-              .join('');
-
-      return this.sanitizeTitle(content);
+      return this.sanitizeTitle(response.title);
     } catch {
       return undefined;
     }
