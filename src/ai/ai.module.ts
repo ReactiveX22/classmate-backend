@@ -5,17 +5,22 @@ import { ClassroomModule } from 'src/classroom/classroom.module';
 import { DatabaseModule } from 'src/database/database.module';
 import { EmbeddingModule } from 'src/embedding/embedding.module';
 import { NoticeModule } from 'src/notice/notice.module';
+import { TodoModule } from 'src/todo/todo.module';
+import { MainAgentService } from './agents/main/main-agent.service';
+import { TodoAgentService } from './agents/todo/todo-agent.service';
 import { AiController } from './ai.controller';
 import { AiService } from './ai.service';
 import { AiConversationRepository } from './repositories/ai-conversation.repository';
 import { AiContextService } from './services/ai-context.service';
 import { LlmService } from './services/llm.service';
 import { PromptLoaderService } from './services/prompt-loader.service';
-import { AiToolsRegistry } from './tools/ai-tools-registry.service';
+import { MainToolsRegistry } from './tools/main-tools-registry.service';
 import { ClassroomToolsService } from './tools/classroom-tools.service';
 import { DeadlineToolsService } from './tools/deadline-tools.service';
 import { NoticeToolsService } from './tools/notice-tools.service';
 import { RagToolsService } from './tools/rag-tools.service';
+import { TodoAgentToolService } from './tools/todo-agent-tool.service';
+import { TodoToolsService } from './tools/todo-tools.service';
 import { AiProviderService } from './services/ai-provider.service';
 
 export const AI_PG_POOL = 'AI_PG_POOL';
@@ -27,6 +32,7 @@ export const AI_PG_POOL = 'AI_PG_POOL';
     EmbeddingModule,
     ClassroomModule,
     NoticeModule,
+    TodoModule,
   ],
   controllers: [AiController],
   providers: [
@@ -53,12 +59,16 @@ export const AI_PG_POOL = 'AI_PG_POOL';
     AiConversationRepository,
     AiContextService,
     AiProviderService,
+    MainAgentService,
+    TodoAgentService,
     LlmService,
     RagToolsService,
     ClassroomToolsService,
     DeadlineToolsService,
     NoticeToolsService,
-    AiToolsRegistry,
+    TodoToolsService,
+    TodoAgentToolService,
+    MainToolsRegistry,
   ],
 })
 export class AiModule {}
