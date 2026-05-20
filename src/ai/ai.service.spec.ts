@@ -209,11 +209,13 @@ describe('AiService.streamChat', () => {
   });
 
   it('emits an error event when the LLM stream fails', async () => {
-    llmService.streamChat.mockImplementation(
-      async function* (): AsyncGenerator<LlmStreamEvent> {
-        throw new Error('Failed to parse stream');
-      },
-    );
+    llmService.streamChat.mockImplementation(() => {
+      const gen = (function* (): Generator<LlmStreamEvent> {
+        yield { type: 'error', payload: { message: 'test' } };
+      })();
+      gen.throw(new Error('Failed to parse stream'));
+      return gen;
+    });
 
     const events: MessageEvent[] = [];
 

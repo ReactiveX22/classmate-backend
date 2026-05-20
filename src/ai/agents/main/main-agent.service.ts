@@ -99,10 +99,15 @@ export class MainAgentService {
 
       if (mode === 'tools') {
         const toolEvent = data as
-          | { event?: 'on_tool_start' | 'on_tool_end'; name?: string }
+          | {
+              event?: 'on_tool_start' | 'on_tool_end';
+              name?: string;
+              result?: unknown;
+            }
           | undefined;
 
         if (toolEvent?.name && toolEvent.event === 'on_tool_start') {
+          this.logger.log(`[MainAgent] Tool start: ${toolEvent.name}`);
           yield {
             type: 'tool',
             payload: { name: toolEvent.name, status: 'start' },
@@ -110,6 +115,13 @@ export class MainAgentService {
         }
 
         if (toolEvent?.name && toolEvent.event === 'on_tool_end') {
+          const resultStr =
+            toolEvent.result !== undefined
+              ? JSON.stringify(toolEvent.result).substring(0, 200)
+              : 'undefined';
+          this.logger.log(
+            `[MainAgent] Tool end: ${toolEvent.name}, result: ${resultStr}`,
+          );
           yield {
             type: 'tool',
             payload: { name: toolEvent.name, status: 'end' },
@@ -171,6 +183,14 @@ export class MainAgentService {
         };
 
         const tools = this.toolsRegistry.getTools();
+
+        this.logger.log(
+          `[MainAgent] Model node called. Messages in state: ${state.messages.length}`,
+        );
+        const lastMsg = state.messages.at(-1);
+        this.logger.log(
+          `[MainAgent] Last message type: ${lastMsg?.constructor.name}, content: ${JSON.stringify(lastMsg?.content).substring(0, 300)}`,
+        );
 
         const { result, provider } =
           await this.aiProviderService.invokeWithFailover(async (model) => {

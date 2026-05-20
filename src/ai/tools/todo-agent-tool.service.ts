@@ -6,12 +6,11 @@ import { TodoAgentService } from '../agents/todo/todo-agent.service';
 
 interface ToolConfigurable {
   user?: User;
-  conversationId?: string;
 }
 
 @Injectable()
 export class TodoAgentToolService {
-  constructor(private readonly todoAgentService: TodoAgentService) { }
+  constructor(private readonly todoAgentService: TodoAgentService) {}
 
   getTools() {
     return [this.buildManageTodosTool()];
@@ -22,18 +21,16 @@ export class TodoAgentToolService {
 
     return tool(
       async ({ request }, config) => {
-        const { user, conversationId } = (config.configurable ??
-          {}) as ToolConfigurable;
+        const { user } = (config.configurable ?? {}) as ToolConfigurable;
         if (!user?.id) return 'No user context available.';
         return await todoAgentService.run(request, {
           user,
-          conversationId,
         });
       },
       {
         name: 'manage_tasks',
         description:
-          'Delegate task-related requests to the task specialist agent. Do not echo the agents response to user',
+          'Delegate task-related requests to the task specialist agent. Do not directly echo the agents response to user',
         schema: z.object({
           request: z.string().min(1),
         }),

@@ -2,13 +2,10 @@ import {
   AIMessage,
   HumanMessage,
   SystemMessage,
+  ToolMessage,
 } from '@langchain/core/messages';
-import { RunnableConfig } from '@langchain/core/runnables';
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { MessagesAnnotation, START, StateGraph } from '@langchain/langgraph';
-import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
-import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';
-import { Pool } from 'pg';
+import { StructuredToolInterface } from '@langchain/core/tools';
+import { Injectable, Logger } from '@nestjs/common';
 import { User } from 'src/auth/auth.factory';
 import { AiProviderException } from '../../exceptions/ai-provider.exception';
 import { AiProviderService } from '../../services/ai-provider.service';
@@ -17,88 +14,99 @@ import { TodoToolsService } from '../../tools/todo-tools.service';
 
 @Injectable()
 export class TodoAgentService {
-  private readonly checkpointer: PostgresSaver;
-  private readonly graph: ReturnType<typeof this.buildGraph>;
-  private readonly logger = new Logger(TodoAgentService.name)
+  private readonly logger = new Logger(TodoAgentService.name);
+  private readonly tools: StructuredToolInterface[];
+  private readonly toolMap: Map<string, StructuredToolInterface>;
 
   constructor(
-    @Inject('AI_PG_POOL') pool: Pool,
     private readonly aiProviderService: AiProviderService,
     private readonly promptLoader: PromptLoaderService,
     private readonly todoToolsService: TodoToolsService,
-
   ) {
-    this.checkpointer = new PostgresSaver(pool);
-    this.graph = this.buildGraph();
+    this.tools = this.todoToolsService.getTools();
+    this.toolMap = new Map(this.tools.map((t) => [t.name, t]));
   }
 
-  async onModuleInit() {
-    await this.checkpointer.setup();
-  }
+  async run(request: string, context: { user: User }) {
+    this.logger.log(`[TodoAgent] Incoming request: "${request}"`);
 
-  async run(request: string, context: { user: User; conversationId?: string }) {
-    const result = await this.graph.invoke(
-      { messages: [new HumanMessage(request)] },
-      {
-        configurable: {
-          thread_id: this.threadId(context.user.id, context.conversationId),
-          user: context.user,
-          systemPrompt: this.buildSystemPrompt(),
+    const systemPrompt = this.buildSystemPrompt();
+    const messages: (HumanMessage | AIMessage | ToolMessage)[] = [
+      new HumanMessage(request),
+    ];
+
+    for (let i = 0; i < 5; i++) {
+      const { result } = await this.aiProviderService.invokeWithFailover(
+        async (model) => {
+          if (!model.bindTools) {
+            throw new AiProviderException(
+              'AI_PROVIDER_UNAVAILABLE',
+              'Todo model does not support tool calling',
+            );
+          }
+          const modelWithTools = model.bindTools(this.tools as never);
+          return await modelWithTools.invoke([systemPrompt, ...messages]);
         },
-      },
-    );
+      );
 
-    const last = result.messages.at(-1);
-    if (!(last instanceof AIMessage)) return '';
+      if (!result.tool_calls?.length) {
+        const text = this.normalizeAssistantText(result.content);
+        this.logger.log(`[TodoAgent] Returning: "${text}"`);
+        return text;
+      }
 
-    return this.normalizeAssistantText(last.content);
-  }
+      this.logger.log(
+        `[TodoAgent] Tool calls: ${JSON.stringify(result.tool_calls.map((tc) => tc.name))}`,
+      );
 
-  private buildGraph() {
-    const tools = this.todoToolsService.getTools();
+      messages.push(result);
 
-    return new StateGraph(MessagesAnnotation)
-      .addNode('model', async (state, config?: RunnableConfig) => {
-        const { systemPrompt } = (config?.configurable ?? {}) as {
-          systemPrompt?: SystemMessage;
-        };
+      for (const toolCall of result.tool_calls) {
+        const tool = this.toolMap.get(toolCall.name);
+        if (!tool) {
+          messages.push(
+            new ToolMessage({
+              tool_call_id: toolCall.id ?? '',
+              content: `Tool "${toolCall.name}" not found`,
+              name: toolCall.name,
+            }),
+          );
+          continue;
+        }
 
-        const { result } = await this.aiProviderService.invokeWithFailover(
-          async (model) => {
-            if (!model.bindTools) {
-              throw new AiProviderException(
-                'AI_PROVIDER_UNAVAILABLE',
-                'Todo model does not support tool calling',
-              );
-            }
-            const modelWithTools = model.bindTools(tools);
-            return await modelWithTools.invoke([
-              systemPrompt ?? this.buildSystemPrompt(),
-              ...state.messages,
-            ]);
+        const toolResult = await tool.invoke(toolCall.args, {
+          configurable: {
+            user: context.user,
+            tool_call_id: toolCall.id,
           },
+        });
+
+        this.logger.log(
+          `[TodoAgent] Tool "${toolCall.name}" returned: ${JSON.stringify(toolResult).substring(0, 200)}`,
         );
 
-        return { messages: [result] };
-      })
-      .addNode('tools', new ToolNode(tools))
-      .addEdge(START, 'model')
-      .addConditionalEdges('model', toolsCondition)
-      .addEdge('tools', 'model')
-      .compile({ checkpointer: this.checkpointer });
+        messages.push(
+          new ToolMessage({
+            tool_call_id: toolCall.id ?? '',
+            content:
+              typeof toolResult === 'string'
+                ? toolResult
+                : JSON.stringify(toolResult),
+            name: toolCall.name,
+          }),
+        );
+      }
+    }
+
+    this.logger.warn('[TodoAgent] Max iterations reached');
+    return '';
   }
 
   private buildSystemPrompt() {
     return new SystemMessage(this.promptLoader.getRequired('task'));
   }
 
-  private threadId(userId: string, conversationId?: string) {
-    return `todo_${userId}_${conversationId ?? 'default'}`;
-  }
-
   private normalizeAssistantText(content: AIMessage['content']) {
-    this.logger.log("task-agent-raw-response", content)
-
     if (typeof content === 'string') return content;
 
     return content

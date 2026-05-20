@@ -89,7 +89,7 @@ export class PromptLoaderService implements OnModuleInit, OnModuleDestroy {
 
     for (const dir of dirs) {
       try {
-        const watcher = fsSync.watch(dir, async (eventType, filename) => {
+        const watcher = fsSync.watch(dir, (eventType, filename) => {
           if (eventType === 'change' && filename) {
             void this.reloadFile(dir, filename);
           }
