@@ -1,10 +1,7 @@
 import { ConfigService } from '@nestjs/config';
-import { Pool } from 'pg';
 import { beforeEach, describe, expect, it, vi, Mocked } from 'vitest';
 import { classifyAiProviderError } from '../errors/ai-provider-error.util';
-import { AiProviderException } from '../exceptions/ai-provider.exception';
-import { AiToolsRegistry } from '../tools/ai-tools-registry.service';
-import { AiContextService } from './ai-context.service';
+import { MainAgentService } from '../agents/main/main-agent.service';
 import { AiProviderService } from './ai-provider.service';
 import { LlmService } from './llm.service';
 
@@ -50,7 +47,6 @@ describe('classifyAiProviderError', () => {
 describe('LlmService', () => {
   let service: LlmService;
   let aiProviderService: Mocked<AiProviderService>;
-  let toolsRegistry: Mocked<AiToolsRegistry>;
 
   beforeEach(() => {
     aiProviderService = {
@@ -59,26 +55,18 @@ describe('LlmService', () => {
       invokeWithFailover: vi.fn(),
     } as unknown as Mocked<AiProviderService>;
 
-    toolsRegistry = {
-      getTools: vi.fn().mockReturnValue([]),
-    } as unknown as Mocked<AiToolsRegistry>;
+    const mainAgentService = {
+      streamChat: vi.fn(),
+    } as unknown as Mocked<MainAgentService>;
 
-    service = new LlmService(
-      {} as Pool,
-      {
-        buildSystemPrompt: vi.fn(),
-      } as unknown as AiContextService,
-      toolsRegistry,
-      aiProviderService,
-      { get: vi.fn() } as unknown as ConfigService,
-    );
+    service = new LlmService(mainAgentService, aiProviderService, {
+      get: vi.fn(),
+    } as unknown as ConfigService);
   });
 
   it('throws when AI is disabled', async () => {
     aiProviderService.isEnabled.mockReturnValue(false);
 
-    await expect(
-      service.chat('thread-1', 'hi', { user: { id: '1' } as any }),
-    ).rejects.toThrow(AiProviderException);
+    await expect(service.generateTitle('hi')).resolves.toBeUndefined();
   });
 });

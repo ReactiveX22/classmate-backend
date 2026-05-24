@@ -29,12 +29,6 @@ export class AiController {
   constructor(private readonly aiService: AiService) {}
 
   @Roles([AppRole.Instructor, AppRole.Student])
-  @Post('chat')
-  chat(@Body() dto: SendAiChatDto, @Session() session: AppUserSession) {
-    return this.aiService.chat(dto, session.user);
-  }
-
-  @Roles([AppRole.Instructor, AppRole.Student])
   @Post('chat/new')
   async chatNew(
     @Body() dto: CreateAiChatDto,

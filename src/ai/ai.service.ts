@@ -124,57 +124,6 @@ export class AiService {
     };
   }
 
-  async chat(dto: SendAiChatDto, user: User) {
-    const conversation = dto.conversationId
-      ? await this.findOwnedConversation(dto.conversationId, user)
-      : await this.aiConversationRepository.createConversation({
-          organizationId: user.organizationId,
-          userId: user.id,
-          title: this.fallbackTitle(dto.message),
-        });
-
-    const userMessage = await this.aiConversationRepository.createMessage({
-      conversationId: conversation.id,
-      organizationId: user.organizationId,
-      userId: user.id,
-      role: 'user',
-      content: dto.message,
-    });
-
-    const threadId = `user_${user.id}_conv_${conversation.id}`;
-
-    const response = await this.llmService.chat(threadId, dto.message, {
-      user,
-      classroomId: conversation.classroomId ?? undefined,
-    });
-
-    const assistantMessage = await this.aiConversationRepository.createMessage({
-      conversationId: conversation.id,
-      organizationId: user.organizationId,
-      role: 'assistant',
-      content: response.content,
-      provider: response.provider,
-      model: response.model,
-      tokenUsage: response.tokenUsage,
-      metadata: { reasoning: response.reasoning },
-    });
-
-    // Refine the provisional title in the background so the UI is immediate
-    // but the final label still becomes more descriptive.
-    void this.generateAndSaveTitle(conversation.id, dto.message);
-
-    return {
-      conversation: this.toConversationResponse({
-        ...conversation,
-        updatedAt: new Date(),
-      }),
-      messages: [
-        this.toMessageResponse(userMessage),
-        this.toMessageResponse(assistantMessage),
-      ],
-    };
-  }
-
   streamChat(dto: SendAiChatDto, user: User): Observable<MessageEvent> {
     return new Observable<MessageEvent>((subscriber) => {
       const emit = (event: AiStreamEvent) => {

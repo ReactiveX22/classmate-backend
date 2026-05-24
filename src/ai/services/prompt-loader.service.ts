@@ -41,9 +41,11 @@ export class PromptLoaderService implements OnModuleInit, OnModuleDestroy {
   private async loadAll() {
     const modulesDir = path.join(this.promptsDir, 'modules');
     const fragmentsDir = path.join(this.promptsDir, 'fragments');
+    const todoDir = path.join(this.promptsDir, 'todo');
 
     await this.loadDirectory(modulesDir);
     await this.loadDirectory(fragmentsDir);
+    await this.loadDirectory(todoDir);
 
     this.logger.log(
       `Loaded ${this.cache.size} prompt modules: ${Array.from(this.cache.keys()).join(', ')}`,
@@ -81,15 +83,15 @@ export class PromptLoaderService implements OnModuleInit, OnModuleDestroy {
   }
 
   private watchForChanges() {
-    const dirs = ['modules', 'fragments'].map((d) =>
+    const dirs = ['modules', 'fragments', 'todo'].map((d) =>
       path.join(this.promptsDir, d),
     );
 
     for (const dir of dirs) {
       try {
-        const watcher = fsSync.watch(dir, async (eventType, filename) => {
+        const watcher = fsSync.watch(dir, (eventType, filename) => {
           if (eventType === 'change' && filename) {
-            await this.reloadFile(dir, filename);
+            void this.reloadFile(dir, filename);
           }
         });
         this.watchers.push(watcher);

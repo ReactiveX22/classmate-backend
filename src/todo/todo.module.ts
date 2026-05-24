@@ -10,6 +10,6 @@ import { TodoService } from './todo.service';
   imports: [DatabaseModule, PaginationModule],
   providers: [TodoService, TodoRepository, TodoPaginationConfig],
   controllers: [TodoController],
-  exports: [TodoRepository],
+  exports: [TodoRepository, TodoService],
 })
 export class TodoModule {}

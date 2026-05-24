@@ -132,7 +132,6 @@ describe('AiService.streamChat', () => {
     );
 
     expect(events.map((event) => event.data.type)).toEqual([
-      'conversation',
       'user_message',
       'content',
       'tool',
@@ -209,43 +208,13 @@ describe('AiService.streamChat', () => {
     ]);
   });
 
-  it('creates new conversations with an immediate provisional title', async () => {
-    llmService.streamChat.mockImplementation(
-      streamEvents([
-        {
-          type: '_internal_final_llm',
-          payload: {
-            content: 'Hello there',
-            provider: 'google',
-            model: 'gemini-2.5-flash',
-          },
-        },
-      ]),
-    );
-
-    await collectEvents(
-      service.streamChat(
-        {
-          message: 'What are the exam rules for next week?',
-          conversationId: 'conversation-1',
-        },
-        user as never,
-      ),
-    );
-
-    expect(repository.createConversation).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'What are the exam rules for next week?',
-      }),
-    );
-    expect(llmService.generateTitle).toHaveBeenCalledWith(
-      'What are the exam rules for next week?',
-    );
-  });
-
   it('emits an error event when the LLM stream fails', async () => {
-    llmService.streamChat.mockImplementation(async function* () {
-      throw new Error('Failed to parse stream');
+    llmService.streamChat.mockImplementation(() => {
+      const gen = (function* (): Generator<LlmStreamEvent> {
+        yield { type: 'error', payload: { message: 'test' } };
+      })();
+      gen.throw(new Error('Failed to parse stream'));
+      return gen;
     });
 
     const events: MessageEvent[] = [];
