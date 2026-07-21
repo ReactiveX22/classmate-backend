@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -20,10 +24,25 @@ import { UserModule } from './user/user.module';
 import { AiModule } from './ai/ai.module';
 import { EmbeddingModule } from './embedding/embedding.module';
 import { TodoModule } from './todo/todo.module';
+import { AppThrottlerGuard } from './common/guards';
 
 @Module({
   imports: [
     ConfigModule,
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [
+          { name: 'short', ttl: 1000, limit: 5 },
+          { name: 'medium', ttl: 60000, limit: 100 },
+          { name: 'long', ttl: 3600000, limit: 1000 },
+        ],
+        storage: config.get<string>('THROTTLER_REDIS_URL')
+          ? new ThrottlerStorageRedisService(config.get('THROTTLER_REDIS_URL'))
+          : undefined,
+      }),
+    }),
     AppCacheModule.register(),
     EventEmitterModule.forRoot(),
     DatabaseModule,
@@ -44,6 +63,9 @@ import { TodoModule } from './todo/todo.module';
     TodoModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: AppThrottlerGuard },
+  ],
 })
 export class AppModule {}

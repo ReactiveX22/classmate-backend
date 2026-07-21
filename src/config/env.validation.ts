@@ -48,6 +48,8 @@ export const envSchema = z
     AI_EMBEDDING_PROVIDER: z.enum(['google']).default('google'),
     AI_EMBEDDING_MODEL: z.string().min(1).default('gemini-embedding-2'),
     QUEUE_REDIS_URL: z.string().url().optional(),
+
+    THROTTLER_REDIS_URL: z.string().url().optional(),
   })
   .refine(
     (data) => {
