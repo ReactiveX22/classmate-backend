@@ -6,6 +6,7 @@ import {
 } from 'src/common/dto/pagination.dto';
 import { Achievement, user } from 'src/database/schema';
 import { StorageService } from 'src/storage/storage.service';
+import { ApplicationNotFoundException } from 'src/common/exceptions/application.exception';
 import { SaveProfileDto } from '../dto/save-profile.dto';
 import {
   StudentRepository,
@@ -119,6 +120,42 @@ export class UserService {
 
   async findUserWithRelationships(userId: string) {
     return this.userRepository.findUserWithRelationships(userId);
+  }
+
+  async getPublicUserProfile(userId: string, orgId: string) {
+    const user = await this.userRepository.findUserWithRelationships(userId);
+
+    if (!user || user.organizationId !== orgId) {
+      throw new ApplicationNotFoundException('User not found');
+    }
+
+    return {
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image ?? null,
+        role: user.role ?? null,
+      },
+      profile: user.profile
+        ? {
+            bio: user.profile.bio,
+            skills: user.profile.skills ?? [],
+            achievements: user.profile.achievements ?? [],
+          }
+        : null,
+      teacher: user.teacher
+        ? {
+            title: user.teacher.title,
+            joinDate: user.teacher.joinDate,
+          }
+        : null,
+      student: user.student
+        ? {
+            studentId: user.student.studentId,
+          }
+        : null,
+    };
   }
 
   async updateProfile(

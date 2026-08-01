@@ -5,6 +5,7 @@ import { StorageModule } from 'src/storage/storage.module';
 import { ProfileController } from './controllers/profile.controller';
 import { StudentController } from './controllers/student.controller';
 import { TeacherController } from './controllers/teacher.controller';
+import { UsersController } from './controllers/users.controller';
 import { StudentRepository } from './repositories/student.repository';
 import { TeacherRepository } from './repositories/teacher.repository';
 import { UserProfileRepository } from './repositories/user-profile.repository';
@@ -15,7 +16,7 @@ import { UserService } from './services/user.service';
 
 @Module({
   imports: [DatabaseModule, PaginationModule, StorageModule],
-  controllers: [StudentController, TeacherController, ProfileController],
+  controllers: [StudentController, TeacherController, ProfileController, UsersController],
   providers: [
     UserService,
     TeacherService,
