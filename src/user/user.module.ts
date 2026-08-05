@@ -16,7 +16,12 @@ import { UserService } from './services/user.service';
 
 @Module({
   imports: [DatabaseModule, PaginationModule, StorageModule],
-  controllers: [StudentController, TeacherController, ProfileController, UsersController],
+  controllers: [
+    StudentController,
+    TeacherController,
+    ProfileController,
+    UsersController,
+  ],
   providers: [
     UserService,
     TeacherService,

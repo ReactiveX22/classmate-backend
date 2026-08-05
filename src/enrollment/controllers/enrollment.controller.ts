@@ -9,9 +9,11 @@ import {
   Post,
   UseInterceptors,
 } from '@nestjs/common';
+import { Roles } from '@thallesp/nestjs-better-auth';
 import { InvalidateCache } from 'src/cache/decorators/invalidate-cache.decorator';
 import { TenantCacheInterceptor } from 'src/cache/interceptors/tenant-cache.interceptor';
 import { OrganizationId } from 'src/common/decorators';
+import { AppRole } from 'src/common/enums/role.enum';
 import { CreateEnrollmentDto } from '../dto/create-enrollment.dto';
 import { EnrollmentService } from '../services/enrollment.service';
 
@@ -21,6 +23,7 @@ export class EnrollmentController {
   constructor(private readonly enrollmentService: EnrollmentService) {}
 
   @Post()
+  @Roles([AppRole.Admin])
   @InvalidateCache('courses')
   async create(
     @Body() dto: CreateEnrollmentDto,
@@ -30,6 +33,7 @@ export class EnrollmentController {
   }
 
   @Delete(':courseId/:studentId')
+  @Roles([AppRole.Admin])
   @InvalidateCache('courses')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
