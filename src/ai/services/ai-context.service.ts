@@ -1,6 +1,7 @@
 import { SystemMessage } from '@langchain/core/messages';
 import { Injectable, Logger } from '@nestjs/common';
 import { User } from 'src/auth/auth.factory';
+import { AppRole } from 'src/common/enums/role.enum';
 import { PromptLoaderService } from './prompt-loader.service';
 
 @Injectable()
@@ -11,7 +12,8 @@ export class AiContextService {
 
   buildSystemPrompt(user: User): SystemMessage {
     const role = user.role ?? 'student';
-    const modeFile = role === 'teacher' ? 'teacher-mode' : 'tutor-mode';
+    const modeFile =
+      role === AppRole.Instructor ? 'teacher-mode' : 'tutor-mode';
 
     const assembled = this.promptLoader.assemble([
       'core',

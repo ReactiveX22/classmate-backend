@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { customAlphabet } from 'nanoid';
 import { User } from 'src/auth/auth.factory';
-import { CreateClassroomPostDto } from 'src/classroom/dto/create-classroom-post.dto';
+import {
+  CreateClassroomPostDto,
+  PostType,
+} from 'src/classroom/dto/create-classroom-post.dto';
 import { VoteClassroomPollDto } from 'src/classroom/dto/vote-classroom-poll.dto';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 import { AppRole } from 'src/common/enums/role.enum';
@@ -237,7 +240,7 @@ export class ClassroomService {
       ...body,
       tags: this.normalizeTags(body.tags),
       assignmentData:
-        body.type === 'assignment' ? body.assignmentData : undefined,
+        body.type === PostType.ASSIGNMENT ? body.assignmentData : undefined,
       questionData: normalizeQuestionDataInput(body.type, body.questionData),
     };
     const newPost = await this.classroomPostRepository.runInTransaction(
@@ -249,7 +252,7 @@ export class ClassroomService {
           user.id,
         );
 
-        if (normalizedBody.type === 'assignment') {
+        if (normalizedBody.type === PostType.ASSIGNMENT) {
           const members =
             await this.classroomPostRepository.getClassroomMembers(
               tx,

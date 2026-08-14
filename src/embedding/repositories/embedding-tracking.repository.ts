@@ -49,16 +49,7 @@ export class EmbeddingTrackingRepository {
   async upsertTracking(
     data: InsertEmbeddingTracking,
   ): Promise<SelectEmbeddingTracking> {
-    const {
-      id,
-      resourceType,
-      organizationId,
-      attachmentId,
-      embeddingProvider,
-      embeddingModel,
-      embeddingDimensions,
-      ...updateData
-    } = data;
+    const { ...updateData } = data;
     const results = await this.db
       .insert(embeddingTracking)
       .values(data)

@@ -145,4 +145,6 @@ export async function verifyPassword(data: {
 
 export type AuthType = ReturnType<typeof authFactory>;
 export type Session = AuthType['$Infer']['Session'];
-export type User = AuthType['$Infer']['Session']['user'];
+export type User = Omit<AuthType['$Infer']['Session']['user'], 'role'> & {
+  role?: AppRole;
+};

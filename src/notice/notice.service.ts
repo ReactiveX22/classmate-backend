@@ -7,12 +7,7 @@ import {
   ApplicationNotFoundException,
 } from 'src/common/exceptions/application.exception';
 import { type InsertNotice } from 'src/database/schema';
-import {
-  EMBEDDING_EVENTS,
-  type NoticeAttachmentDeletedEventPayload,
-  type NoticeAttachmentsChangedEventPayload,
-  type NoticeDeletedEventPayload,
-} from 'src/embedding/embedding.constants';
+import { EMBEDDING_EVENTS } from 'src/embedding/embedding.constants';
 import { NotificationCreatedEvent } from 'src/notification/notification-created.event';
 import { NotificationType } from 'src/notification/notification.constants';
 import { NotificationTemplate } from 'src/notification/template/notification.template';
