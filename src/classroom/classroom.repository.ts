@@ -204,8 +204,24 @@ export class ClassroomRepository {
       where: eq(classroom.classCode, classCode),
       with: {
         course: true,
+        teacher: true,
       },
     });
+  }
+
+  async isMember(classroomId: string, studentId: string) {
+    const member = await this.db
+      .select({ classroomId: classroomMembers.classroomId })
+      .from(classroomMembers)
+      .where(
+        and(
+          eq(classroomMembers.classroomId, classroomId),
+          eq(classroomMembers.studentId, studentId),
+        ),
+      )
+      .limit(1);
+
+    return member.length > 0;
   }
 
   async fetchStudentGradeStats(classroomId: string, studentId: string) {

@@ -560,7 +560,41 @@ export class ClassroomService {
       );
     }
 
-    return await this.classroomRepository.addMembers(classroom.id, [userId]);
+    if (classroom.status === 'inactive') {
+      throw new ApplicationBadRequestException(
+        'This class is no longer active',
+      );
+    }
+
+    const alreadyMember =
+      classroom.teacherId === userId ||
+      (await this.classroomRepository.isMember(classroom.id, userId));
+
+    if (!alreadyMember) {
+      await this.classroomRepository.addMembers(classroom.id, [userId]);
+    }
+
+    return { classroomId: classroom.id, alreadyMember };
+  }
+
+  async getJoinPreview(classCode: string, userId: string, orgId: string) {
+    const classroom = await this.classroomRepository.findByClassCode(classCode);
+    if (!classroom || classroom.course.organizationId !== orgId) {
+      throw new ApplicationNotFoundException('Classroom not found');
+    }
+
+    const isMember =
+      classroom.teacherId === userId ||
+      (await this.classroomRepository.isMember(classroom.id, userId));
+
+    return {
+      id: classroom.id,
+      name: classroom.name,
+      section: classroom.section ?? null,
+      teacherName: classroom.teacher?.name ?? null,
+      status: classroom.status,
+      isMember,
+    };
   }
 
   async getStudentGradeStats(classroomId: string, studentId: string) {

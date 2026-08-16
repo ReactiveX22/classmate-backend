@@ -122,7 +122,11 @@ export class UserService {
     return this.userRepository.findUserWithRelationships(userId);
   }
 
-  async getPublicUserProfile(userId: string, orgId: string, callerRole?: string) {
+  async getPublicUserProfile(
+    userId: string,
+    orgId: string,
+    callerRole?: string,
+  ) {
     const user = await this.userRepository.findUserWithRelationships(userId);
 
     if (!user || user.organizationId !== orgId) {

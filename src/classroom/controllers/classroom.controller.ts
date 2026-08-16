@@ -52,6 +52,20 @@ export class ClassroomController {
   }
 
   @Roles([AppRole.Admin, AppRole.Instructor, AppRole.Student])
+  @Get('join/:classCode')
+  async getClassroomJoinPreview(
+    @Param('classCode') classCode: string,
+    @Session() session: AppUserSession,
+    @OrganizationId() orgId: string,
+  ) {
+    return this.classroomService.getJoinPreview(
+      classCode,
+      session.user.id,
+      orgId,
+    );
+  }
+
+  @Roles([AppRole.Admin, AppRole.Instructor, AppRole.Student])
   @Get(':id')
   @CacheResource('classrooms')
   async findOne(@Param('id') id: string, @OrganizationId() orgId: string) {

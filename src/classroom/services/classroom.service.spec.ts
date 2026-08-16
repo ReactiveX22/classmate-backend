@@ -25,6 +25,9 @@ describe('ClassroomService', () => {
     create: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    findByClassCode: vi.fn(),
+    isMember: vi.fn(),
+    addMembers: vi.fn(),
   };
 
   const mockStorageService = {
@@ -239,6 +242,197 @@ describe('ClassroomService', () => {
           postId: 'post-123',
         }),
       );
+    });
+  });
+
+  describe('joinClassroom', () => {
+    const code = 'abc1234';
+    const orgId = 'org-123';
+    const userId = 'student-123';
+
+    const classroomWithCode = {
+      id: 'classroom-123',
+      course: { organizationId: orgId },
+      teacherId: 'teacher-123',
+      status: 'active',
+      teacher: { name: 'Mrs. Johnson' },
+    };
+
+    it('should throw when class code is not found', async () => {
+      mockClassroomRepository.findByClassCode.mockResolvedValue(null);
+
+      await expect(
+        service.joinClassroom({ classCode: code }, userId, orgId),
+      ).rejects.toThrow('Classroom not found');
+    });
+
+    it('should throw when classroom belongs to another organization', async () => {
+      mockClassroomRepository.findByClassCode.mockResolvedValue({
+        ...classroomWithCode,
+        course: { organizationId: 'other-org' },
+      });
+
+      await expect(
+        service.joinClassroom({ classCode: code }, userId, orgId),
+      ).rejects.toThrow('You are not authorized to join this classroom');
+    });
+
+    it('should throw when classroom is inactive', async () => {
+      mockClassroomRepository.findByClassCode.mockResolvedValue({
+        ...classroomWithCode,
+        status: 'inactive',
+      });
+
+      await expect(
+        service.joinClassroom({ classCode: code }, userId, orgId),
+      ).rejects.toThrow('This class is no longer active');
+      expect(mockClassroomRepository.addMembers).not.toHaveBeenCalled();
+    });
+
+    it('should skip insert and return alreadyMember when teacher joins their own classroom', async () => {
+      mockClassroomRepository.findByClassCode.mockResolvedValue(
+        classroomWithCode,
+      );
+      mockClassroomRepository.isMember.mockResolvedValue(false);
+
+      const result = await service.joinClassroom(
+        { classCode: code },
+        'teacher-123',
+        orgId,
+      );
+
+      expect(result).toEqual({
+        classroomId: 'classroom-123',
+        alreadyMember: true,
+      });
+      expect(mockClassroomRepository.addMembers).not.toHaveBeenCalled();
+    });
+
+    it('should return alreadyMember without inserting when student is already a member', async () => {
+      mockClassroomRepository.findByClassCode.mockResolvedValue(
+        classroomWithCode,
+      );
+      mockClassroomRepository.isMember.mockResolvedValue(true);
+
+      const result = await service.joinClassroom(
+        { classCode: code },
+        userId,
+        orgId,
+      );
+
+      expect(result).toEqual({
+        classroomId: 'classroom-123',
+        alreadyMember: true,
+      });
+      expect(mockClassroomRepository.addMembers).not.toHaveBeenCalled();
+    });
+
+    it('should add member and return classroomId when joining a new classroom', async () => {
+      mockClassroomRepository.findByClassCode.mockResolvedValue(
+        classroomWithCode,
+      );
+      mockClassroomRepository.isMember.mockResolvedValue(false);
+      mockClassroomRepository.addMembers.mockResolvedValue([]);
+
+      const result = await service.joinClassroom(
+        { classCode: code },
+        userId,
+        orgId,
+      );
+
+      expect(result).toEqual({
+        classroomId: 'classroom-123',
+        alreadyMember: false,
+      });
+      expect(mockClassroomRepository.addMembers).toHaveBeenCalledWith(
+        'classroom-123',
+        [userId],
+      );
+    });
+  });
+
+  describe('getJoinPreview', () => {
+    const orgId = 'org-123';
+    const userId = 'student-123';
+
+    const classroomWithCode = {
+      id: 'classroom-123',
+      name: 'Biology 101',
+      section: 'A',
+      teacherId: 'teacher-123',
+      status: 'active',
+      course: { organizationId: orgId },
+      teacher: { name: 'Mrs. Johnson' },
+    };
+
+    it('should throw 404 when class code is not found', async () => {
+      mockClassroomRepository.findByClassCode.mockResolvedValue(null);
+
+      await expect(
+        service.getJoinPreview('abc1234', userId, orgId),
+      ).rejects.toThrow('Classroom not found');
+    });
+
+    it('should throw 404 when classroom belongs to another organization', async () => {
+      mockClassroomRepository.findByClassCode.mockResolvedValue({
+        ...classroomWithCode,
+        course: { organizationId: 'other-org' },
+      });
+
+      await expect(
+        service.getJoinPreview('abc1234', userId, orgId),
+      ).rejects.toThrow('Classroom not found');
+    });
+
+    it('should return preview with isMember when student already joined', async () => {
+      mockClassroomRepository.findByClassCode.mockResolvedValue(
+        classroomWithCode,
+      );
+      mockClassroomRepository.isMember.mockResolvedValue(true);
+
+      const result = await service.getJoinPreview('abc1234', userId, orgId);
+
+      expect(result).toEqual({
+        id: 'classroom-123',
+        name: 'Biology 101',
+        section: 'A',
+        teacherName: 'Mrs. Johnson',
+        status: 'active',
+        isMember: true,
+      });
+    });
+
+    it('should return preview with isMember true for the classroom teacher', async () => {
+      mockClassroomRepository.findByClassCode.mockResolvedValue(
+        classroomWithCode,
+      );
+      mockClassroomRepository.isMember.mockResolvedValue(false);
+
+      const result = await service.getJoinPreview(
+        'abc1234',
+        'teacher-123',
+        orgId,
+      );
+
+      expect(result.isMember).toBe(true);
+    });
+
+    it('should return preview with isMember false for a non-member', async () => {
+      mockClassroomRepository.findByClassCode.mockResolvedValue(
+        classroomWithCode,
+      );
+      mockClassroomRepository.isMember.mockResolvedValue(false);
+
+      const result = await service.getJoinPreview('abc1234', userId, orgId);
+
+      expect(result).toEqual({
+        id: 'classroom-123',
+        name: 'Biology 101',
+        section: 'A',
+        teacherName: 'Mrs. Johnson',
+        status: 'active',
+        isMember: false,
+      });
     });
   });
 });
