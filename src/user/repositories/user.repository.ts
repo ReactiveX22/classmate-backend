@@ -1,7 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { type DB, InjectDb } from 'src/database/db.provider';
-import { student, teacher, user, userProfile } from 'src/database/schema';
+import {
+  classroom,
+  classroomMembers,
+  course,
+  enrollment,
+  student,
+  teacher,
+  user,
+  userProfile,
+} from 'src/database/schema';
 
 @Injectable()
 export class UserRepository {
@@ -58,5 +67,40 @@ export class UserRepository {
       teacher: teacherData || null,
       student: studentData || null,
     };
+  }
+
+  async findCoursesForStudent(studentId: string) {
+    const enrollments = await this.db.query.enrollment.findMany({
+      where: eq(enrollment.studentId, studentId),
+      with: { course: true },
+    });
+
+    return enrollments.map((enrollment) => enrollment.course);
+  }
+
+  async findClassroomsForStudent(userId: string) {
+    const memberships = await this.db.query.classroomMembers.findMany({
+      where: eq(classroomMembers.studentId, userId),
+      with: {
+        classroom: {
+          with: { course: true },
+        },
+      },
+    });
+
+    return memberships.map((membership) => membership.classroom);
+  }
+
+  async findCoursesForTeacher(userId: string) {
+    return this.db.query.course.findMany({
+      where: eq(course.teacherId, userId),
+    });
+  }
+
+  async findClassroomsForTeacher(userId: string) {
+    return this.db.query.classroom.findMany({
+      where: eq(classroom.teacherId, userId),
+      with: { course: true },
+    });
   }
 }

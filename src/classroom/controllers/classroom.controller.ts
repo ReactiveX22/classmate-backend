@@ -51,7 +51,7 @@ export class ClassroomController {
     );
   }
 
-  @Roles([AppRole.Instructor, AppRole.Student])
+  @Roles([AppRole.Admin, AppRole.Instructor, AppRole.Student])
   @Get(':id')
   @CacheResource('classrooms')
   async findOne(@Param('id') id: string, @OrganizationId() orgId: string) {

@@ -122,20 +122,30 @@ export class UserService {
     return this.userRepository.findUserWithRelationships(userId);
   }
 
-  async getPublicUserProfile(userId: string, orgId: string) {
+  async getPublicUserProfile(userId: string, orgId: string, callerRole?: string) {
     const user = await this.userRepository.findUserWithRelationships(userId);
 
     if (!user || user.organizationId !== orgId) {
       throw new ApplicationNotFoundException('User not found');
     }
 
-    return {
+    const isAdmin = callerRole === 'admin';
+
+    const baseProfile = {
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
         image: user.image ?? null,
         role: user.role ?? null,
+        ...(isAdmin
+          ? {
+              status: user.status,
+              banned: user.banned ?? false,
+              banReason: user.banReason ?? null,
+              createdAt: user.createdAt,
+            }
+          : {}),
       },
       profile: user.profile
         ? {
@@ -155,6 +165,84 @@ export class UserService {
             studentId: user.student.studentId,
           }
         : null,
+    };
+
+    if (!isAdmin) {
+      return baseProfile;
+    }
+
+    let courses: Array<{
+      id: string;
+      code: string;
+      title: string;
+      status: string;
+    }> = [];
+    let classrooms: Array<{
+      id: string;
+      name: string;
+      section: string | null;
+      status: string;
+      course: { id: string; code: string; title: string } | null;
+    }> = [];
+
+    if (user.role === 'student' && user.student) {
+      const enrolled = await this.userRepository.findCoursesForStudent(
+        user.student.id,
+      );
+      courses = enrolled.map((course) => ({
+        id: course.id,
+        code: course.code,
+        title: course.title,
+        status: course.status,
+      }));
+
+      const joined = await this.userRepository.findClassroomsForStudent(
+        user.id,
+      );
+      classrooms = joined.map((classroom) => ({
+        id: classroom.id,
+        name: classroom.name,
+        section: classroom.section ?? null,
+        status: classroom.status,
+        course: classroom.course
+          ? {
+              id: classroom.course.id,
+              code: classroom.course.code,
+              title: classroom.course.title,
+            }
+          : null,
+      }));
+    } else if (user.role === 'instructor') {
+      const assigned = await this.userRepository.findCoursesForTeacher(user.id);
+      courses = assigned.map((course) => ({
+        id: course.id,
+        code: course.code,
+        title: course.title,
+        status: course.status,
+      }));
+
+      const teaching = await this.userRepository.findClassroomsForTeacher(
+        user.id,
+      );
+      classrooms = teaching.map((classroom) => ({
+        id: classroom.id,
+        name: classroom.name,
+        section: classroom.section ?? null,
+        status: classroom.status,
+        course: classroom.course
+          ? {
+              id: classroom.course.id,
+              code: classroom.course.code,
+              title: classroom.course.title,
+            }
+          : null,
+      }));
+    }
+
+    return {
+      ...baseProfile,
+      courses,
+      classrooms,
     };
   }
 
