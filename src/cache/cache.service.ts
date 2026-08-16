@@ -13,23 +13,36 @@ export class CacheService {
    * Get a value from cache
    */
   async get<T>(key: string): Promise<T | undefined> {
-    return this.cacheManager.get<T>(key);
+    try {
+      return await this.cacheManager.get<T>(key);
+    } catch {
+      // Cache store unavailable (e.g. Redis down): treat as a miss.
+      return undefined;
+    }
   }
 
   /**
    * Set a value in cache
    */
   async set(key: string, value: any, ttl?: number): Promise<void> {
-    await this.cacheManager.set(key, value, ttl);
-    this.trackedKeys.add(key);
+    try {
+      await this.cacheManager.set(key, value, ttl);
+      this.trackedKeys.add(key);
+    } catch {
+      // Cache store unavailable: skip caching (best-effort).
+    }
   }
 
   /**
    * Delete a single key
    */
   async del(key: string): Promise<void> {
-    await this.cacheManager.del(key);
-    this.trackedKeys.delete(key);
+    try {
+      await this.cacheManager.del(key);
+      this.trackedKeys.delete(key);
+    } catch {
+      // Cache store unavailable: nothing to clean up.
+    }
   }
 
   /**
@@ -53,11 +66,6 @@ export class CacheService {
       `Deleting ${keysToDelete.length} cached key(s): ${keysToDelete.join(', ')}`,
     );
 
-    await Promise.all(
-      keysToDelete.map(async (key) => {
-        await this.cacheManager.del(key);
-        this.trackedKeys.delete(key);
-      }),
-    );
+    await Promise.all(keysToDelete.map((key) => this.del(key)));
   }
 }

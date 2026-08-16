@@ -1,5 +1,5 @@
 import { CacheModule } from '@nestjs/cache-manager';
-import { type DynamicModule, Module } from '@nestjs/common';
+import { type DynamicModule, Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CacheService } from './cache.service';
 import { TenantCacheInterceptor } from './interceptors/tenant-cache.interceptor';
@@ -23,10 +23,30 @@ export class AppCacheModule {
             }
 
             if (store === 'redis') {
-              const { redisStore } = await import('cache-manager-redis-yet');
+              const { redisInsStore } = await import('cache-manager-redis-yet');
+              const { createClient } = await import('redis');
+
+              const url = config.get<string>('CACHE_REDIS_URL');
+              const client = createClient({
+                url,
+                pingInterval: 30000,
+                disableOfflineQueue: true,
+                socket: {
+                  connectTimeout: 5000,
+                  reconnectStrategy: (retries) => Math.min(retries * 100, 3000),
+                },
+              }) as Parameters<typeof redisInsStore>[0];
+
+              client.on('error', (error: Error) => {
+                Logger.warn(
+                  `Redis cache unavailable: ${error.message}`,
+                  AppCacheModule.name,
+                );
+              });
+              client.connect().catch(() => undefined);
+
               return {
-                store: redisStore,
-                url: config.get<string>('CACHE_REDIS_URL'),
+                store: redisInsStore(client, {}),
                 ttl: config.get<number>('CACHE_TTL', 30) * 1000,
               };
             }

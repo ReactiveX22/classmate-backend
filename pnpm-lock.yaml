@@ -24,7 +24,7 @@ importers:
         version: 1.0.32(@langchain/core@1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1))(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1)
       '@langchain/community':
         specifier: ^1.1.28
-        version: 1.1.28(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.1048.0)(@aws-sdk/credential-provider-node@3.972.42)(@browserbasehq/sdk@2.11.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.60.0)(deepmerge@4.3.1)(dotenv@17.4.2)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(zod@4.4.3))(@ibm-cloud/watsonx-ai@1.7.12)(@langchain/core@1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1))(@smithy/signature-v4@5.4.3)(d3-dsv@3.0.1)(fast-xml-parser@5.7.3)(google-auth-library@10.6.2)(ibm-cloud-sdk-core@5.4.19)(ignore@7.0.5)(ioredis@5.10.1)(jsonwebtoken@9.0.3)(lodash@4.18.1)(officeparser@6.1.1)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(pdf-parse@2.4.5)(pg@8.20.0)(playwright@1.60.0)(ws@8.20.1)
+        version: 1.1.28(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.1048.0)(@aws-sdk/credential-provider-node@3.972.42)(@browserbasehq/sdk@2.11.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.60.0)(deepmerge@4.3.1)(dotenv@17.4.2)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(zod@4.4.3))(@ibm-cloud/watsonx-ai@1.7.12)(@langchain/core@1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1))(@smithy/signature-v4@5.4.3)(d3-dsv@3.0.1)(fast-xml-parser@5.7.3)(google-auth-library@10.6.2)(ibm-cloud-sdk-core@5.4.19)(ignore@7.0.5)(ioredis@5.10.1)(jsonwebtoken@9.0.3)(lodash@4.18.1)(officeparser@6.1.1)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(pdf-parse@2.4.5)(pg@8.20.0)(playwright@1.60.0)(redis@4.7.1)(ws@8.20.1)
       '@langchain/core':
         specifier: ^1.1.46
         version: 1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1)
@@ -139,6 +139,9 @@ importers:
       pg:
         specifier: ^8.16.3
         version: 8.20.0
+      redis:
+        specifier: ^4.7.1
+        version: 4.7.1
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -8076,7 +8079,7 @@ snapshots:
       - openai
       - ws
 
-  '@langchain/community@1.1.28(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.1048.0)(@aws-sdk/credential-provider-node@3.972.42)(@browserbasehq/sdk@2.11.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.60.0)(deepmerge@4.3.1)(dotenv@17.4.2)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(zod@4.4.3))(@ibm-cloud/watsonx-ai@1.7.12)(@langchain/core@1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1))(@smithy/signature-v4@5.4.3)(d3-dsv@3.0.1)(fast-xml-parser@5.7.3)(google-auth-library@10.6.2)(ibm-cloud-sdk-core@5.4.19)(ignore@7.0.5)(ioredis@5.10.1)(jsonwebtoken@9.0.3)(lodash@4.18.1)(officeparser@6.1.1)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(pdf-parse@2.4.5)(pg@8.20.0)(playwright@1.60.0)(ws@8.20.1)':
+  '@langchain/community@1.1.28(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.1048.0)(@aws-sdk/credential-provider-node@3.972.42)(@browserbasehq/sdk@2.11.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.60.0)(deepmerge@4.3.1)(dotenv@17.4.2)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(zod@4.4.3))(@ibm-cloud/watsonx-ai@1.7.12)(@langchain/core@1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1))(@smithy/signature-v4@5.4.3)(d3-dsv@3.0.1)(fast-xml-parser@5.7.3)(google-auth-library@10.6.2)(ibm-cloud-sdk-core@5.4.19)(ignore@7.0.5)(ioredis@5.10.1)(jsonwebtoken@9.0.3)(lodash@4.18.1)(officeparser@6.1.1)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(pdf-parse@2.4.5)(pg@8.20.0)(playwright@1.60.0)(redis@4.7.1)(ws@8.20.1)':
     dependencies:
       '@browserbasehq/stagehand': 1.14.0(@playwright/test@1.60.0)(deepmerge@4.3.1)(dotenv@17.4.2)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(zod@4.4.3)
       '@ibm-cloud/watsonx-ai': 1.7.12
@@ -8109,6 +8112,7 @@ snapshots:
       pdf-parse: 2.4.5
       pg: 8.20.0
       playwright: 1.60.0
+      redis: 4.7.1
       ws: 8.20.1
     transitivePeerDependencies:
       - '@opentelemetry/api'

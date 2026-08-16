@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { ConfigService } from '@nestjs/config';
+import Redis from 'ioredis';
+import { REDIS_CLIENT, RedisModule } from './redis/redis.module';
+import { ResilientThrottlerStorage } from './redis/resilient-throttler.storage';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -29,17 +31,18 @@ import { AppThrottlerGuard } from './common/guards';
 @Module({
   imports: [
     ConfigModule,
+    RedisModule,
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
+      inject: [ConfigService, REDIS_CLIENT],
+      useFactory: (config: ConfigService, redisClient: Redis | null) => ({
         throttlers: [
           { name: 'short', ttl: 1000, limit: 5 },
           { name: 'medium', ttl: 60000, limit: 100 },
           { name: 'long', ttl: 3600000, limit: 1000 },
         ],
-        storage: config.get<string>('THROTTLER_REDIS_URL')
-          ? new ThrottlerStorageRedisService(config.get('THROTTLER_REDIS_URL'))
+        storage: redisClient
+          ? new ResilientThrottlerStorage(redisClient)
           : undefined,
       }),
     }),

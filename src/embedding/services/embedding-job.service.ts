@@ -13,7 +13,18 @@ export class EmbeddingJobService {
     @InjectQueue(EMBEDDING_QUEUE_NAME)
     private readonly embeddingQueue: Queue<EmbedAttachmentJob>,
     private readonly embeddingModelService: EmbeddingModelService,
-  ) {}
+  ) {
+    // Without a listener BullMQ falls back to console.error on Redis
+    // connection failures. Subscribe so we log once per minute instead.
+    let lastWarnAt = 0;
+    this.embeddingQueue.on('error', (error: Error) => {
+      const now = Date.now();
+      if (now - lastWarnAt > 60_000) {
+        lastWarnAt = now;
+        this.logger.warn(`Redis unavailable: ${error.message}`);
+      }
+    });
+  }
 
   async enqueueAttachmentEmbedding(job: EmbedAttachmentJob) {
     const model = this.embeddingModelService.modelName;
