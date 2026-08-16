@@ -5,8 +5,11 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { User } from 'src/auth/auth.factory';
+import { ERROR_CODES } from 'src/common/constants/error.codes';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
+import { ApplicationBadRequestException } from 'src/common/exceptions/application.exception';
 import { SUBMISSION_STATUS } from 'src/database/schema';
+import { SelectClassroomPost } from 'src/database/schema/classroom-post-schema';
 import { NotificationCreatedEvent } from 'src/notification/notification-created.event';
 import { NotificationType } from 'src/notification/notification.constants';
 import { NotificationTemplate } from 'src/notification/template/notification.template';
@@ -32,20 +35,35 @@ export class SubmissionService {
     orgId: string,
     dto: CreateSubmissionDto,
   ) {
-    const post = await this.classroomService.findPost(
+    const post = (await this.classroomService.findPost(
       classroomId,
       orgId,
       postId,
       userId,
-    );
+    )) as SelectClassroomPost;
 
-    return await this.submissionRepository.create({
+    const dueDate = post.assignmentData?.dueDate;
+    const isLate =
+      post.type === 'assignment' &&
+      !!dueDate &&
+      Date.now() > new Date(dueDate).getTime();
+
+    if (isLate && post.assignmentData?.allowLateSubmission !== true) {
+      throw new ApplicationBadRequestException(
+        'This assignment is past its due date and does not allow late submissions',
+        ERROR_CODES.CLASSROOM.SUBMISSION_PAST_DUE,
+      );
+    }
+
+    const submission = await this.submissionRepository.create({
       postId: post.id,
       studentId: userId,
       content: dto.content,
       attachments: dto.attachments,
       status: 'turned_in',
     });
+
+    return isLate ? { ...submission, isLate: true } : submission;
   }
 
   async fetchAll(postId: string, query: PaginationQueryDto) {

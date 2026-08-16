@@ -10,12 +10,7 @@ import { NotificationService } from './notification.service';
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  @Roles([
-    AppRole.Admin,
-    AppRole.SuperAdmin,
-    AppRole.Instructor,
-    AppRole.Student,
-  ])
+  @Roles([AppRole.Admin, AppRole.Instructor, AppRole.Student])
   @Get()
   async findAll(
     @Query() query: PaginationQueryDto,
@@ -25,12 +20,7 @@ export class NotificationController {
     return this.notificationService.findAll(query, session.user.id, orgId);
   }
 
-  @Roles([
-    AppRole.Admin,
-    AppRole.SuperAdmin,
-    AppRole.Instructor,
-    AppRole.Student,
-  ])
+  @Roles([AppRole.Admin, AppRole.Instructor, AppRole.Student])
   @Patch(':id/read')
   async markAsRead(
     @Param('id') id: string,
@@ -39,12 +29,7 @@ export class NotificationController {
     return this.notificationService.markAsRead(id, session.user.id);
   }
 
-  @Roles([
-    AppRole.Admin,
-    AppRole.SuperAdmin,
-    AppRole.Instructor,
-    AppRole.Student,
-  ])
+  @Roles([AppRole.Admin, AppRole.Instructor, AppRole.Student])
   @Patch('read-all')
   async markAllAsRead(
     @Session() session: AppUserSession,

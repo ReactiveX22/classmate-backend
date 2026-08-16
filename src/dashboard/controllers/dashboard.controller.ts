@@ -8,7 +8,7 @@ import { DashboardService } from '../services/dashboard.service';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @Roles([AppRole.Admin, AppRole.SuperAdmin])
+  @Roles([AppRole.Admin])
   @Get('admin/stats')
   async getAdminStats(@OrganizationId() orgId: string) {
     return this.dashboardService.getAdminStats(orgId);

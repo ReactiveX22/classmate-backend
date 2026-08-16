@@ -8,6 +8,8 @@ import {
 import { APIError } from 'better-auth/api';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
+import { AppRole } from 'src/common/enums/role.enum';
+import { UserStatus } from 'src/common/enums/user-status.enum';
 import { OrganizationService } from 'src/organization/services/organization.service';
 import { UserService } from 'src/user/services/user.service';
 import { SignupDto } from '../dto/signup.dto';
@@ -44,7 +46,12 @@ export class SignUpHook {
       });
 
     // add organizationId
-    this.userService.updateUserOrg(userId, newOrg.id);
+    await this.userService.updateUserOrg(userId, newOrg.id);
+
+    await this.userService.update(userId, {
+      role: AppRole.Admin,
+      status: UserStatus.Active,
+    });
   }
 
   private async validateSignUpDto(ctx: AuthHookContext) {

@@ -42,10 +42,7 @@ export class ImpersonationController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    if (
-      session.user.role !== AppRole.Admin &&
-      session.user.role !== AppRole.SuperAdmin
-    ) {
+    if (session.user.role !== AppRole.Admin) {
       throw new ForbiddenException('Only admins can impersonate users');
     }
 

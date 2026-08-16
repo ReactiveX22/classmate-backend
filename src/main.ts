@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import type { Request, Response } from 'express';
 import { AppModule } from './app.module';
 import { DrizzleExceptionFilter } from './common/filters/drizzle-exception.filter';
 import { GlobalValidationPipe } from './common/filters/validation.pipe';
@@ -15,6 +16,10 @@ async function bootstrap() {
   app.useGlobalPipes(GlobalValidationPipe);
 
   app.useGlobalFilters(new DrizzleExceptionFilter());
+
+  app.use('/api/v1/auth/admin', (_req: Request, res: Response) => {
+    res.status(403).json({ message: 'Direct admin API access is disabled' });
+  });
 
   app.setGlobalPrefix('api/v1');
 

@@ -6,13 +6,9 @@ import { UserStatus } from '../common/enums/user-status.enum';
 import { AppRole } from '../common/enums/role.enum';
 
 const appStatements = {
-  user: ['create', 'read', 'update', 'delete', 'list', 'ban'] as const,
+  user: ['create', 'impersonate'] as const,
 };
 export const ac = createAccessControl(appStatements);
-
-export const superAdminRole = ac.newRole({
-  user: ['create', 'read', 'update', 'delete', 'list', 'ban'],
-});
 
 export const auth = betterAuth({
   database: drizzleAdapter({}, { provider: 'pg' }),
@@ -28,13 +24,18 @@ export const auth = betterAuth({
     admin({
       ac,
       roles: {
-        [AppRole.SuperAdmin]: superAdminRole,
+        [AppRole.Admin]: ac.newRole({
+          user: ['create', 'impersonate'],
+        }),
         [AppRole.Instructor]: ac.newRole({
-          user: ['create', 'read', 'update', 'delete', 'list'],
+          user: [],
+        }),
+        [AppRole.Student]: ac.newRole({
+          user: [],
         }),
       },
-      adminRoles: [AppRole.SuperAdmin],
-      defaultRole: AppRole.Admin,
+      adminRoles: [],
+      defaultRole: AppRole.Student,
     }),
   ],
   user: {

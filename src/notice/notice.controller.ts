@@ -31,12 +31,7 @@ import { NoticeService } from './notice.service';
 export class NoticeController {
   constructor(private readonly noticeService: NoticeService) {}
 
-  @Roles([
-    AppRole.Admin,
-    AppRole.SuperAdmin,
-    AppRole.Instructor,
-    AppRole.Student,
-  ])
+  @Roles([AppRole.Admin, AppRole.Instructor, AppRole.Student])
   @Get()
   @CacheResource('notices')
   async findAll(
@@ -55,7 +50,7 @@ export class NoticeController {
     return this.noticeService.findOne(id, orgId);
   }
 
-  @Roles([AppRole.Admin, AppRole.SuperAdmin])
+  @Roles([AppRole.Admin])
   @Post()
   @InvalidateCache('notices')
   async createNotice(
@@ -65,7 +60,7 @@ export class NoticeController {
     return this.noticeService.create(dto, session.user);
   }
 
-  @Roles([AppRole.Admin, AppRole.SuperAdmin])
+  @Roles([AppRole.Admin])
   @Patch(':id')
   @InvalidateCache('notices')
   @HttpCode(HttpStatus.OK)
@@ -77,7 +72,7 @@ export class NoticeController {
     return this.noticeService.update(id, dto, session.user);
   }
 
-  @Roles([AppRole.Admin, AppRole.SuperAdmin])
+  @Roles([AppRole.Admin])
   @Delete(':id')
   @InvalidateCache('notices')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -89,7 +84,7 @@ export class NoticeController {
   }
 
   @Post('upload')
-  @Roles([AppRole.Admin, AppRole.SuperAdmin])
+  @Roles([AppRole.Admin])
   @InvalidateCache('notices')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
@@ -100,7 +95,7 @@ export class NoticeController {
   }
 
   @Delete('attachments/:attachmentId')
-  @Roles([AppRole.Admin, AppRole.SuperAdmin])
+  @Roles([AppRole.Admin])
   @InvalidateCache('notices')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteFile(
