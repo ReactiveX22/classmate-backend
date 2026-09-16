@@ -41,3 +41,12 @@ export class ApplicationForbiddenException extends ApplicationException {
     super(HttpStatus.FORBIDDEN, message, errorCode);
   }
 }
+
+export class ApplicationConflictException extends ApplicationException {
+  constructor(
+    message: string,
+    errorCode: string = ERROR_CODES.INFRA.BAD_REQUEST,
+  ) {
+    super(HttpStatus.CONFLICT, message, errorCode);
+  }
+}

@@ -15,11 +15,17 @@ export const NotificationType = {
   [NotificationCategory.ORGANIZATION]: {
     NOTICE: 'ORGANIZATION:NOTICE',
   },
+  IMPORT: {
+    COMPLETED: 'IMPORT:COMPLETED',
+    FINISHED_WITH_ERRORS: 'IMPORT:FINISHED_WITH_ERRORS',
+    FAILED: 'IMPORT:FAILED',
+  },
 } as const;
 
 export type NotificationTypeValue =
   | (typeof NotificationType.CLASSROOM)[keyof typeof NotificationType.CLASSROOM]
-  | (typeof NotificationType.ORGANIZATION)[keyof typeof NotificationType.ORGANIZATION];
+  | (typeof NotificationType.ORGANIZATION)[keyof typeof NotificationType.ORGANIZATION]
+  | (typeof NotificationType.IMPORT)[keyof typeof NotificationType.IMPORT];
 
 type ClassroomValue =
   (typeof NotificationType.CLASSROOM)[keyof typeof NotificationType.CLASSROOM];

@@ -12,6 +12,7 @@ export * from './course-schema';
 export * from './embedding-schema';
 export * from './embedding-tracking-schema';
 export * from './enrollment-schema';
+export * from './import-job-schema';
 export * from './notice-schema';
 export * from './notification-read-schema';
 export * from './notification-schema';

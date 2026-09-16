@@ -25,6 +25,7 @@ import { StorageModule } from './storage/storage.module';
 import { UserModule } from './user/user.module';
 import { AiModule } from './ai/ai.module';
 import { EmbeddingModule } from './embedding/embedding.module';
+import { ImportModule } from './import/import.module';
 import { TodoModule } from './todo/todo.module';
 import { AppThrottlerGuard } from './common/guards';
 
@@ -63,6 +64,7 @@ import { AppThrottlerGuard } from './common/guards';
     ImpersonationModule,
     AiModule,
     EmbeddingModule,
+    ImportModule,
     TodoModule,
   ],
   controllers: [AppController],
