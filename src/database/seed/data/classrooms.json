@@ -1,0 +1,30 @@
+[
+  {
+    "courseIndex": 0,
+    "teacherUserId": "usr_teacher_001",
+    "name": "Natural Language Processing and LLMs",
+    "section": "Section A",
+    "description": "Advanced NLP techniques with focus on transformer architectures and large language models."
+  },
+  {
+    "courseIndex": 1,
+    "teacherUserId": "usr_teacher_001",
+    "name": "Data Structures & Algorithms",
+    "section": "Section A",
+    "description": "Foundational course covering common data structures and algorithm design techniques."
+  },
+  {
+    "courseIndex": 2,
+    "teacherUserId": "usr_teacher_001",
+    "name": "Database Systems",
+    "section": "Section A",
+    "description": "Relational database design, SQL, normalization, and transaction management."
+  },
+  {
+    "courseIndex": 3,
+    "teacherUserId": "usr_teacher_001",
+    "name": "Introduction to Artificial Intelligence",
+    "section": "Section A",
+    "description": "Survey of AI methods including search, planning, machine learning, and neural networks."
+  }
+]

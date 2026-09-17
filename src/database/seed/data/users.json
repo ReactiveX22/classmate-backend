@@ -1,0 +1,194 @@
+[
+  {
+    "id": "usr_admin_001",
+    "name": "StarLight Admin",
+    "email": "admin@starlight.edu",
+    "role": "admin",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_teacher_001",
+    "name": "Sarah Jenkins",
+    "email": "sarah.jenkins@starlight.edu",
+    "role": "instructor",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_teacher_002",
+    "name": "Robert Williams",
+    "email": "robert.williams@starlight.edu",
+    "role": "instructor",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_teacher_003",
+    "name": "Lisa Chang",
+    "email": "lisa.chang@starlight.edu",
+    "role": "instructor",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_teacher_004",
+    "name": "Michael Torres",
+    "email": "michael.torres@starlight.edu",
+    "role": "instructor",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_teacher_005",
+    "name": "James Anderson",
+    "email": "james.anderson@starlight.edu",
+    "role": "instructor",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_teacher_006",
+    "name": "Jennifer Park",
+    "email": "jennifer.park@starlight.edu",
+    "role": "instructor",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_teacher_007",
+    "name": "Diana Flores",
+    "email": "diana.flores@starlight.edu",
+    "role": "instructor",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_001",
+    "name": "Marcus Cole",
+    "email": "marcus.cole@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_002",
+    "name": "Emily Watson",
+    "email": "emily.watson@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_003",
+    "name": "David Kim",
+    "email": "david.kim@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_004",
+    "name": "Sophia Martinez",
+    "email": "sophia.martinez@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_005",
+    "name": "Ethan Brown",
+    "email": "ethan.brown@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_006",
+    "name": "Olivia Taylor",
+    "email": "olivia.taylor@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_007",
+    "name": "Daniel Lee",
+    "email": "daniel.lee@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_008",
+    "name": "Ava Robinson",
+    "email": "ava.robinson@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_009",
+    "name": "Chris Nguyen",
+    "email": "chris.nguyen@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_010",
+    "name": "Isabella Garcia",
+    "email": "isabella.garcia@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_011",
+    "name": "Andrew Patel",
+    "email": "andrew.patel@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_012",
+    "name": "Mia Johnson",
+    "email": "mia.johnson@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_013",
+    "name": "Ryan Cooper",
+    "email": "ryan.cooper@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_014",
+    "name": "Haruki Tanaka",
+    "email": "haruki.tanaka@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_015",
+    "name": "Grace Mitchell",
+    "email": "grace.mitchell@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  },
+  {
+    "id": "usr_student_016",
+    "name": "Yuki Nakamura",
+    "email": "yuki.nakamura@starlight.edu",
+    "role": "student",
+    "status": "active",
+    "emailVerified": true
+  }
+]

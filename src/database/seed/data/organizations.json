@@ -1,0 +1,11 @@
+[
+  {
+    "name": "StarLight University",
+    "slug": "starlight-university",
+    "type": "university",
+    "address": "1200 Academic Drive, Starlight City, CA 94025",
+    "phone": "+1 (650) 555-0100",
+    "email": "info@starlight-university.edu",
+    "website": "https://starlight-university.edu"
+  }
+]

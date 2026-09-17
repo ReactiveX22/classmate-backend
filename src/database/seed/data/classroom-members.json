@@ -1,0 +1,8 @@
+{
+  "classroomIndices": {
+    "0": ["usr_student_001", "usr_student_002", "usr_student_003", "usr_student_004", "usr_student_005", "usr_student_006", "usr_student_007", "usr_student_008", "usr_student_009", "usr_student_010", "usr_student_011", "usr_student_012", "usr_student_013", "usr_student_014", "usr_student_015", "usr_student_016"],
+    "1": ["usr_student_001", "usr_student_002", "usr_student_003", "usr_student_004", "usr_student_005", "usr_student_006", "usr_student_007", "usr_student_008", "usr_student_009", "usr_student_010"],
+    "2": ["usr_student_001", "usr_student_005", "usr_student_006", "usr_student_007", "usr_student_008", "usr_student_011", "usr_student_012", "usr_student_013", "usr_student_014", "usr_student_015"],
+    "3": ["usr_student_001", "usr_student_002", "usr_student_003", "usr_student_009", "usr_student_010", "usr_student_011", "usr_student_012", "usr_student_013", "usr_student_015", "usr_student_016"]
+  }
+}

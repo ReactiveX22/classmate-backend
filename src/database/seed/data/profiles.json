@@ -1,0 +1,188 @@
+{
+  "usr_teacher_001": {
+    "phone": "+1 (650) 555-0201",
+    "bio": "AI researcher, previously at Google Brain.",
+    "skills": ["NLP", "PyTorch", "Transformers", "Python", "Machine Learning"],
+    "achievements": [
+      {
+        "id": "ach_001",
+        "title": "Best Paper Award - ACL 2024",
+        "issuer": "Association for Computational Linguistics",
+        "date": "2024-07-01",
+        "description": "Best paper for work on efficient fine-tuning of LLMs"
+      }
+    ]
+  },
+  "usr_teacher_002": {
+    "phone": "+1 (650) 555-0202",
+    "bio": "Computer scientist, works on algorithms and computational complexity.",
+    "skills": ["Algorithms", "Data Structures", "C++", "Java", "Complexity Theory"],
+    "achievements": []
+  },
+  "usr_teacher_003": {
+    "phone": "+1 (650) 555-0203",
+    "bio": "Works on distributed databases and query optimization.",
+    "skills": ["PostgreSQL", "Distributed Systems", "SQL Optimization", "NoSQL", "Data Modeling"],
+    "achievements": [
+      {
+        "id": "ach_002",
+        "title": "IEEE Computer Society Distinguished Speaker",
+        "issuer": "IEEE",
+        "date": "2023-03-15",
+        "description": "Invited speaker on modern database architectures"
+      }
+    ]
+  },
+  "usr_teacher_004": {
+    "phone": "+1 (650) 555-0204",
+    "bio": "ML engineer turned educator.",
+    "skills": ["Machine Learning", "TensorFlow", "Python", "Statistics", "Deep Learning"],
+    "achievements": []
+  },
+  "usr_teacher_005": {
+    "phone": "+1 (650) 555-0205",
+    "bio": "Software engineer, 10 years in industry.",
+    "skills": ["Java", "System Design", "Cloud Architecture", "Microservices", "DevOps"],
+    "achievements": []
+  },
+  "usr_teacher_006": {
+    "phone": "+1 (650) 555-0206",
+    "bio": "Cybersecurity researcher and network protocols specialist.",
+    "skills": ["Network Security", "Cryptography", "Penetration Testing", "Linux", "Python"],
+    "achievements": [
+      {
+        "id": "ach_003",
+        "title": "Cybersecurity Educator of the Year",
+        "issuer": "CyberEd Foundation",
+        "date": "2022-11-10",
+        "description": "For teaching methods in cybersecurity"
+      }
+    ]
+  },
+  "usr_teacher_007": {
+    "phone": "+1 (650) 555-0207",
+    "bio": "Professor of Computer Science, 20 years teaching. Research in HCI.",
+    "skills": ["Human-Computer Interaction", "UX Research", "JavaScript", "React", "Accessibility"],
+    "achievements": [
+      {
+        "id": "ach_004",
+        "title": "University Teaching Excellence Award",
+        "issuer": "StarLight University",
+        "date": "2023-05-20",
+        "description": "For contributions to undergraduate education"
+      }
+    ]
+  },
+  "usr_student_001": {
+    "phone": "+1 (650) 555-1001",
+    "bio": "CS senior, interested in NLP and AI applications in healthcare.",
+    "skills": ["Python", "NLP", "TensorFlow", "Research"],
+    "achievements": []
+  },
+  "usr_student_002": {
+    "phone": "+1 (650) 555-1002",
+    "bio": "Aspiring backend engineer.",
+    "skills": ["Java", "Spring Boot", "PostgreSQL", "Docker"],
+    "achievements": []
+  },
+  "usr_student_003": {
+    "phone": "+1 (650) 555-1003",
+    "bio": "Data science enthusiast. Likes working with numbers and patterns.",
+    "skills": ["Python", "R", "Pandas", "Scikit-learn", "Statistics"],
+    "achievements": [
+      {
+        "id": "ach_s01",
+        "title": "Hackathon Winner",
+        "issuer": "SLU Tech Fest 2025",
+        "date": "2025-02-15",
+        "description": "1st place in university hackathon for a study tool"
+      }
+    ]
+  },
+  "usr_student_004": {
+    "phone": "+1 (650) 555-1004",
+    "bio": "Full-stack developer.",
+    "skills": ["React", "Node.js", "TypeScript", "MongoDB", "AWS"],
+    "achievements": []
+  },
+  "usr_student_005": {
+    "phone": "+1 (650) 555-1005",
+    "bio": "Interested in game development and computer graphics.",
+    "skills": ["C++", "OpenGL", "Unity", "Game Design"],
+    "achievements": []
+  },
+  "usr_student_006": {
+    "phone": "+1 (650) 555-1006",
+    "bio": "Cybersecurity minor.",
+    "skills": ["Python", "Wireshark", "Linux", "Network Security"],
+    "achievements": []
+  },
+  "usr_student_007": {
+    "phone": "+1 (650) 555-1007",
+    "bio": "Mobile developer.",
+    "skills": ["Flutter", "Dart", "Firebase", "UI/UX"],
+    "achievements": []
+  },
+  "usr_student_008": {
+    "phone": "+1 (650) 555-1008",
+    "bio": "AI ethics researcher.",
+    "skills": ["Python", "Ethics", "Research", "Writing"],
+    "achievements": []
+  },
+  "usr_student_009": {
+    "phone": "+1 (650) 555-1009",
+    "bio": "Cloud computing and DevOps enthusiast.",
+    "skills": ["AWS", "Docker", "Kubernetes", "Terraform", "CI/CD"],
+    "achievements": []
+  },
+  "usr_student_010": {
+    "phone": "+1 (650) 555-1010",
+    "bio": "Frontend developer.",
+    "skills": ["React", "CSS", "Figma", "Tailwind", "Animation"],
+    "achievements": []
+  },
+  "usr_student_011": {
+    "phone": "+1 (650) 555-1011",
+    "bio": "Robotics club member.",
+    "skills": ["C", "Python", "Arduino", "ROS", "Computer Vision"],
+    "achievements": []
+  },
+  "usr_student_012": {
+    "phone": "+1 (650) 555-1012",
+    "bio": "Database administrator in training.",
+    "skills": ["SQL", "PostgreSQL", "Data Modeling", "Excel"],
+    "achievements": []
+  },
+  "usr_student_013": {
+    "phone": "+1 (650) 555-1013",
+    "bio": "Software engineering intern at a local startup.",
+    "skills": ["Python", "Django", "REST APIs", "Git"],
+    "achievements": []
+  },
+  "usr_student_014": {
+    "phone": "+1 (650) 555-1014",
+    "bio": "International student from Tokyo. Interested in NLP and translation.",
+    "skills": ["Python", "Japanese", "NLP", "Translation"],
+    "achievements": []
+  },
+  "usr_student_015": {
+    "phone": "+1 (650) 555-1015",
+    "bio": "Aspiring ML engineer. Researching efficient transformers.",
+    "skills": ["Python", "PyTorch", "Machine Learning", "Research"],
+    "achievements": [
+      {
+        "id": "ach_s02",
+        "title": "Undergraduate Research Fellowship",
+        "issuer": "StarLight University",
+        "date": "2025-09-01",
+        "description": "Selected for research fellowship in NLP lab"
+      }
+    ]
+  },
+  "usr_student_016": {
+    "phone": "+1 (650) 555-1016",
+    "bio": "CS student from Osaka.",
+    "skills": ["Python", "AI", "Creative Coding", "Generative Art"],
+    "achievements": []
+  }
+}

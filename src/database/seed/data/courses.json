@@ -1,0 +1,38 @@
+[
+  {
+    "teacherUserId": "usr_teacher_001",
+    "code": "CSE 481",
+    "title": "Natural Language Processing and LLMs",
+    "description": "Advanced course covering transformer architectures, fine-tuning techniques, prompt engineering, RAG, and deployment of LLM-powered applications.",
+    "credits": 3,
+    "maxStudents": 30,
+    "semesterOrdinal": "8th"
+  },
+  {
+    "teacherUserId": "usr_teacher_001",
+    "code": "CSE 201",
+    "title": "Data Structures & Algorithms",
+    "description": "Foundational course on arrays, linked lists, trees, graphs, sorting, and algorithm analysis.",
+    "credits": 4,
+    "maxStudents": 60,
+    "semesterOrdinal": "3rd"
+  },
+  {
+    "teacherUserId": "usr_teacher_001",
+    "code": "CSE 310",
+    "title": "Database Systems",
+    "description": "Relational databases, SQL, normalization, transaction management, and introduction to distributed databases.",
+    "credits": 3,
+    "maxStudents": 45,
+    "semesterOrdinal": "5th"
+  },
+  {
+    "teacherUserId": "usr_teacher_001",
+    "code": "CSE 350",
+    "title": "Introduction to Artificial Intelligence",
+    "description": "Survey of AI topics including search, planning, knowledge representation, machine learning, and neural networks.",
+    "credits": 3,
+    "maxStudents": 50,
+    "semesterOrdinal": "6th"
+  }
+]

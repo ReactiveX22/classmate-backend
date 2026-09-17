@@ -1,0 +1,37 @@
+[
+  {
+    "userId": "usr_teacher_001",
+    "title": "Lecturer",
+    "joinDate": "2021-08-15"
+  },
+  {
+    "userId": "usr_teacher_002",
+    "title": "Lecturer",
+    "joinDate": "2019-01-10"
+  },
+  {
+    "userId": "usr_teacher_003",
+    "title": "Associate Professor",
+    "joinDate": "2017-08-20"
+  },
+  {
+    "userId": "usr_teacher_004",
+    "title": "Lecturer",
+    "joinDate": "2022-01-12"
+  },
+  {
+    "userId": "usr_teacher_005",
+    "title": "Lecturer",
+    "joinDate": "2020-08-18"
+  },
+  {
+    "userId": "usr_teacher_006",
+    "title": "Associate Professor",
+    "joinDate": "2016-01-20"
+  },
+  {
+    "userId": "usr_teacher_007",
+    "title": "Professor",
+    "joinDate": "2012-08-22"
+  }
+]
