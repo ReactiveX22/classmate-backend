@@ -10,9 +10,10 @@ export interface CacheOptions {
 
 export const CacheResource = (resource: string, options?: CacheOptions) => {
   return (
-    target: any,
+    target: object,
     key?: string | symbol,
-    descriptor?: TypedPropertyDescriptor<any>,
+
+    descriptor?: TypedPropertyDescriptor<(...args: never[]) => unknown>,
   ) => {
     if (key !== undefined && descriptor !== undefined) {
       SetMetadata(CACHE_RESOURCE_METADATA, resource)(target, key, descriptor);

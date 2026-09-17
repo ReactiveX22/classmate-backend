@@ -161,7 +161,7 @@ export class AuthHelper {
 
   clearCookies() {
     // Clear all cookies from the current jar
-    this.client.jar.clear(this.baseUr);
+    this.client.jar.clear(this.baseUrl);
 
     this.currentUser = null;
     this.currentSession = null;

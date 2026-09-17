@@ -1,4 +1,4 @@
-import { Transform } from 'class-transformer';
+import { Transform, type TransformFnParams } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -14,7 +14,7 @@ export class ListClassroomPostsDto extends PaginationQueryDto {
   type?: 'announcement' | 'assignment' | 'material' | 'question';
 
   @IsOptional()
-  @Transform(({ value }) => {
+  @Transform(({ value }: TransformFnParams): unknown => {
     if (Array.isArray(value)) return value;
     if (typeof value === 'string') return value.split(',').map((v) => v.trim());
     return value;
@@ -24,12 +24,16 @@ export class ListClassroomPostsDto extends PaginationQueryDto {
   tags?: string[];
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(
+    ({ value }: TransformFnParams) => value === 'true' || value === true,
+  )
   @IsBoolean()
   bookmarked?: boolean;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(
+    ({ value }: TransformFnParams) => value === 'true' || value === true,
+  )
   @IsBoolean()
   fromInstructor?: boolean;
 }

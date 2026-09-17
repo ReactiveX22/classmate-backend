@@ -109,6 +109,7 @@ export class AiService {
     const conversation = await this.aiConversationRepository.createConversation(
       {
         organizationId: user.organizationId,
+
         userId: user.id,
         classroomId: dto.classroomId ?? null,
         title: null,
@@ -140,7 +141,9 @@ export class AiService {
           const userMessage = await this.aiConversationRepository.createMessage(
             {
               conversationId: conversation.id,
+
               organizationId: user.organizationId,
+
               userId: user.id,
               role: 'user',
               content: dto.message,
@@ -199,6 +202,7 @@ export class AiService {
           const assistantMessage =
             await this.aiConversationRepository.createMessage({
               conversationId: conversation.id,
+
               organizationId: user.organizationId,
               role: 'assistant',
               content: finalLlmMeta?.content ?? accumulatedContent,
@@ -326,6 +330,7 @@ export class AiService {
           const assistantMessage =
             await this.aiConversationRepository.createMessage({
               conversationId: conversation.id,
+
               organizationId: user.organizationId,
               role: 'assistant',
               content: finalLlmMeta?.content ?? accumulatedContent,

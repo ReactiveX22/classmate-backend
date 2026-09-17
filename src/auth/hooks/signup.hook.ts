@@ -24,7 +24,7 @@ export class SignUpHook {
 
   @BeforeHook('/sign-up/email')
   async signupUser(ctx: AuthHookContext) {
-    const signupDto = await this.validateSignUpDto(ctx);
+    await this.validateSignUpDto(ctx);
   }
 
   @AfterHook('/sign-up/email')
@@ -62,9 +62,9 @@ export class SignUpHook {
     if (errors.length > 0) {
       const validationErrors = errors.flatMap((error) => {
         if (error.constraints) {
-          return Object.entries(error.constraints).map(([key, issue]) => ({
+          return Object.entries(error.constraints).map(([, issue]) => ({
             field: error.property,
-            issue: issue,
+            issue,
           }));
         }
         return [

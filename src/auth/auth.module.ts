@@ -37,8 +37,10 @@ import { SignUpHook } from './hooks/signup.hook';
           authResponseHook,
           eventEmitter,
         }),
-        middleware: (req, _res, next) => {
+        middleware: (req: any, _res: any, next: () => void) => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           req.url = req.originalUrl;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           req.baseUrl = '';
           next();
         },

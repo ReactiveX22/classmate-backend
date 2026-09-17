@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import * as net from 'net';
 import { EnvironmentVariables } from 'src/config/env.validation';
 import { ConfigModule } from '../config/config.module';
 import { MailModule } from './mail.module';
@@ -10,7 +11,6 @@ const isPortReachable = async (
   port: number,
 ): Promise<boolean> => {
   return new Promise((resolve) => {
-    const net = require('net');
     const socket = new net.Socket();
     socket.setTimeout(1000);
     socket.on('connect', () => {

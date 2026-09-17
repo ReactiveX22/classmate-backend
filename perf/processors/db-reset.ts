@@ -1,10 +1,11 @@
 import { Pool } from 'pg';
 
+const connectionString =
+  process.env.DATABASE_URL ||
+  'postgresql://postgres:password@localhost:5432/classmate-test';
+
 async function resetDatabase() {
-  const pool = new Pool({
-    connectionString:
-      'postgresql://postgres:password@localhost:5432/classmate-test',
-  });
+  const pool = new Pool({ connectionString });
 
   console.log('--- 🧨 Nuking All Database Objects ---');
   try {

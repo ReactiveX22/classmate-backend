@@ -36,9 +36,11 @@
     "db:test:push": "dotenv -e .env.test -- drizzle-kit push --config=drizzle.test.config.ts",
     "auth:generate": "pnpx @better-auth/cli generate --config ./src/auth/auth-schema-gen.ts",
     "perf:onboarding": "k6 run perf/perf.js --env SCENARIO=onboarding",
+    "perf:load": "k6 run perf/perf.js --env SCENARIO=load",
     "perf:stress": "k6 run perf/perf.js --env SCENARIO=stress",
     "perf:spike": "k6 run perf/perf.js --env SCENARIO=spike",
     "perf:smoke": "k6 run perf/perf.js --env SCENARIO=smoke",
+    "perf:soak": "k6 run perf/perf.js --env SCENARIO=soak",
     "embedding:check": "ts-node -r tsconfig-paths/register src/embedding/commands/check-missing-embeddings.command.ts",
     "embedding:enqueue-missing": "ts-node -r tsconfig-paths/register src/embedding/commands/enqueue-missing-embeddings.command.ts",
     "embedding:clear": "ts-node -r tsconfig-paths/register src/embedding/commands/clear-all-embeddings.command.ts"

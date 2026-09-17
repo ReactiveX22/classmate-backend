@@ -5,7 +5,7 @@ import {
 } from '@nestjs/websockets';
 import { AuthService } from '@thallesp/nestjs-better-auth';
 import { Server } from 'socket.io';
-import { User } from 'src/auth/auth.factory';
+import type { User } from 'src/auth/auth.factory';
 import { ClassroomService } from 'src/classroom/services/classroom.service';
 import { AppRole } from 'src/common/enums/role.enum';
 import { type AuthenticatedSocket } from 'src/common/types/socket.types';
@@ -39,6 +39,8 @@ export class NotificationGateway implements OnGatewayConnection {
         return;
       }
 
+      // getSession() infers the base better-auth user, but the row carries
+      // our additionalFields (organizationId, role, status) at runtime.
       client.data.user = session.user as User;
 
       await this.joinRooms(client);

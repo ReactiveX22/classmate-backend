@@ -20,6 +20,7 @@ import { NotificationCreatedEvent } from 'src/notification/notification-created.
 import { NotificationType } from 'src/notification/notification.constants';
 import { NotificationTemplate } from 'src/notification/template/notification.template';
 import { StorageService } from 'src/storage/storage.service';
+import type { QuestionData } from 'src/database/schema/classroom-post-schema';
 import { ClassroomRepository } from '../classroom.repository';
 import { AddMembersClassroomDto } from '../dto/addMembers-classroom.dto';
 import { CreateClassroomDto } from '../dto/create-classroom.dto';
@@ -36,6 +37,11 @@ import {
   normalizeQuestionDataInput,
   PollViewer,
 } from '../utils/question-data.util';
+
+type PostWithQuestionData = {
+  questionData?: QuestionData | null;
+  authorId: string;
+};
 
 @Injectable()
 export class ClassroomService {
@@ -55,8 +61,13 @@ export class ClassroomService {
   ) {
     const result = await this.classroomRepository.findAll(query, orgId, userId);
 
+    // The repository declares SelectClassroom rows, but the pagination query
+    // returns joined { classroom, course, teacher, studentCount } rows.
+    const rows = result.data as unknown as Array<{
+      classroom: { id: string };
+    }>;
     const dataWithUpcoming = await Promise.all(
-      (result.data as any[]).map(async (item) => {
+      rows.map(async (item) => {
         const upcoming = await this.classroomRepository.findUpcomingPosts(
           item.classroom.id,
           userId,
@@ -221,8 +232,9 @@ export class ClassroomService {
 
     return {
       ...result,
+
       data: await this.enrichPostsWithQuestionData(
-        result.data as any[],
+        result.data as PostWithQuestionData[],
         user.id,
         classroom.teacherId,
       ),
@@ -335,7 +347,7 @@ export class ClassroomService {
 
     return (
       await this.enrichPostsWithQuestionData(
-        [newPost as any],
+        [newPost],
         user.id,
         classroom.teacherId,
       )
@@ -403,7 +415,7 @@ export class ClassroomService {
 
     return (
       await this.enrichPostsWithQuestionData(
-        [updatedPost as any],
+        [updatedPost],
         authorId,
         classroom.teacherId,
       )
@@ -455,7 +467,7 @@ export class ClassroomService {
 
     return (
       await this.enrichPostsWithQuestionData(
-        [updatedPost as any],
+        [updatedPost],
         user.id,
         classroom.teacherId,
       )
@@ -643,8 +655,8 @@ export class ClassroomService {
     return Array.from(uniqueTags);
   }
 
-  private async enrichPostsWithQuestionData(
-    posts: any[],
+  private async enrichPostsWithQuestionData<T extends PostWithQuestionData>(
+    posts: T[],
     viewerId: string,
     teacherId: string,
   ) {
@@ -663,6 +675,7 @@ export class ClassroomService {
 
     return posts.map((post) => ({
       ...post,
+
       questionData: enrichQuestionData(
         post.questionData,
         viewerId,

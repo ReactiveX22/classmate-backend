@@ -1,7 +1,11 @@
 import { FactoryProvider, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { PgQueryResultHKT, PgTransaction } from 'drizzle-orm/pg-core';
+import { ExtractTablesWithRelations } from 'drizzle-orm';
+import {
+  drizzle,
+  NodePgDatabase,
+  NodePgTransaction,
+} from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import * as schema from './schema';
 
@@ -73,8 +77,7 @@ export const dbProvider: FactoryProvider<DB> = {
   },
 };
 
-export type Transaction = PgTransaction<
-  PgQueryResultHKT,
+export type Transaction = NodePgTransaction<
   typeof schema,
-  Record<string, never>
+  ExtractTablesWithRelations<typeof schema>
 >;

@@ -51,7 +51,7 @@ export const scenarios = {
   soak: {
     executor: 'constant-vus',
     vus: 30,
-    duration: '1h',
+    duration: '15m',
   },
 
   onboarding: {

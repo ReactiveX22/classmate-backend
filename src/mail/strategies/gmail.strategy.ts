@@ -33,10 +33,10 @@ export class GmailStrategy implements MailTransporter {
         html: options.html,
       });
       this.logger.log(`Email sent to ${options.to} via Gmail`);
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
         `Failed to send email to ${options.to} via Gmail`,
-        error.stack,
+        error instanceof Error ? error.stack : error,
       );
       throw error;
     }

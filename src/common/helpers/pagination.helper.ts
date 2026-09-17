@@ -1,4 +1,4 @@
-import { eq, SQL } from 'drizzle-orm';
+import { eq, SQL, type AnyColumn } from 'drizzle-orm';
 import { user } from 'src/database/schema';
 import {
   PaginatedResponse,
@@ -54,7 +54,7 @@ export function createPaginatedResponse<T>(
 export function buildOrganizationFilters(
   organizationId: string,
   options: {
-    table?: any;
+    table?: { organizationId: AnyColumn; role?: AnyColumn };
     role?: string;
     extraFilters?: SQL[];
   } = {},

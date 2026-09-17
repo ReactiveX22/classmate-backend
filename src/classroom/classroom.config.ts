@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { type SelectedFields } from 'drizzle-orm/pg-core';
 import { DB } from 'src/database/db.provider';
 import {
   and,
@@ -119,7 +120,7 @@ export class ClassroomPostPaginationConfig extends PaginationConfig<
       .groupBy(assignmentSubmission.postId)
       .as('sub_counts');
 
-    const selectFields: any = {
+    const selectFields: SelectedFields = {
       ...getTableColumns(classroomPost),
       author: user,
       isBookmarked: this.userId
@@ -177,6 +178,7 @@ export class ClassroomPostPaginationConfig extends PaginationConfig<
     )`.as('recentComments');
 
     selectFields.commentCount = commentCountSq;
+
     selectFields.recentComments = recentCommentsSq;
 
     const query = db

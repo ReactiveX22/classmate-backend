@@ -13,16 +13,6 @@ export default tseslint.config(
   ...tseslint.configs.recommendedTypeChecked,
   eslintPluginPrettierRecommended,
   {
-    files: ['**/*.spec.ts'],
-    plugins: {
-      jest: jestPlugin,
-    },
-    rules: {
-      '@typescript-eslint/unbound-method': 'off',
-      'jest/unbound-method': 'error',
-    },
-  },
-  {
     languageOptions: {
       globals: {
         ...globals.node,
@@ -41,6 +31,23 @@ export default tseslint.config(
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
       "prettier/prettier": ["error", { endOfLine: "auto" }],
+    },
+  },
+  // Spec overrides come last so they win over the global rules above.
+  {
+    files: ['**/*.spec.ts'],
+    plugins: {
+      jest: jestPlugin,
+    },
+    rules: {
+      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      'jest/unbound-method': 'error',
     },
   },
 );

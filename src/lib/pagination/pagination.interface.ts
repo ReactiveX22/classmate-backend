@@ -1,4 +1,4 @@
-import { SQL } from 'drizzle-orm';
+import { SQL, type AnyColumn } from 'drizzle-orm';
 import { PgSelect } from 'drizzle-orm/pg-core';
 import { DB } from 'src/database/db.provider';
 
@@ -11,12 +11,12 @@ export interface PaginatedConfig<T = any> {
   /**
    * Searchable fields for ilike searching
    */
-  searchableFields?: any[];
+  searchableFields?: AnyColumn[];
 
   /**
    * Allowed fields for sorting
    */
-  sortFields?: Record<string, any>;
+  sortFields?: Record<string, AnyColumn>;
 
   /**
    * Default sort field
@@ -36,5 +36,5 @@ export interface PaginatedConfig<T = any> {
   /**
    * Optional data transformation
    */
-  transform?(data: any[]): T[];
+  transform?(data: unknown[]): T[];
 }

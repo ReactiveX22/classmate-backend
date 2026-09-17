@@ -1,19 +1,23 @@
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  ValidationError,
+  ValidationPipe,
+} from '@nestjs/common';
 
 export const GlobalValidationPipe = new ValidationPipe({
   whitelist: true,
   forbidNonWhitelisted: true,
   transform: true,
   exceptionFactory: (errors) => {
-    const formatErrors = (validationErrors: any[]) => {
+    const formatErrors = (validationErrors: ValidationError[]) => {
       const result: { field: string; issue: string }[] = [];
 
       validationErrors.forEach((error) => {
         if (error.constraints) {
-          Object.values(error.constraints).forEach((issue: string) => {
+          Object.values(error.constraints).forEach((issue) => {
             result.push({
               field: error.property,
-              issue: issue,
+              issue,
             });
           });
         }

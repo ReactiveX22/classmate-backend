@@ -17,7 +17,7 @@ export class CacheInvalidationListener {
     const { organizationId, resources } = payload;
 
     this.logger.debug(
-      `Received invalidation event for resources: ${resources} in org ${organizationId}`,
+      `Received invalidation event for resources: ${resources.join(', ')} in org ${organizationId}`,
     );
 
     try {
@@ -28,8 +28,8 @@ export class CacheInvalidationListener {
       );
     } catch (error) {
       this.logger.error(
-        `Failed to handle cache invalidation for resources ${resources} in org ${organizationId}`,
-        error,
+        `Failed to handle cache invalidation for resources ${resources.join(', ')} in org ${organizationId}`,
+        error instanceof Error ? error.stack : error,
       );
     }
   }

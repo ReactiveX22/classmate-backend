@@ -6,6 +6,11 @@ import { UserStatus } from 'src/common/enums/user-status.enum';
 import { UserService } from 'src/user/services/user.service';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 
+type AuthHookResponse = {
+  user?: { id: string; status?: string } | null;
+  [key: string]: unknown;
+};
+
 @Injectable()
 export class AuthResponseHook {
   constructor(private readonly userService: UserService) {}
@@ -19,7 +24,11 @@ export class AuthResponseHook {
         return;
       }
 
-      const originalResponse = ctx.context.returned as any;
+      // better-auth types `returned` loosely; narrow at the boundary.
+      const originalResponse = ctx.context.returned as
+        | AuthHookResponse
+        | null
+        | undefined;
       if (!originalResponse?.user) return;
 
       const userId = originalResponse.user.id;

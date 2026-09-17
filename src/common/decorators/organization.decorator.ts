@@ -1,10 +1,11 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { ERROR_CODES } from '../constants/error.codes';
 import { ApplicationForbiddenException } from '../exceptions/application.exception';
+import { AuthenticatedRequest } from '../types/request.types';
 
 export const OrganizationId = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
+    const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
 
     if (request.organizationId) {
       return request.organizationId;

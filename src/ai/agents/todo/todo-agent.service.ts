@@ -74,7 +74,7 @@ export class TodoAgentService {
           continue;
         }
 
-        const toolResult = await tool.invoke(toolCall.args, {
+        const toolResult: unknown = await tool.invoke(toolCall.args, {
           configurable: {
             user: context.user,
             tool_call_id: toolCall.id,

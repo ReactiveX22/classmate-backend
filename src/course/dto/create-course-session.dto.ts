@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, type TransformFnParams } from 'class-transformer';
 import {
   IsBoolean,
   IsDateString,
@@ -12,7 +12,9 @@ export class CreateCourseSessionDto {
   @ApiProperty({ example: 'Fall 2024' })
   @IsNotEmpty()
   @IsString()
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: TransformFnParams): unknown =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   name: string;
 
   @ApiPropertyOptional({ example: 'The main fall session' })

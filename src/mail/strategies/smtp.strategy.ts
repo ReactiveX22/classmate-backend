@@ -42,10 +42,10 @@ export class SmtpStrategy implements MailTransporter {
       this.logger.log(
         `Email sent to ${options.to} via SMTP (${this.options.host}:${this.options.port})`,
       );
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
         `Failed to send email to ${options.to} via SMTP`,
-        error.stack,
+        error instanceof Error ? error.stack : error,
       );
       throw error;
     }

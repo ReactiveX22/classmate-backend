@@ -44,6 +44,7 @@ export class NoticeService {
     const payload: InsertNotice = {
       organizationId: user.organizationId,
       title: dto.title,
+
       authorId: user.id,
       content: dto.content,
       tags: dto.tags,

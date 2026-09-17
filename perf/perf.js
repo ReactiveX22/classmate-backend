@@ -4,12 +4,12 @@
  * Main entry point for running performance tests.
  *
  * Usage:
- *   k6 run perf/main.js                          # Default smoke test
- *   k6 run perf/main.js --env SCENARIO=load      # Load test
- *   k6 run perf/main.js --env SCENARIO=stress    # Stress test
- *   k6 run perf/main.js --env SCENARIO=spike     # Spike test
- *   k6 run perf/main.js --env SCENARIO=soak      # Soak test (1h)
- *   k6 run perf/main.js --env ENV=staging        # Use staging thresholds
+ *   k6 run perf/perf.js                          # Default smoke test
+ *   k6 run perf/perf.js --env SCENARIO=load      # Load test
+ *   k6 run perf/perf.js --env SCENARIO=stress    # Stress test
+ *   k6 run perf/perf.js --env SCENARIO=spike     # Spike test
+ *   k6 run perf/perf.js --env SCENARIO=soak      # Soak test (1h)
+ *   k6 run perf/perf.js --env ENV=staging        # Use staging thresholds
  *
  * Run specific scenarios directly:
  *   k6 run perf/scenarios/smoke.js
@@ -21,12 +21,17 @@ import { currentConfig, currentEnv } from './config/env.js';
 import { getScenario } from './config/options.js';
 import { getThresholds } from './config/thresholds.js';
 
-// Import scenarios
+// Import scenarios (with their own options for extraThresholds)
 import { loadTest } from './scenarios/load.js';
 import { smokeTest } from './scenarios/smoke.js';
 import { soakTest } from './scenarios/soak.js';
 import { spikeTest } from './scenarios/spike.js';
 import { stressTest } from './scenarios/stress.js';
+import * as loadModule from './scenarios/load.js';
+import * as smokeModule from './scenarios/smoke.js';
+import * as soakModule from './scenarios/soak.js';
+import * as spikeModule from './scenarios/spike.js';
+import * as stressModule from './scenarios/stress.js';
 
 // Import workflows
 import { fullOnboardingWorkflow } from './workflows/full-onboarding.js';
@@ -45,12 +50,26 @@ const scenarioMap = {
   onboarding: fullOnboardingWorkflow,
 };
 
+// Merge extraThresholds from the selected scenario module
+const scenarioModules = {
+  smoke: smokeModule,
+  load: loadModule,
+  stress: stressModule,
+  spike: spikeModule,
+  soak: soakModule,
+};
+const activeModule = scenarioModules[SCENARIO];
+const extraThresholds = activeModule?.options?.thresholds || {};
+
 // Build options dynamically
 export const options = {
   scenarios: {
     default: getScenario(SCENARIO),
   },
-  thresholds: getThresholds(ENV, SCENARIO),
+  thresholds: {
+    ...getThresholds(ENV, SCENARIO),
+    ...extraThresholds,
+  },
 };
 
 /**

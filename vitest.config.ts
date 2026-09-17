@@ -4,6 +4,7 @@ import tsConfigPaths from 'vitest-tsconfig-paths';
 import { resolve } from 'path';
 
 export default defineConfig({
+  oxc: false,
   test: {
     globals: true,
     root: './',

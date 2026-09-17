@@ -1,10 +1,10 @@
-import { Transform } from 'class-transformer';
+import { Transform, type TransformFnParams } from 'class-transformer';
 import { IsArray, IsOptional, IsUUID } from 'class-validator';
 import { PaginationQueryDto } from 'src/common/dto/pagination.dto';
 
 export class CourseFilterDto extends PaginationQueryDto {
   @IsOptional()
-  @Transform(({ value }) => {
+  @Transform(({ value }: TransformFnParams): unknown => {
     if (Array.isArray(value)) return value;
     if (typeof value === 'string') return [value];
     return value;
@@ -14,7 +14,7 @@ export class CourseFilterDto extends PaginationQueryDto {
   semesterId?: string[];
 
   @IsOptional()
-  @Transform(({ value }) => {
+  @Transform(({ value }: TransformFnParams): unknown => {
     if (Array.isArray(value)) return value;
     if (typeof value === 'string') return [value];
     return value;

@@ -89,8 +89,10 @@ export class ImpersonationController {
     }
 
     // Forward cookies
+
     const setCookieHeaders =
       impersonationResponse.headers.getSetCookie?.() || [];
+
     if (setCookieHeaders.length > 0) {
       res.setHeader('Set-Cookie', setCookieHeaders);
     }
@@ -120,6 +122,7 @@ export class ImpersonationController {
 
     if (stopResponse && stopResponse.ok) {
       const setCookieHeaders = stopResponse.headers.getSetCookie?.() || [];
+
       if (setCookieHeaders.length > 0) {
         res.setHeader('Set-Cookie', setCookieHeaders);
       }

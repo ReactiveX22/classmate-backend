@@ -196,6 +196,7 @@ export class AttachmentEmbeddingProcessor
       return attachment;
     }
 
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     this.logger.warn(`Unknown resource type: ${resourceType}`);
     return null;
   }

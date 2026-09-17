@@ -11,7 +11,7 @@
  */
 
 import { check, group, sleep } from 'k6';
-import { open } from 'k6/experimental/fs';
+import { open } from 'k6/fs';
 import { currentConfig } from '../config/env.js';
 import { buildOptions } from '../config/options.js';
 import { AuthHelper } from '../lib/auth.js';
@@ -57,8 +57,7 @@ export function stressTest() {
   const client = auth.getClient();
   const uniqueData = generateUniqueData('stress', __VU, __ITER);
 
-  // Track active users
-  metrics.activeUsers.add(__VU);
+  metrics.activeUsers.add(1);
 
   // 1. Signin (lighter than signup, but we test high volume)
   group('Stress Signin', () => {
@@ -120,8 +119,9 @@ export function stressTest() {
       try {
         const coursesRes = allTasks.listCourses(client, context);
         if (coursesRes.status === 200) {
-          const courses = JSON.parse(coursesRes.body);
-          if (courses.length > 0) context.courseId = getRandom(courses).id;
+          const body = JSON.parse(coursesRes.body);
+          const list = Array.isArray(body) ? body : body.data || [];
+          if (list.length > 0) context.courseId = getRandom(list).id;
         }
       } catch (e) {}
     }
@@ -131,9 +131,9 @@ export function stressTest() {
       try {
         const classroomsRes = allTasks.listClassrooms(client, context);
         if (classroomsRes.status === 200) {
-          const classrooms = JSON.parse(classroomsRes.body);
-          if (classrooms.length > 0)
-            context.classroomId = getRandom(classrooms).id;
+          const body = JSON.parse(classroomsRes.body);
+          const list = Array.isArray(body) ? body : body.data || [];
+          if (list.length > 0) context.classroomId = getRandom(list).id;
         }
       } catch (e) {}
     }

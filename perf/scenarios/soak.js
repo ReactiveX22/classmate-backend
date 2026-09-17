@@ -7,12 +7,14 @@
  */
 
 import { check, group, sleep } from 'k6';
+import { open } from 'k6/fs';
 import { currentConfig } from '../config/env.js';
 import { buildOptions } from '../config/options.js';
 import { AuthHelper } from '../lib/auth.js';
 import {
   generateUniqueData,
   getByVuIndex,
+  getRandom,
   loadCsv,
 } from '../lib/data-loader.js';
 import * as metrics from '../lib/metrics.js';
@@ -29,6 +31,21 @@ try {
   existingTeachers = loadCsv('soak_teachers', '../data/teachers.csv');
 } catch (e) {
   // Will create new users if needed
+}
+
+let classroomTemplates = [];
+try {
+  classroomTemplates = loadCsv('soak_classrooms', '../data/classrooms.csv');
+} catch (e) {
+  console.warn('Classroom templates not found, using empty list');
+}
+
+// Load file data for uploads (will be null if file doesn't exist)
+let fileData = null;
+try {
+  fileData = open(import.meta.resolve('../data/assets/sample.pdf'), 'b');
+} catch (e) {
+  console.warn('Sample PDF not found, upload tasks will be skipped');
 }
 
 /**
@@ -76,6 +93,17 @@ export function soakTest() {
     sleep(2);
     return;
   }
+
+  // Build context for tasks
+  const uniqueData = generateUniqueData('soak', __VU, __ITER);
+  const context = {
+    uniqueId: uniqueData.id,
+    courseId: null,
+    classroomId: null,
+    classroomData: getRandom(classroomTemplates),
+    fileData: fileData,
+    fileName: 'sample.pdf',
+  };
 
   // Regular operations
   group('Soak Operations', () => {

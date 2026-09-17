@@ -99,6 +99,24 @@ export function createClient(
   }
 
   /**
+   * Upload a file via multipart form data
+   * @param {string} path - API path
+   * @param {Object} formData - Object with file field: { file: http.file(data, name, type) }
+   * @param {Object} params - Additional params (tags, headers)
+   */
+  function upload(path, formData = {}, params = {}) {
+    const url = `${baseUrl}${path}`;
+    const res = http.post(url, formData, {
+      jar,
+      headers: params.headers || {},
+      tags: params.tags || {},
+    });
+
+    trackMetrics(res, params.tags);
+    return res;
+  }
+
+  /**
    * Track custom metrics for the response
    */
   function trackMetrics(res, tags) {
@@ -141,6 +159,7 @@ export function createClient(
     post,
     patch,
     delete: del,
+    upload,
     getCookies,
     hasSessionCookie,
     clearCookies,

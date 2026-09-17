@@ -145,7 +145,7 @@ export class ClassroomController {
     @Session() session: AppUserSession,
     @OrganizationId() orgId: string,
   ) {
-    this.classroomService.removeMembers(id, session.user.id, orgId, dto);
+    await this.classroomService.removeMembers(id, session.user.id, orgId, dto);
   }
 
   @Roles([AppRole.Student])

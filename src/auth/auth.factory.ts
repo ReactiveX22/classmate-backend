@@ -34,6 +34,9 @@ export const authFactory = (
         hash: hashPassword,
         verify: verifyPassword,
       },
+      // better-auth 1.6 requires these hooks to return Promise<void>,
+      // so the async keyword is intentional despite no await inside.
+      // eslint-disable-next-line @typescript-eslint/require-await
       sendResetPassword: async ({ user, token }) => {
         const resetUrl = `${config.clientURL}/reset-password?token=${token}`;
         config.eventEmitter.emit(
@@ -41,6 +44,7 @@ export const authFactory = (
           new ResetPasswordEvent(user, resetUrl, token),
         );
       },
+      // eslint-disable-next-line @typescript-eslint/require-await
       onPasswordReset: async ({ user }) => {
         console.log(`Password for user ${user.email} has been reset.`);
       },

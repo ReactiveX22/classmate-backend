@@ -19,7 +19,9 @@ import type { QuestionData } from 'src/database/schema/classroom-post-schema';
 export class ClassroomPostRepository {
   constructor(@InjectDb() private readonly db: DB) {}
 
-  async runInTransaction<T>(callback: (tx: any) => Promise<T>): Promise<T> {
+  async runInTransaction<T>(
+    callback: (tx: Transaction) => Promise<T>,
+  ): Promise<T> {
     return await this.db.transaction(callback);
   }
 

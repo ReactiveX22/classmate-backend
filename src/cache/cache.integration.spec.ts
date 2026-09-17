@@ -10,7 +10,6 @@ import { TenantCacheInterceptor } from './interceptors/tenant-cache.interceptor'
 
 describe('TenantCacheInterceptor (Integration)', () => {
   let interceptor: TenantCacheInterceptor;
-  let cacheService: CacheService;
   let eventEmitter: EventEmitter2;
   let reflector: Reflector;
 
@@ -36,7 +35,7 @@ describe('TenantCacheInterceptor (Integration)', () => {
     }).compile();
 
     interceptor = module.get<TenantCacheInterceptor>(TenantCacheInterceptor);
-    cacheService = module.get<CacheService>(CacheService);
+    module.get<CacheService>(CacheService);
     eventEmitter = module.get<EventEmitter2>(EventEmitter2);
     reflector = module.get<Reflector>(Reflector);
   });
