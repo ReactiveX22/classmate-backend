@@ -34,7 +34,7 @@ function getWeekday(date: Date): string {
   return date.toLocaleDateString('en-US', { weekday: 'long' });
 }
 
-function buildPlaceholders(): Record<string, string> {
+export function buildPlaceholders(): Record<string, string> {
   const now = new Date();
   const semesterYear = now.getFullYear();
 
@@ -212,7 +212,7 @@ function getUpcomingWednesdays(count: number): Date[] {
   return wednesdays;
 }
 
-function replacePlaceholders(
+export function replacePlaceholders(
   text: string,
   placeholders: Record<string, string>,
 ): string {

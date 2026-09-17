@@ -2,106 +2,169 @@
   {
     "id": "5d48edd0-6498-4555-888e-4fed0446b916",
     "title": "Midterm Exam Schedule - CSE Department",
-    "content": "The CSE Department has finalized the midterm examination schedule for Fall {{semester_year}}. Exams will be held from {{midterm_start}} to {{midterm_end}}.\n\nExam Schedule:\n- **CSE 481** (NLP & LLMs) - {{midterm_cse481}}, 2:00 PM - 4:00 PM, Room 301\n- **CSE 201** (Data Structures & Algorithms) - {{midterm_cse201}}, 9:00 AM - 11:00 AM, Room 105\n- **CSE 310** (Database Systems) - {{midterm_cse310}}, 1:00 PM - 3:00 PM, Room 204\n- **CSE 350** (Introduction to AI) - {{midterm_cse350}}, 10:00 AM - 12:00 PM, Room 102\n\nPlease review your course materials and reach out to your instructors with any questions. Students requiring accommodations should contact the Disability Services Office by {{accommodation_deadline}}.",
-    "tags": ["exam", "schedule", "important", "cse"],
+    "content": "<p>The CSE Department has finalized the midterm examination schedule for Fall {{semester_year}}. Exams will be held from {{midterm_start}} to {{midterm_end}}.</p><p>Exam Schedule:</p><ul><li><strong>CSE 481</strong> (NLP &amp; LLMs) - {{midterm_cse481}}, 2:00 PM - 4:00 PM, Room 301</li><li><strong>CSE 201</strong> (Data Structures &amp; Algorithms) - {{midterm_cse201}}, 9:00 AM - 11:00 AM, Room 105</li><li><strong>CSE 310</strong> (Database Systems) - {{midterm_cse310}}, 1:00 PM - 3:00 PM, Room 204</li><li><strong>CSE 350</strong> (Introduction to AI) - {{midterm_cse350}}, 10:00 AM - 12:00 PM, Room 102</li></ul><p>Please review your course materials and reach out to your instructors with any questions. Students requiring accommodations should contact the Disability Services Office by {{accommodation_deadline}}.</p>",
+    "tags": [
+      "exam",
+      "schedule",
+      "important",
+      "cse"
+    ],
     "daysAgo": 0
   },
   {
     "id": "5e4f582d-b0c4-4eca-871c-f4b0721d9a8e",
     "title": "CSE 481 - Project Proposal Deadline Extended",
-    "content": "Due to multiple requests, the project proposal deadline for **CSE 481** (Natural Language Processing and LLMs) has been extended to {{proposal_deadline}}.\n\n- Original deadline: {{proposal_original}}\n- New deadline: **{{proposal_deadline}}**\n\nAll teams must submit a 2-page proposal outlining their project scope, methodology, and expected deliverables. Submissions should be uploaded to the classroom portal before 11:59 PM on the deadline.\n\nIf you have already submitted, no further action is needed. Contact Professor Jenkins with any questions.",
-    "tags": ["deadline", "course", "cse481"],
+    "content": "<p>Due to multiple requests, the project proposal deadline for <strong>CSE 481</strong> (Natural Language Processing and LLMs) has been extended to {{proposal_deadline}}.</p><ul><li>Original deadline: {{proposal_original}}</li><li>New deadline: <strong>{{proposal_deadline}}</strong></li></ul><p>All teams must submit a 2-page proposal outlining their project scope, methodology, and expected deliverables. Submissions should be uploaded to the classroom portal before 11:59 PM on the deadline.</p><p>If you have already submitted, no further action is needed. Contact Professor Jenkins with any questions.</p>",
+    "tags": [
+      "deadline",
+      "course",
+      "cse481"
+    ],
     "daysAgo": 1
   },
   {
     "id": "ea54378d-a48e-4484-8ffe-c30954b1cbe4",
     "title": "Annual Tech Symposium 2026 - Call for Speakers",
-    "content": "Starlight University's {{symposium_year}} Tech Symposium will be held on **{{symposium_date}}** at the Student Center Grand Hall.\n\nThis year's theme: *\"Building the Future with AI and Machine Learning\"*\n\nWe are seeking student and faculty speakers for 20-minute lightning talks. Topics of interest include:\n- Large Language Models and Their Applications\n- Computer Vision and Edge AI\n- Ethical AI and Responsible Innovation\n- Cloud-Native Architecture\n\nSubmit your talk proposal by {{symposium_cfp_deadline}} via the university portal. Selected speakers will receive a certificate of recognition.\n\nAll students and faculty are welcome to attend. Registration is free but required for headcount.",
-    "tags": ["event", "campus", "important", "academic"],
+    "content": "<p>Starlight University's {{symposium_year}} Tech Symposium will be held on <strong>{{symposium_date}}</strong> at the Student Center Grand Hall.</p><p>This year's theme: <em>\"Building the Future with AI and Machine Learning\"</em></p><p>We are seeking student and faculty speakers for 20-minute lightning talks. Topics of interest include:</p><ul><li>Large Language Models and Their Applications</li><li>Computer Vision and Edge AI</li><li>Ethical AI and Responsible Innovation</li><li>Cloud-Native Architecture</li></ul><p>Submit your talk proposal by {{symposium_cfp_deadline}} via the university portal. Selected speakers will receive a certificate of recognition.</p><p>All students and faculty are welcome to attend. Registration is free but required for headcount.</p>",
+    "tags": [
+      "event",
+      "campus",
+      "important",
+      "academic"
+    ],
     "daysAgo": 2
   },
   {
     "id": "0f83403f-b2ad-45f5-a95f-bc5c9728b2d0",
     "title": "Fall {{semester_year}} Career Fair - Tech Edition",
-    "content": "The Office of Career Services is hosting the Fall {{semester_year}} Career Fair, focused on technology and engineering opportunities.\n\n**Date:** {{career_fair_date}}\n**Time:** {{career_fair_time}}\n**Location:** Student Center Exhibition Hall, 2nd Floor\n\nConfirmed employers include:\n- Google, Microsoft, Amazon, and Meta\n- Local startups and mid-size tech companies\n- Government agencies and research labs\n\nStudents should bring printed resumes and be prepared for on-site interviews. Business casual attire is recommended.\n\nResume review sessions will be held {{resume_review_date}} in the Career Services Office (Room 110). Walk-ins welcome.",
-    "tags": ["career", "event", "important", "campus"],
+    "content": "<p>The Office of Career Services is hosting the Fall {{semester_year}} Career Fair, focused on technology and engineering opportunities.</p><p><strong>Date:</strong> {{career_fair_date}}<br><strong>Time:</strong> {{career_fair_time}}<br><strong>Location:</strong> Student Center Exhibition Hall, 2nd Floor</p><p>Confirmed employers include:</p><ul><li>Google, Microsoft, Amazon, and Meta</li><li>Local startups and mid-size tech companies</li><li>Government agencies and research labs</li></ul><p>Students should bring printed resumes and be prepared for on-site interviews. Business casual attire is recommended.</p><p>Resume review sessions will be held {{resume_review_date}} in the Career Services Office (Room 110). Walk-ins welcome.</p>",
+    "tags": [
+      "career",
+      "event",
+      "important",
+      "campus"
+    ],
     "daysAgo": 3
   },
   {
     "id": "8f3fa531-1efa-4dad-b365-00e1fa8549a4",
     "title": "AI Tools Academic Integrity Policy - Effective {{policy_effective}}",
-    "content": "The Office of Academic Affairs has released the updated Academic Integrity Policy regarding the use of AI tools in coursework.\n\nKey points:\n- Students may use AI tools (e.g., ChatGPT, Copilot) for research and brainstorming unless explicitly prohibited by the instructor\n- AI-generated content must be properly cited and disclosed\n- Submitting AI-generated work as one's own without disclosure is a violation\n- Instructors will specify per assignment whether AI assistance is permitted\n\nThis policy is effective **{{policy_effective}}** and applies to all courses. The full policy document is available on the university website.\n\nContact the Office of Academic Affairs with questions.",
-    "tags": ["policy", "important", "academic"],
+    "content": "<p>The Office of Academic Affairs has released the updated Academic Integrity Policy regarding the use of AI tools in coursework.</p><p>Key points:</p><ul><li>Students may use AI tools (e.g., ChatGPT, Copilot) for research and brainstorming unless explicitly prohibited by the instructor</li><li>AI-generated content must be properly cited and disclosed</li><li>Submitting AI-generated work as one's own without disclosure is a violation</li><li>Instructors will specify per assignment whether AI assistance is permitted</li></ul><p>This policy is effective <strong>{{policy_effective}}</strong> and applies to all courses. The full policy document is available on the university website.</p><p>Contact the Office of Academic Affairs with questions.</p>",
+    "tags": [
+      "policy",
+      "important",
+      "academic"
+    ],
     "daysAgo": 21
   },
   {
     "id": "05783d34-3b16-4801-8d9c-f60b3f3a2195",
     "title": "Hack Club Recruitment Week",
-    "content": "Starlight Hack Club is hosting its Fall {{semester_year}} recruitment week from {{hack_week_start}} to {{hack_week_end}}.\n\nDrop by any of these sessions to learn about our projects and upcoming hackathons:\n- **Info Session:** {{hack_info_date}}, 5:00 PM, Room 102\n- **Project Demo Day:** {{hack_demo_date}}, 4:00 PM, Room 105\n- **Social Mixer:** {{hack_social_date}}, 6:00 PM, Student Center Lounge\n\nNo prior experience required. We welcome all skill levels - designers, developers, and anyone curious about building things.\n\nSign up at the club fair or email hackclub@starlight.edu.",
-    "tags": ["club", "event", "campus"],
+    "content": "<p>Starlight Hack Club is hosting its Fall {{semester_year}} recruitment week from {{hack_week_start}} to {{hack_week_end}}.</p><p>Drop by any of these sessions to learn about our projects and upcoming hackathons:</p><ul><li><strong>Info Session:</strong> {{hack_info_date}}, 5:00 PM, Room 102</li><li><strong>Project Demo Day:</strong> {{hack_demo_date}}, 4:00 PM, Room 105</li><li><strong>Social Mixer:</strong> {{hack_social_date}}, 6:00 PM, Student Center Lounge</li></ul><p>No prior experience required. We welcome all skill levels - designers, developers, and anyone curious about building things.</p><p>Sign up at the club fair or email hackclub@starlight.edu.</p>",
+    "tags": [
+      "club",
+      "event",
+      "campus"
+    ],
     "daysAgo": 5
   },
   {
     "id": "da029bb5-f3e6-49b4-97bc-6be93b174f3a",
     "title": "Library Extended Hours - Finals Preparation",
-    "content": "University Library will extend its operating hours to support students during the lead-up to midterm and final examinations.\n\nExtended hours begin **{{library_hours_start}}**:\n- Monday - Thursday: 7:00 AM - 1:00 AM (next day)\n- Friday: 7:00 AM - 10:00 PM\n- Saturday - Sunday: 9:00 AM - 10:00 PM\n\nAdditional study rooms will be available on the 3rd floor. Room reservations can be made through the library portal.\n\nQuiet study zones are designated on floors 2 and 4. Group study rooms are on floors 1 and 3.\n\nNormal hours resume after the exam period.",
-    "tags": ["library", "campus", "important"],
+    "content": "<p>University Library will extend its operating hours to support students during the lead-up to midterm and final examinations.</p><p>Extended hours begin <strong>{{library_hours_start}}</strong>:</p><ul><li>Monday - Thursday: 7:00 AM - 1:00 AM (next day)</li><li>Friday: 7:00 AM - 10:00 PM</li><li>Saturday - Sunday: 9:00 AM - 10:00 PM</li></ul><p>Additional study rooms will be available on the 3rd floor. Room reservations can be made through the library portal.</p><p>Quiet study zones are designated on floors 2 and 4. Group study rooms are on floors 1 and 3.</p><p>Normal hours resume after the exam period.</p>",
+    "tags": [
+      "library",
+      "campus",
+      "important"
+    ],
     "daysAgo": 18
   },
   {
     "id": "c170c756-bc26-4fbc-855d-e326d366eee4",
     "title": "Tuition Payment Deadline - Fall {{semester_year}}",
-    "content": "Fall {{semester_year}} tuition payments are due by **{{tuition_deadline}}**.\n\nPayment options:\n- **Online:** Student Portal > Financial Services > Make a Payment\n- **In-person:** Bursar's Office, Main Admin Building, 8:00 AM - 5:00 PM\n- **Payment plan:** Contact Financial Services to set up installments\n\nLate payments will incur a {{late_fee}} fee and may result in a hold on course registration.\n\nFinancial aid recipients: Please verify your aid has been applied by checking your account balance. Contact Financial Aid at financialaid@starlight.edu with questions.",
-    "tags": ["admin", "deadline", "important"],
+    "content": "<p>Fall {{semester_year}} tuition payments are due by <strong>{{tuition_deadline}}</strong>.</p><p>Payment options:</p><ul><li><strong>Online:</strong> Student Portal &gt; Financial Services &gt; Make a Payment</li><li><strong>In-person:</strong> Bursar's Office, Main Admin Building, 8:00 AM - 5:00 PM</li><li><strong>Payment plan:</strong> Contact Financial Services to set up installments</li></ul><p>Late payments will incur a {{late_fee}} fee and may result in a hold on course registration.</p><p>Financial aid recipients: Please verify your aid has been applied by checking your account balance. Contact Financial Aid at financialaid@starlight.edu with questions.</p>",
+    "tags": [
+      "admin",
+      "deadline",
+      "important"
+    ],
     "daysAgo": 6
   },
   {
     "id": "b9293509-d92c-4d22-9956-678511686530",
     "title": "Guest Lecture: The Future of Quantum Computing",
-    "content": "The CSE Department will host a guest lecture by **Dr. {{lecturer_name}}** from {{lecturer_affiliation}}.\n\n*Topic: \"The Future of Quantum Computing: From Theory to Real-World Applications\"*\n\n**Date:** {{lecture_date}}\n**Time:** {{lecture_time}}\n**Location:** {{lecture_room}}\n\nDr. {{lecturer_short}} will discuss recent breakthroughs in quantum error correction, practical applications in cryptography and drug discovery, and the roadmap toward fault-tolerant quantum computers.\n\nThis lecture is open to all students and faculty. No prior quantum computing knowledge is required.\n\nA Q&A session will follow the lecture. Refreshments will be provided.",
-    "tags": ["lecture", "event", "academic", "cse"],
+    "content": "<p>The CSE Department will host a guest lecture by <strong>Dr. {{lecturer_name}}</strong> from {{lecturer_affiliation}}.</p><p><em>Topic: \"The Future of Quantum Computing: From Theory to Real-World Applications\"</em></p><p><strong>Date:</strong> {{lecture_date}}<br><strong>Time:</strong> {{lecture_time}}<br><strong>Location:</strong> {{lecture_room}}</p><p>Dr. {{lecturer_short}} will discuss recent breakthroughs in quantum error correction, practical applications in cryptography and drug discovery, and the roadmap toward fault-tolerant quantum computers.</p><p>This lecture is open to all students and faculty. No prior quantum computing knowledge is required.</p><p>A Q&amp;A session will follow the lecture. Refreshments will be provided.</p>",
+    "tags": [
+      "lecture",
+      "event",
+      "academic",
+      "cse"
+    ],
     "daysAgo": 7
   },
   {
     "id": "279c9336-0caf-41c3-a6b4-192e6edbd1ba",
     "title": "CSE 310 - Database Lab Closure This Weekend",
-    "content": "The Computer Science database laboratory (Room 105, Science Building) will be closed on **{{lab_closure_start}}** and **{{lab_closure_end}}** for scheduled network maintenance.\n\nDuring the closure:\n- All database servers will be offline\n- Remote access to lab resources will be unavailable\n- Scheduled backups will not run\n\nStudents working on **CSE 310** assignments should plan accordingly. If you need extended access to database resources, contact Professor Williams before {{lab_contact_deadline}}.\n\nNormal lab hours resume Monday at 8:00 AM.",
-    "tags": ["lab", "course", "closure", "cse310"],
+    "content": "<p>The Computer Science database laboratory (Room 105, Science Building) will be closed on <strong>{{lab_closure_start}}</strong> and <strong>{{lab_closure_end}}</strong> for scheduled network maintenance.</p><p>During the closure:</p><ul><li>All database servers will be offline</li><li>Remote access to lab resources will be unavailable</li><li>Scheduled backups will not run</li></ul><p>Students working on <strong>CSE 310</strong> assignments should plan accordingly. If you need extended access to database resources, contact Professor Williams before {{lab_contact_deadline}}.</p><p>Normal lab hours resume Monday at 8:00 AM.</p>",
+    "tags": [
+      "lab",
+      "course",
+      "closure",
+      "cse310"
+    ],
     "daysAgo": 8
   },
   {
     "id": "e6aae8e7-a07e-42ea-a8a7-d7303a5e3fb8",
     "title": "Dean's Excellence Scholarship - Applications Open",
-    "content": "The College of Engineering and Applied Sciences accepts applications for the Dean's Excellence Scholarship for Spring {{next_semester_year}}.\n\n**Eligibility:**\n- Enrolled CSE major with at least 60 credit hours completed\n- Minimum GPA of 3.5\n- Demonstrated leadership in campus activities or community service\n\n**Award:** {{scholarship_amount}} per semester (renewable for one year)\n\n**Required documents:**\n- Completed application form\n- Official transcript\n- Two letters of recommendation\n- Personal statement (500 words)\n\n**Application deadline:** {{scholarship_deadline}}\n\nApply through the Financial Aid portal. Contact dean.scholarships@starlight.edu with questions.",
-    "tags": ["scholarship", "admin", "deadline"],
+    "content": "<p>The College of Engineering and Applied Sciences accepts applications for the Dean's Excellence Scholarship for Spring {{next_semester_year}}.</p><p><strong>Eligibility:</strong></p><ul><li>Enrolled CSE major with at least 60 credit hours completed</li><li>Minimum GPA of 3.5</li><li>Demonstrated leadership in campus activities or community service</li></ul><p><strong>Award:</strong> {{scholarship_amount}} per semester (renewable for one year)</p><p><strong>Required documents:</strong></p><ul><li>Completed application form</li><li>Official transcript</li><li>Two letters of recommendation</li><li>Personal statement (500 words)</li></ul><p><strong>Application deadline:</strong> {{scholarship_deadline}}</p><p>Apply through the Financial Aid portal. Contact dean.scholarships@starlight.edu with questions.</p>",
+    "tags": [
+      "scholarship",
+      "admin",
+      "deadline"
+    ],
     "daysAgo": 10
   },
   {
     "id": "54d49347-0e4d-48cd-b3cd-02b6dbb8ef81",
     "title": "Campus Health Center - Flu Vaccine Clinic",
-    "content": "The Campus Health Center is offering free flu vaccines to all enrolled students and staff this week.\n\n**Clinic schedule:**\n- {{vaccine_day1}}: 10:00 AM - 4:00 PM\n- {{vaccine_day2}}: 10:00 AM - 4:00 PM\n- {{vaccine_day3}}: 12:00 PM - 6:00 PM\n\n**Location:** Health Center, Ground Floor, Student Services Building\n\nNo appointment needed. Bring your student or staff ID.\n\nStudents with severe allergies to eggs or prior reactions to flu vaccines should consult their healthcare provider before receiving the vaccine.",
-    "tags": ["health", "campus"],
+    "content": "<p>The Campus Health Center is offering free flu vaccines to all enrolled students and staff this week.</p><p><strong>Clinic schedule:</strong></p><ul><li>{{vaccine_day1}}: 10:00 AM - 4:00 PM</li><li>{{vaccine_day2}}: 10:00 AM - 4:00 PM</li><li>{{vaccine_day3}}: 12:00 PM - 6:00 PM</li></ul><p><strong>Location:</strong> Health Center, Ground Floor, Student Services Building</p><p>No appointment needed. Bring your student or staff ID.</p><p>Students with severe allergies to eggs or prior reactions to flu vaccines should consult their healthcare provider before receiving the vaccine.</p>",
+    "tags": [
+      "health",
+      "campus"
+    ],
     "daysAgo": 12
   },
   {
     "id": "a5846294-05bd-41ca-9c59-cd2492cfdcf3",
     "title": "Student Center Renovation - Phase 2 Update",
-    "content": "The Student Center renovation project is moving into Phase 2. Construction will focus on the east wing, including the food court and student lounge areas.\n\n**Phase 2 timeline:**\n- Start: {{renovation_phase2_start}}\n- Expected completion: {{renovation_completion}}\n\nDuring construction:\n- The east wing food court will be closed\n- Temporary food trucks will be available in the parking lot\n- The west wing study areas and game room remain open\n- Elevator access may be limited on certain days\n\nWe apologize for the inconvenience. The renovated space will feature modern seating, improved Wi-Fi, and expanded dining options.\n\nFor questions, contact Facilities at facilities@starlight.edu.",
-    "tags": ["facility", "campus"],
+    "content": "<p>The Student Center renovation project is moving into Phase 2. Construction will focus on the east wing, including the food court and student lounge areas.</p><p><strong>Phase 2 timeline:</strong></p><ul><li>Start: {{renovation_phase2_start}}</li><li>Expected completion: {{renovation_completion}}</li></ul><p>During construction:</p><ul><li>The east wing food court will be closed</li><li>Temporary food trucks will be available in the parking lot</li><li>The west wing study areas and game room remain open</li><li>Elevator access may be limited on certain days</li></ul><p>We apologize for the inconvenience. The renovated space will feature modern seating, improved Wi-Fi, and expanded dining options.</p><p>For questions, contact Facilities at facilities@starlight.edu.</p>",
+    "tags": [
+      "facility",
+      "campus"
+    ],
     "daysAgo": 14
   },
   {
     "id": "42ab29bc-1301-4d73-a481-df4ebd521b32",
     "title": "Intramural Sports Registration Now Open",
-    "content": "Intramural sports registration for Fall {{semester_year}} is now open. Build your team or sign up as a free agent.\n\n**Available sports:**\n- Basketball (5v5)\n- Volleyball (6v6)\n- Soccer (7v7)\n- Dodgeball\n- Esports Tournament (League of Legends, Valorant)\n\n**Registration deadline:** {{registration_deadline}}\n\nGames will be held evenings and weekends starting {{games_start}}. All games are at the Recreation Center or outdoor courts.\n\nRegister at the Recreation Center front desk or online through the student portal.\n\nContact intramurals@starlight.edu for rules and eligibility.",
-    "tags": ["sports", "event", "campus"],
+    "content": "<p>Intramural sports registration for Fall {{semester_year}} is now open. Build your team or sign up as a free agent.</p><p><strong>Available sports:</strong></p><ul><li>Basketball (5v5)</li><li>Volleyball (6v6)</li><li>Soccer (7v7)</li><li>Dodgeball</li><li>Esports Tournament (League of Legends, Valorant)</li></ul><p><strong>Registration deadline:</strong> {{registration_deadline}}</p><p>Games will be held evenings and weekends starting {{games_start}}. All games are at the Recreation Center or outdoor courts.</p><p>Register at the Recreation Center front desk or online through the student portal.</p><p>Contact intramurals@starlight.edu for rules and eligibility.</p>",
+    "tags": [
+      "sports",
+      "event",
+      "campus"
+    ],
     "daysAgo": 16
   },
   {
     "id": "c5897511-dd11-42ee-b0db-3757d088b337",
     "title": "Career Services - Resume Workshop Series",
-    "content": "The Office of Career Services is launching a three-part resume workshop series for students preparing for the career fair and internship season.\n\n**Workshop schedule:**\n- Workshop 1: *\"Resume Fundamentals\"* - {{workshop1_date}}, {{workshop1_time}}, Room 110\n- Workshop 2: *\"Tailoring Your Resume for Tech Roles\"* - {{workshop2_date}}, {{workshop2_time}}, Room 110\n- Workshop 3: *\"Cover Letters and LinkedIn\"* - {{workshop3_date}}, {{workshop3_time}}, Room 110\n\nEach session is 45 minutes with time for Q&A. Bring a draft resume if you have one.\n\nNo registration required. Walk-ins welcome.\n\nOne-on-one resume reviews are available by appointment at the Career Services Office.",
-    "tags": ["career", "workshop", "event"],
+    "content": "<p>The Office of Career Services is launching a three-part resume workshop series for students preparing for the career fair and internship season.</p><p><strong>Workshop schedule:</strong></p><ul><li>Workshop 1: <em>\"Resume Fundamentals\"</em> - {{workshop1_date}}, {{workshop1_time}}, Room 110</li><li>Workshop 2: <em>\"Tailoring Your Resume for Tech Roles\"</em> - {{workshop2_date}}, {{workshop2_time}}, Room 110</li><li>Workshop 3: <em>\"Cover Letters and LinkedIn\"</em> - {{workshop3_date}}, {{workshop3_time}}, Room 110</li></ul><p>Each session is 45 minutes with time for Q&amp;A. Bring a draft resume if you have one.</p><p>No registration required. Walk-ins welcome.</p><p>One-on-one resume reviews are available by appointment at the Career Services Office.</p>",
+    "tags": [
+      "career",
+      "workshop",
+      "event"
+    ],
     "daysAgo": 4
   }
 ]

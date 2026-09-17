@@ -1,30 +1,38 @@
 [
   {
+    "id": "7374ec6b-7b43-4509-beb9-18ee46099b88",
     "courseIndex": 0,
     "teacherUserId": "usr_teacher_001",
     "name": "Natural Language Processing and LLMs",
     "section": "Section A",
+    "classCode": "k7m2p4x",
     "description": "Advanced NLP techniques with focus on transformer architectures and large language models."
   },
   {
+    "id": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
     "courseIndex": 1,
     "teacherUserId": "usr_teacher_001",
     "name": "Data Structures & Algorithms",
     "section": "Section A",
+    "classCode": "d3f8h5j",
     "description": "Foundational course covering common data structures and algorithm design techniques."
   },
   {
+    "id": "0d64d9c1-b878-45e0-8ec7-f64183239d40",
     "courseIndex": 2,
     "teacherUserId": "usr_teacher_001",
     "name": "Database Systems",
     "section": "Section A",
+    "classCode": "b4g6q9w",
     "description": "Relational database design, SQL, normalization, and transaction management."
   },
   {
+    "id": "21df850a-9379-46d0-8228-cc8b3e7437c9",
     "courseIndex": 3,
     "teacherUserId": "usr_teacher_001",
     "name": "Introduction to Artificial Intelligence",
     "section": "Section A",
+    "classCode": "a5e7r3y",
     "description": "Survey of AI methods including search, planning, machine learning, and neural networks."
   }
 ]

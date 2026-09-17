@@ -1,0 +1,58 @@
+[
+  {
+    "noticeId": "5d48edd0-6498-4555-888e-4fed0446b916",
+    "attachmentId": "10000000-0000-4000-8000-000000000001",
+    "filename": "midterm-exam-schedule.pdf",
+    "title": "Midterm Exam Schedule with Rooms and Rules",
+    "office": "CSE Department",
+    "source": "midterm-schedule.md"
+  },
+  {
+    "noticeId": "5e4f582d-b0c4-4eca-871c-f4b0721d9a8e",
+    "attachmentId": "10000000-0000-4000-8000-000000000002",
+    "filename": "cse481-proposal-guidelines.pdf",
+    "title": "CSE 481 Project Proposal Guidelines and Rubric",
+    "office": "CSE Department",
+    "source": "cse481-proposal.md"
+  },
+  {
+    "noticeId": "ea54378d-a48e-4484-8ffe-c30954b1cbe4",
+    "attachmentId": "10000000-0000-4000-8000-000000000003",
+    "filename": "tech-symposium-cfp.pdf",
+    "title": "Tech Symposium Call for Speakers",
+    "office": "Office of Student Events",
+    "source": "symposium-cfp.md"
+  },
+  {
+    "noticeId": "0f83403f-b2ad-45f5-a95f-bc5c9728b2d0",
+    "attachmentId": "10000000-0000-4000-8000-000000000004",
+    "filename": "career-fair-employer-guide.pdf",
+    "title": "Career Fair Employer Guide and Booth Map",
+    "office": "Office of Career Services",
+    "source": "career-fair-guide.md"
+  },
+  {
+    "noticeId": "8f3fa531-1efa-4dad-b365-00e1fa8549a4",
+    "attachmentId": "10000000-0000-4000-8000-000000000005",
+    "filename": "ai-tools-integrity-policy.pdf",
+    "title": "AI Tools Academic Integrity Policy, Full Text",
+    "office": "Office of Academic Affairs",
+    "source": "ai-policy.md"
+  },
+  {
+    "noticeId": "c170c756-bc26-4fbc-855d-e326d366eee4",
+    "attachmentId": "10000000-0000-4000-8000-000000000006",
+    "filename": "tuition-payment-guide.pdf",
+    "title": "Tuition Payment Guide and Holds",
+    "office": "Bursar's Office",
+    "source": "tuition-guide.md"
+  },
+  {
+    "noticeId": "e6aae8e7-a07e-42ea-a8a7-d7303a5e3fb8",
+    "attachmentId": "10000000-0000-4000-8000-000000000007",
+    "filename": "deans-scholarship-application.pdf",
+    "title": "Dean's Excellence Scholarship Application Sheet",
+    "office": "College of Engineering",
+    "source": "scholarship-application.md"
+  }
+]

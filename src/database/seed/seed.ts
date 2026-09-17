@@ -12,6 +12,7 @@ import { seedCourses } from './seeders/course.seeder';
 import { seedClassrooms } from './seeders/classroom.seeder';
 import { seedClassroomMembers } from './seeders/classroom-members.seeder';
 import { seedNotices } from './seeders/notice.seeder';
+import { seedNoticeAttachments } from './seeders/notice-attachments.seeder';
 
 export interface OrganizationSeed {
   id: string;
@@ -39,6 +40,8 @@ export interface ClassroomSeed {
 }
 
 const FRESH = process.argv.includes('--fresh');
+const REUPLOAD_ATTACHMENTS =
+  process.argv.includes('--reupload-attachments') || FRESH;
 
 async function main() {
   const databaseUrl = process.env.DATABASE_URL;
@@ -84,6 +87,18 @@ async function main() {
 
     console.log('\n--- Seeding notices and notifications ---');
     const noticeCount = await seedNotices(db, org.id);
+
+    console.log('\n--- Seeding notice attachments (PDF) ---');
+    const { uploaded, skipped } = await seedNoticeAttachments(db, org.id, {
+      reupload: REUPLOAD_ATTACHMENTS,
+    });
+    if (uploaded > 0) {
+      console.log(
+        '  To index attachments for AI chat, run: pnpm embedding:enqueue-missing',
+      );
+    } else {
+      console.log(`  No new attachments (${skipped} skipped).`);
+    }
 
     console.log('\n--- Seed complete ---');
     console.log(`  Organization: ${org.slug} (${org.id})`);
