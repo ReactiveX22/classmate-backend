@@ -11,6 +11,7 @@ import { seedSemestersAndSessions } from './seeders/semester-session.seeder';
 import { seedCourses } from './seeders/course.seeder';
 import { seedClassrooms } from './seeders/classroom.seeder';
 import { seedClassroomMembers } from './seeders/classroom-members.seeder';
+import { seedNotices } from './seeders/notice.seeder';
 
 export interface OrganizationSeed {
   id: string;
@@ -81,11 +82,15 @@ async function main() {
     console.log('\n--- Seeding classroom members ---');
     await seedClassroomMembers(db, classrooms);
 
+    console.log('\n--- Seeding notices and notifications ---');
+    const noticeCount = await seedNotices(db, org.id);
+
     console.log('\n--- Seed complete ---');
     console.log(`  Organization: ${org.slug} (${org.id})`);
     console.log(`  Users: 1 admin + 7 teachers + 16 students = 24`);
     console.log(`  Courses: ${courses.length}`);
     console.log(`  Classrooms: ${classrooms.length}`);
+    console.log(`  Notices: ${noticeCount}`);
     console.log(`  Password for all accounts: "password123"`);
   } catch (err) {
     console.error('Seed failed:', err);

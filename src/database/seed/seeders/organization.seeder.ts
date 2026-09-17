@@ -54,10 +54,7 @@ export async function seedOrganizations(
 /**
  * Link admin user to the organization.
  */
-export async function linkAdminToOrg(
-  db: NodePgDatabase<any>,
-  orgId: string,
-) {
+export async function linkAdminToOrg(db: NodePgDatabase<any>, orgId: string) {
   const adminId = 'usr_admin_001';
   await db
     .update(authSchema.user)

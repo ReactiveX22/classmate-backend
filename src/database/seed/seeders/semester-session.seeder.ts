@@ -5,7 +5,16 @@ import * as sessionSchema from 'src/database/schema/session-schema';
 import { getSemesters } from 'src/database/seed/date-utils';
 import type { SemesterSeed, SessionSeed } from 'src/database/seed/seed';
 
-const SEMESTER_ORDINALS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'];
+const SEMESTER_ORDINALS = [
+  '1st',
+  '2nd',
+  '3rd',
+  '4th',
+  '5th',
+  '6th',
+  '7th',
+  '8th',
+];
 
 export async function seedSemestersAndSessions(
   db: NodePgDatabase<any>,
@@ -19,7 +28,8 @@ export async function seedSemestersAndSessions(
   const month = now.getMonth(); // 0-11
   // Fall (Aug-Dec) = odd semesters (1st, 3rd, 5th, 7th)
   // Spring (Jan-May) = even semesters (2nd, 4th, 6th, 8th)
-  const academicYear = month >= 7 ? now.getFullYear() - 2023 : now.getFullYear() - 2024;
+  const academicYear =
+    month >= 7 ? now.getFullYear() - 2023 : now.getFullYear() - 2024;
   const yearSlot = Math.min(Math.max(academicYear, 0), 3); // 0-3
   const isFall = month >= 7;
   const currentOrdinalIndex = yearSlot * 2 + (isFall ? 0 : 1);
@@ -57,7 +67,9 @@ export async function seedSemestersAndSessions(
       .where(eq(semesterSchema.semester.organizationId, orgId));
   }
 
-  console.log(`  upserted ${semesterResults.length} semesters (current: ${currentOrdinal})`);
+  console.log(
+    `  upserted ${semesterResults.length} semesters (current: ${currentOrdinal})`,
+  );
 
   // --- Course Sessions ---
   const sessionInserts = [

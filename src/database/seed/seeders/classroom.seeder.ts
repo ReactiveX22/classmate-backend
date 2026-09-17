@@ -6,10 +6,7 @@ import type { CourseSeed, ClassroomSeed } from 'src/database/seed/seed';
 
 const CLASSROOMS_PATH = '../data/classrooms.json';
 
-const generateClassCode = customAlphabet(
-  '23456789abcdefghjkmnpqrstuvwxyz',
-  7,
-);
+const generateClassCode = customAlphabet('23456789abcdefghjkmnpqrstuvwxyz', 7);
 
 interface ClassroomData {
   teacherUserId: string;

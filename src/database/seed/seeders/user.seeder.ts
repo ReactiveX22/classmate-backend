@@ -47,10 +47,7 @@ interface ProfileSeed {
 // All users share this password for the demo
 const SEED_PASSWORD = 'password123';
 
-export async function seedUsers(
-  db: NodePgDatabase<any>,
-  orgId: string,
-) {
+export async function seedUsers(db: NodePgDatabase<any>, orgId: string) {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const users = require(USERS_PATH) as UserSeed[];
   // eslint-disable-next-line @typescript-eslint/no-require-imports
