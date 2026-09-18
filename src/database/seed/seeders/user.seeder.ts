@@ -13,10 +13,7 @@ const USERS_PATH = '../data/users.json';
 const TEACHERS_PATH = '../data/teachers.json';
 const STUDENTS_PATH = '../data/students.json';
 const PROFILES_PATH = '../data/profiles.json';
-const AVATARS_DIR = path.join(
-  process.cwd(),
-  'src/database/seed/data/avatars',
-);
+const AVATARS_DIR = path.join(process.cwd(), 'src/database/seed/data/avatars');
 
 interface UserSeed {
   id: string;

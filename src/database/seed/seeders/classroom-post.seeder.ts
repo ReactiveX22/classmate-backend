@@ -135,7 +135,7 @@ export async function seedClassroomPosts(
 
   const postInserts = postsData.map((p) => {
     const created = daysAgo(p.daysAgoCreated);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     const row: any = {
       id: p.id,
       classroomId: p.classroomId ?? llmClassroomId,
@@ -294,14 +294,14 @@ export async function seedClassroomPostAttachments(
       const url = `/api/v1/uploads/${key}`;
 
       const current = existing.attachments ?? [];
-      const alreadyLinked = current.some(
-        (a) => a.id === entry.attachmentId,
-      );
+      const alreadyLinked = current.some((a) => a.id === entry.attachmentId);
 
       let inStorage = false;
       try {
         if (kind === 'local') {
-          await fs.access(path.join(process.cwd(), 'uploads', folder, fileName));
+          await fs.access(
+            path.join(process.cwd(), 'uploads', folder, fileName),
+          );
           inStorage = true;
         } else if (s3) {
           await s3.client.send(
@@ -329,7 +329,10 @@ export async function seedClassroomPostAttachments(
         await fs.mkdir(path.join(process.cwd(), 'uploads', folder), {
           recursive: true,
         });
-        await fs.writeFile(path.join(process.cwd(), 'uploads', folder, fileName), pdf);
+        await fs.writeFile(
+          path.join(process.cwd(), 'uploads', folder, fileName),
+          pdf,
+        );
       } else if (s3) {
         await s3.client.send(
           new PutObjectCommand({

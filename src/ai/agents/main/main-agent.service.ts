@@ -8,7 +8,8 @@ import { RunnableConfig } from '@langchain/core/runnables';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { MessagesAnnotation, START, StateGraph } from '@langchain/langgraph';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
-import { ToolNode, toolsCondition } from '@langchain/langgraph/prebuilt';
+import { toolsCondition } from '@langchain/langgraph/prebuilt';
+import { ConditionalToolNode } from './conditional-tool-node';
 import { Pool } from 'pg';
 import { User } from 'src/auth/auth.factory';
 import { classifyAiProviderError } from '../../errors/ai-provider-error.util';
@@ -44,7 +45,7 @@ export class MainAgentService {
   async *streamChat(
     threadId: string,
     userMessage: string,
-    context: { user: User; classroomId?: string },
+    context: { user: User; classroomId?: string; webSearch?: boolean },
   ): AsyncGenerator<LlmStreamEvent> {
     if (!this.aiProviderService.isEnabled()) {
       throw new AiProviderException(
@@ -77,7 +78,7 @@ export class MainAgentService {
   private async *runStream(
     threadId: string,
     userMessage: string,
-    context: { user: User; classroomId?: string },
+    context: { user: User; classroomId?: string; webSearch?: boolean },
   ): AsyncGenerator<LlmStreamEvent> {
     const systemPrompt = this.aiContextService.buildSystemPrompt(context.user);
 
@@ -90,9 +91,12 @@ export class MainAgentService {
           user: context.user,
           systemPrompt,
           classroomId: context.classroomId,
+          webSearch: context.webSearch,
         },
       },
     );
+
+    const toolCallNames = new Map<string, string>();
 
     for await (const chunk of stream) {
       const [mode, data] = chunk as ['messages' | 'tools', unknown];
@@ -102,29 +106,39 @@ export class MainAgentService {
           | {
               event?: 'on_tool_start' | 'on_tool_end';
               name?: string;
+              toolCallId?: string;
               result?: unknown;
             }
           | undefined;
 
-        if (toolEvent?.name && toolEvent.event === 'on_tool_start') {
-          this.logger.log(`[MainAgent] Tool start: ${toolEvent.name}`);
+        if (toolEvent?.event === 'on_tool_start') {
+          const name = this.resolveToolName(
+            toolEvent.name,
+            toolEvent.toolCallId,
+            toolCallNames,
+          );
+          this.logger.log(`[MainAgent] Tool start: ${name}`);
           yield {
             type: 'tool',
-            payload: { name: toolEvent.name, status: 'start' },
+            payload: { name, status: 'start' },
           };
         }
 
-        if (toolEvent?.name && toolEvent.event === 'on_tool_end') {
-          const resultStr =
-            toolEvent.result !== undefined
-              ? JSON.stringify(toolEvent.result).substring(0, 200)
-              : 'undefined';
-          this.logger.log(
-            `[MainAgent] Tool end: ${toolEvent.name}, result: ${resultStr}`,
-          );
+        if (toolEvent?.event === 'on_tool_end') {
+          const name =
+            this.extractToolNameFromResult(toolEvent.result) ??
+            this.resolveToolName(
+              toolEvent.name,
+              toolEvent.toolCallId,
+              toolCallNames,
+            );
+          if (toolEvent.toolCallId && name !== 'unknown') {
+            toolCallNames.set(toolEvent.toolCallId, name);
+          }
+          this.logger.log(`[MainAgent] Tool end: ${name}`);
           yield {
             type: 'tool',
-            payload: { name: toolEvent.name, status: 'end' },
+            payload: { name, status: 'end' },
           };
         }
 
@@ -135,6 +149,14 @@ export class MainAgentService {
         AIMessageWithBlocks,
         Record<string, unknown> | undefined,
       ];
+
+      if (message instanceof AIMessage && message.tool_calls?.length) {
+        for (const tc of message.tool_calls) {
+          if (tc.id && tc.name) {
+            toolCallNames.set(tc.id, tc.name);
+          }
+        }
+      }
 
       if (metadata?.langgraph_node !== 'model') {
         continue;
@@ -176,13 +198,18 @@ export class MainAgentService {
   }
 
   private buildChatGraph() {
+    const allTools = this.toolsRegistry.getTools();
+
     return new StateGraph(MessagesAnnotation)
       .addNode('model', async (state, config?: RunnableConfig) => {
-        const { systemPrompt } = (config?.configurable ?? {}) as {
+        const { systemPrompt, webSearch } = (config?.configurable ?? {}) as {
           systemPrompt: SystemMessage;
+          webSearch?: boolean;
         };
 
-        const tools = this.toolsRegistry.getTools();
+        const tools = webSearch
+          ? allTools
+          : allTools.filter((t) => t.name !== 'web_search');
 
         this.logger.log(
           `[MainAgent] Model node called. Messages in state: ${state.messages.length}`,
@@ -215,7 +242,7 @@ export class MainAgentService {
 
         return { messages: [result] };
       })
-      .addNode('tools', new ToolNode(this.toolsRegistry.getTools()))
+      .addNode('tools', new ConditionalToolNode(allTools))
       .addEdge(START, 'model')
       .addConditionalEdges('model', toolsCondition)
       .addEdge('tools', 'model')
@@ -265,5 +292,30 @@ export class MainAgentService {
         return '';
       })
       .join('');
+  }
+
+  private resolveToolName(
+    langgraphName: string | undefined,
+    toolCallId: string | undefined,
+    toolCallNames: Map<string, string>,
+  ): string {
+    if (langgraphName && langgraphName !== 'unknown') {
+      return langgraphName;
+    }
+    if (toolCallId && toolCallNames.has(toolCallId)) {
+      return toolCallNames.get(toolCallId)!;
+    }
+    return langgraphName ?? 'unknown';
+  }
+
+  private extractToolNameFromResult(result: unknown): string | undefined {
+    if (!result || typeof result !== 'object') return undefined;
+    const r = result as Record<string, unknown>;
+    // ToolMessage serialized by LangGraph: { kwargs: { name: "..." } }
+    if (r.kwargs && typeof r.kwargs === 'object') {
+      const name = (r.kwargs as Record<string, unknown>).name;
+      if (typeof name === 'string') return name;
+    }
+    return undefined;
   }
 }

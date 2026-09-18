@@ -8,16 +8,16 @@ export class WebSearchToolsService {
   private readonly logger = new Logger(WebSearchToolsService.name);
   private readonly enabled: boolean;
 
-  constructor(private readonly configService: ConfigService<EnvironmentVariables>) {
+  constructor(
+    private readonly configService: ConfigService<EnvironmentVariables>,
+  ) {
     const apiKey = this.configService.get<string>('TAVILY_API_KEY');
     this.enabled = !!apiKey;
 
     if (this.enabled) {
       this.logger.log('Web search tool enabled');
     } else {
-      this.logger.warn(
-        'TAVILY_API_KEY not set — web search tool disabled',
-      );
+      this.logger.warn('TAVILY_API_KEY not set — web search tool disabled');
     }
   }
 
@@ -28,6 +28,7 @@ export class WebSearchToolsService {
 
     return [
       new TavilySearch({
+        name: 'web_search',
         maxResults: 5,
         searchDepth: 'basic',
         includeAnswer: true,

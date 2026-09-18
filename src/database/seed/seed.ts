@@ -95,12 +95,10 @@ async function main() {
     const postCount = await seedClassroomPosts(db, classrooms);
 
     console.log('\n--- Seeding classroom post attachments (PDF) ---');
-    const {
-      uploaded: postUploaded,
-      skipped: postSkipped,
-    } = await seedClassroomPostAttachments(db, classrooms, {
-      reupload: REUPLOAD_ATTACHMENTS,
-    });
+    const { uploaded: postUploaded, skipped: postSkipped } =
+      await seedClassroomPostAttachments(db, classrooms, {
+        reupload: REUPLOAD_ATTACHMENTS,
+      });
     if (postUploaded > 0) {
       console.log(
         '  To index classroom attachments for AI chat, run: pnpm embedding:enqueue-missing',
@@ -135,7 +133,9 @@ async function main() {
     console.log(`  Users: 1 admin + 7 teachers + 16 students = 24`);
     console.log(`  Courses: ${courses.length}`);
     console.log(`  Classrooms: ${classrooms.length}`);
-    console.log(`  Classroom posts: ${postCount} (+ attachments: ${postUploaded} uploaded)`);
+    console.log(
+      `  Classroom posts: ${postCount} (+ attachments: ${postUploaded} uploaded)`,
+    );
     console.log(`  Submissions: ${submissionCount}`);
     console.log(`  Attendance: ${attendanceCount}`);
     console.log(`  Notices: ${noticeCount}`);

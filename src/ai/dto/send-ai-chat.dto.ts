@@ -1,4 +1,11 @@
-import { IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class SendAiChatDto {
   @IsString()
@@ -8,4 +15,8 @@ export class SendAiChatDto {
 
   @IsUUID()
   conversationId: string;
+
+  @IsBoolean()
+  @IsOptional()
+  webSearch?: boolean;
 }

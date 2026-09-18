@@ -147,6 +147,7 @@ export class AiService {
               userId: user.id,
               role: 'user',
               content: dto.message,
+              metadata: dto.webSearch ? { webSearch: true } : undefined,
             },
           );
 
@@ -174,6 +175,7 @@ export class AiService {
             {
               user,
               classroomId: conversation.classroomId ?? undefined,
+              webSearch: dto.webSearch,
             },
           )) {
             if (event.type === '_internal_final_llm') {
@@ -302,6 +304,9 @@ export class AiService {
             {
               user,
               classroomId: conversation.classroomId ?? undefined,
+              webSearch:
+                (lastUserMessage.metadata as Record<string, unknown>)
+                  ?.webSearch === true,
             },
           )) {
             if (event.type === '_internal_final_llm') {

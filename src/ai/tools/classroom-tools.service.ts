@@ -249,7 +249,10 @@ export class ClassroomToolsService {
   private static readonly MAX_SUBMISSION_CONTENT_CHARS = 1200;
   private static readonly MAX_SUBMISSION_FEEDBACK_CHARS = 600;
 
-  private static truncateText(value: string | null | undefined, max: number): string | null {
+  private static truncateText(
+    value: string | null | undefined,
+    max: number,
+  ): string | null {
     if (value == null) return null;
     const trimmed = value.trim();
     if (trimmed.length <= max) return trimmed;

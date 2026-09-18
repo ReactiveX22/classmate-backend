@@ -243,7 +243,11 @@ export async function renderStarlightPdf(
     pageMargins: branded ? [48, 76, 48, 60] : [56, 56, 56, 56],
     ...(branded
       ? {
-          header: (_currentPage: number, _pageCount: number, pageSize: any) => ({
+          header: (
+            _currentPage: number,
+            _pageCount: number,
+            pageSize: any,
+          ) => ({
             margin: [48, 28, 48, 0],
             stack: [
               { text: 'STARLIGHT UNIVERSITY', style: 'topBar' },
