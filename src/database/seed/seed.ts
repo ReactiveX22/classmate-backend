@@ -13,6 +13,10 @@ import { seedClassrooms } from './seeders/classroom.seeder';
 import { seedClassroomMembers } from './seeders/classroom-members.seeder';
 import { seedNotices } from './seeders/notice.seeder';
 import { seedNoticeAttachments } from './seeders/notice-attachments.seeder';
+import {
+  seedClassroomPosts,
+  seedClassroomPostAttachments,
+} from './seeders/classroom-post.seeder';
 
 export interface OrganizationSeed {
   id: string;
@@ -85,6 +89,24 @@ async function main() {
     console.log('\n--- Seeding classroom members ---');
     await seedClassroomMembers(db, classrooms);
 
+    console.log('\n--- Seeding classroom posts + comments (LLM classroom) ---');
+    const postCount = await seedClassroomPosts(db, classrooms);
+
+    console.log('\n--- Seeding classroom post attachments (PDF) ---');
+    const {
+      uploaded: postUploaded,
+      skipped: postSkipped,
+    } = await seedClassroomPostAttachments(db, classrooms, {
+      reupload: REUPLOAD_ATTACHMENTS,
+    });
+    if (postUploaded > 0) {
+      console.log(
+        '  To index classroom attachments for AI chat, run: pnpm embedding:enqueue-missing',
+      );
+    } else {
+      console.log(`  No new post attachments (${postSkipped} skipped).`);
+    }
+
     console.log('\n--- Seeding notices and notifications ---');
     const noticeCount = await seedNotices(db, org.id);
 
@@ -105,6 +127,7 @@ async function main() {
     console.log(`  Users: 1 admin + 7 teachers + 16 students = 24`);
     console.log(`  Courses: ${courses.length}`);
     console.log(`  Classrooms: ${classrooms.length}`);
+    console.log(`  Classroom posts: ${postCount} (+ attachments: ${postUploaded} uploaded)`);
     console.log(`  Notices: ${noticeCount}`);
     console.log(`  Password for all accounts: "password123"`);
   } catch (err) {

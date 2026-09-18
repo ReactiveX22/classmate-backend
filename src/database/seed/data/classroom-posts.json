@@ -1,0 +1,321 @@
+[
+  {
+    "id": "e3426902-65a1-51dc-80d7-94c8b9b8a53c",
+    "type": "material",
+    "title": null,
+    "content": "<p>CSE 481 teams: the formation sheet is linked in the portal under Materials. Teams of 3 to 4, pick a team number 1-6. I will lock teams tomorrow morning so proposal work can start. Solo entries will be merged.</p>",
+    "tags": ["teams", "logistics"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 6
+  },
+  {
+    "id": "5175c104-792f-5c0d-9fc8-93edb37079c0",
+    "type": "material",
+    "title": "Lab 3 Materials",
+    "content": "<p>Lab 3 is out. You will build a small search engine over lecture notes: split the text into chunks, embed them, retrieve the top hits, and generate answers with Llama-3-8B.</p><p>Setup first, every session: open the Lab 3 notebook in Colab, run the setup cell to install <strong>faiss-cpu==1.8.0</strong>, and mount your Drive so the index survives runtime disconnects. Full steps, the chunk-size ablation, and the integrity note are in the RAG Lab Handout PDF. Transformer Slides cover the quiz theory.</p><p>Report due {{rag_lab_due}} at 11:59 PM. Start early, Colab GPU quota and idle timeouts have ended more than one lab night.</p>",
+    "tags": ["lab3", "rag", "week5"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 4
+  },
+  {
+    "id": "eea889e2-d71d-52f4-a5af-c3db227a8011",
+    "type": "assignment",
+    "title": "Lab 3 Report",
+    "content": "<p>Submit one PDF per team under Assignments, Lab 3 report. Include:</p><ul><li>config table (chunk 512 / overlap 50 / top_k 5)</li><li>EM for 512 vs 1024 vs 256</li><li>3 error examples with FAISS L2 distances</li><li>one paragraph on when 1024 beats 512</li></ul><p>Runs must be your own, see the integrity note in the handout. Due {{rag_lab_due}} at 11:59 PM. Quiz on this material is {{quiz_date}} in class.</p>",
+    "tags": ["lab3", "deadline"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 3,
+    "assignment": { "dueInDays": 7, "points": 50, "allowLateSubmission": true, "submissionType": "file" }
+  },
+  {
+    "id": "5273aaf2-1e3f-5cf1-8f0c-9cfab4097269",
+    "type": "material",
+    "authorId": "usr_student_001",
+    "title": "The bonus cell that debugged my chunks",
+    "content": "<p>Sharing in case it saves someone an evening. The Lab 3 notebook has a bonus cell that draws attention weights per head. I ran it on a chunk where a definition got cut in half and saw attention scattering everywhere around the cut. Re-chunked so definitions stay whole and my top-1 distance dropped from 1.4 to 0.8.</p><p>If your distances look bad, check your boundaries before blaming the embedding model.</p>",
+    "tags": ["lab3", "tip"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 3
+  },
+  {
+    "id": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "type": "assignment",
+    "title": "Quiz Prep Checklist",
+    "content": "<p>Mini-quiz {{quiz_date}} in class, 20 minutes, closed book, from the two Lab 3 PDFs only. The prep checklist is worth 20pts, due {{quiz_date}} 9:00 AM:</p><ul><li>write the attention formula from memory</li><li>state the 512/50/5 baseline numbers</li><li>one sentence on temperature 0.3 vs 0.7</li></ul><p>The quiz asks exactly those, plus the W_O ablation and the 4096-window math. Bring a pen, no laptops.</p>",
+    "tags": ["quiz", "deadline", "lab3"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 2,
+    "assignment": { "dueInDays": 4, "points": 20, "allowLateSubmission": false, "submissionType": "text" }
+  },
+  {
+    "id": "aa3718a7-2b2e-53c4-80b1-f5632d02304c",
+    "type": "question",
+    "authorId": "usr_student_001",
+    "title": "Study group for Friday's quiz?",
+    "content": "<p>Anyone want to meet Thursday 5pm, library 3rd floor, to run through the prep checklist together? Reply with what you are bringing. I have the attention formula and the 512/50/5 numbers down, shaky on the W_O ablation.</p>",
+    "tags": ["quiz", "study-group"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 2,
+    "question": { "mode": "short_answer" }
+  },
+  {
+    "id": "1a72a2c8-af45-5c4e-b2eb-37897291f02b",
+    "type": "question",
+    "title": "How is Lab 3 going?",
+    "content": "<p>Quick check-in before the report is due. Which chunk size did you run first, and did distances above 1.2 show up? Vote, then reply with your EM if you have it.</p>",
+    "tags": ["lab3", "poll"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 2,
+    "question": {
+      "mode": "poll",
+      "selectionMode": "single",
+      "options": [
+        { "id": "opt-256", "text": "256 (faster, noisier)", "position": 0 },
+        { "id": "opt-512", "text": "512 (the baseline)", "position": 1 },
+        { "id": "opt-1024", "text": "1024 (slow, fuller context)", "position": 2 }
+      ],
+      "votes": [
+        { "userId": "usr_student_001", "optionIds": ["opt-512"], "votedDaysAgo": 2 },
+        { "userId": "usr_student_002", "optionIds": ["opt-512"], "votedDaysAgo": 2 },
+        { "userId": "usr_student_003", "optionIds": ["opt-256"], "votedDaysAgo": 1 },
+        { "userId": "usr_student_005", "optionIds": ["opt-1024"], "votedDaysAgo": 1 },
+        { "userId": "usr_student_006", "optionIds": ["opt-512"], "votedDaysAgo": 1 },
+        { "userId": "usr_student_009", "optionIds": ["opt-512"], "votedDaysAgo": 1 },
+        { "userId": "usr_student_014", "optionIds": ["opt-1024"], "votedDaysAgo": 1 },
+        { "userId": "usr_student_015", "optionIds": ["opt-512"], "votedDaysAgo": 0 }
+      ]
+    }
+  },
+  {
+    "id": "906d1ff4-eb5b-5c12-8ab7-5fc18fb286ba",
+    "type": "question",
+    "authorId": "usr_student_002",
+    "title": "Why does 0.3 beat 0.7 for RAG answers?",
+    "content": "<p>Checklist item 3 asks for one sentence on temperature, and I want to make sure my sentence is right. Is it just that 0.3 is less random? Why does that help factual answers specifically?</p>",
+    "tags": ["quiz", "lab3"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 2,
+    "question": { "mode": "short_answer" }
+  },
+  {
+    "id": "020233a2-84fe-5f4b-9a59-684c3b40b5c6",
+    "type": "announcement",
+    "title": "Proposal deadline extended",
+    "content": "<p>You asked, I extended. The CSE 481 project proposal moves from {{proposal_original}} to <strong>{{proposal_deadline}}</strong> at 11:59 PM.</p><ul><li>Same rules: two full pages, teams of 3 to 4, one upload per team under Assignments, CSE 481 Proposal</li><li>Already submitted before {{proposal_original}}? You do not need to resubmit</li></ul><p>Full rubric with the 40/30/20/10 split and the late rule (-10 per day, portal closes after two days) is in the assignment post. Use the extra days for data and method, not formatting.</p>",
+    "tags": ["deadline", "proposal", "important"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 1
+  },
+  {
+    "id": "0ff1ae54-f3ac-57a5-be76-848111120034",
+    "type": "assignment",
+    "title": "Project Proposal",
+    "content": "<p>Two full pages, PDF, 11pt or larger. Required:</p><ul><li><strong>problem:</strong> 2-3 sentences + user group</li><li><strong>data:</strong> dataset, size, license</li><li><strong>method:</strong> baseline like bert-base-uncased or Llama-3-8B zero-shot + one improvement, GPU hours within your 20 A100 hours</li><li><strong>evaluation:</strong> two metrics, 80/10/10 split</li><li><strong>schedule:</strong> three dated milestones before week 12 with owners</li></ul><p>Grading: scope 40, method 30, eval 20, schedule 10. Under two pages loses 10. Detail in the Proposal Rubric PDF. Due {{proposal_deadline}} at 11:59 PM. Midterm is {{midterm_cse481}} in Room 301, so finish before review week.</p>",
+    "tags": ["proposal", "deadline", "important"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 1,
+    "assignment": { "dueInDays": 5, "points": 100, "allowLateSubmission": true, "submissionType": "file" }
+  },
+  {
+    "id": "4fc61b18-27f8-56d6-9482-55e00f03b4fd",
+    "type": "question",
+    "title": null,
+    "content": "<p>To keep teams visible, reply to this thread with: Team N, members, one-line topic. Example: Team 2, Marcus, Grace, Haruki: RAG over discharge notes for triage nurses. I will confirm team numbers here.</p>",
+    "tags": ["teams", "proposal"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 1,
+    "question": { "mode": "short_answer" }
+  },
+  {
+    "id": "bd82eb4f-2982-5623-a853-29744c015431",
+    "type": "announcement",
+    "title": "Midterm review session",
+    "content": "<p>Midterm is {{midterm_cse481}} in Room 301, 2:00 PM - 4:00 PM. Review session two days before, 4:00 PM, same room. Bring the fixed Lecture 5 print (pages 14-16).</p><p>AI rule for this class under the Starlight AI Tools Policy: brainstorming with AI is fine, but proposal tables, RAG distances, and quiz answers must be your own runs with disclosure where asked. Undisclosed AI tables earn zero. Accommodations: contact Disability Services 4 days ahead.</p>",
+    "tags": ["midterm", "policy", "important"],
+    "isPinned": true,
+    "commentsEnabled": true,
+    "daysAgoCreated": 0
+  },
+  {
+    "id": "51b8484e-658c-5787-88b0-0b8a2dd87898",
+    "type": "material",
+    "title": null,
+    "content": "<p>Fixed. Slide 14 had V and O shapes swapped. Correct: W_Q, W_K, W_V, W_O each 512x512; per head 128x64 for a 128-token sequence. Reprint pages 14-16. Quiz follows the fixed version.</p>",
+    "tags": ["slides", "errata"],
+    "isPinned": false,
+    "commentsEnabled": false,
+    "daysAgoCreated": 0
+  },
+  {
+    "id": "6a58d42e-5ad6-5559-be8a-aa7083d32f50",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "material",
+    "title": "Week 5: Recursion and Big-O",
+    "content": "<p>This week we switch from <em>using</em> data structures to <em>reasoning</em> about them. Two ideas to carry:</p><ul><li><strong>recursion:</strong> a function that solves a smaller copy of the same problem, plus a base case that stops it</li><li><strong>Big-O:</strong> how the work grows when the input grows, not how fast your laptop is</li></ul><p>Read Chapter 5 before Friday. The worked examples (factorial, binary search) are the ones the homework builds on.</p>",
+    "tags": ["week5", "recursion"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 5
+  },
+  {
+    "id": "72562cd4-665b-5623-bb61-383a03b04c4a",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "assignment",
+    "title": "Homework 4: Linked Lists",
+    "content": "<p>Implement singly linked list insert, delete, and reverse in the starter file. Upload to the autograder under Assignments, Homework 4.</p><ul><li>80 points: autograder tests (all must pass, unlimited resubmits before the deadline)</li><li>20 points: one paragraph on why reverse needs three pointers</li></ul><p>Due {{dsa_hw4_due}} at 11:59 PM. Start with reverse on paper before touching code.</p>",
+    "tags": ["homework", "deadline"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 4,
+    "assignment": { "dueInDays": 6, "points": 100, "allowLateSubmission": true, "submissionType": "file" }
+  },
+  {
+    "id": "65c5f981-54a4-5566-809d-a90d2b7e19d7",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "question",
+    "title": "What should Friday's review session cover?",
+    "content": "<p>One hour, your call. Vote for the topic you most want live-worked, then reply with the exact problem that stuck you.</p>",
+    "tags": ["review", "poll"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 3,
+    "question": {
+      "mode": "poll",
+      "selectionMode": "single",
+      "options": [
+        { "id": "opt-rec", "text": "Recursion (tracing the calls)", "position": 0 },
+        { "id": "opt-big", "text": "Big-O (counting the loops)", "position": 1 },
+        { "id": "opt-sort", "text": "Sorting (why quicksort usually wins)", "position": 2 }
+      ],
+      "votes": [
+        { "userId": "usr_student_001", "optionIds": ["opt-rec"], "votedDaysAgo": 3 },
+        { "userId": "usr_student_002", "optionIds": ["opt-big"], "votedDaysAgo": 3 },
+        { "userId": "usr_student_003", "optionIds": ["opt-rec"], "votedDaysAgo": 2 },
+        { "userId": "usr_student_004", "optionIds": ["opt-sort"], "votedDaysAgo": 2 },
+        { "userId": "usr_student_005", "optionIds": ["opt-rec"], "votedDaysAgo": 2 },
+        { "userId": "usr_student_006", "optionIds": ["opt-big"], "votedDaysAgo": 1 },
+        { "userId": "usr_student_007", "optionIds": ["opt-rec"], "votedDaysAgo": 1 }
+      ]
+    }
+  },
+  {
+    "id": "7600a898-022a-57c9-a01a-4490f62ce354",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "question",
+    "authorId": "usr_student_003",
+    "title": "Do I actually need the base case?",
+    "content": "<p>Serious question. My recursive sum works without the if n == 0 check for every test I tried. What breaks if I leave it out?</p>",
+    "tags": ["recursion", "homework"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 2,
+    "question": { "mode": "short_answer" }
+  },
+  {
+    "id": "c602bdee-5e2b-52f7-b324-39df246e76a2",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "announcement",
+    "title": "Midterm: {{midterm_cse201}}, Room 105",
+    "content": "<p>CSE 201 midterm is {{midterm_cse201}} in Room 105. Closed book, one handwritten cheat sheet, both sides. Topics: arrays through sorting, Chapters 1-6. Friday's review session covers whatever wins the poll above.</p><p>Accommodations: contact Disability Services 4 days ahead.</p>",
+    "tags": ["midterm", "important"],
+    "isPinned": true,
+    "commentsEnabled": true,
+    "daysAgoCreated": 1
+  },
+  {
+    "id": "1115475c-f907-5b50-97a2-918bcaf7801c",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "material",
+    "authorId": "usr_student_001",
+    "title": "The pointer visualizer that saved my HW4",
+    "content": "<p>Posting because three of us hit the same wall. The pointer visualizer linked in the portal under Materials lets you step through insert and delete one pointer at a time. I watched reverse five times before the three-pointer version made sense. If your autograder fails on delete-from-empty, run that case in the visualizer first.</p>",
+    "tags": ["tip", "homework"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 1
+  },
+  {
+    "id": "2dcba686-6cb8-5af4-b1ca-04d0a8a28142",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "announcement",
+    "title": "Office hours moved to Thursday",
+    "content": "<p>Office hours move to Thursday 3-4 PM, Room 204, for the rest of the term (faculty meeting clash). Tuesday slot is gone. Homework questions welcome, midterm questions even more welcome.</p>",
+    "tags": ["logistics"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 0
+  },
+  {
+    "id": "8d5f0697-a75f-540e-8d6c-41476b308289",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "assignment",
+    "title": "Quiz 2: Tracing and Big-O",
+    "content": "<p>Quiz 2 is Friday, in class, 15 minutes, closed book. Two topics only:</p><ul><li><strong>tracing recursion:</strong> write the output of a recursive function, show the call stack</li><li><strong>Big-O:</strong> count the loops, pick the growth class</li></ul><p>Sorting is midterm-only, not on this quiz. Bring a pen. Practice: re-trace factorial(4) and binary search from Chapter 5 without looking.</p>",
+    "tags": ["quiz", "deadline"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 2,
+    "assignment": { "dueInDays": 3, "points": 30, "allowLateSubmission": false, "submissionType": "text" }
+  },
+  {
+    "id": "e2d2f8f9-487c-5d10-8e92-bf9c4a3fcc29",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "material",
+    "title": "Three bugs eating your autograder score",
+    "content": "<p>Half the class is losing points to the same three bugs. Fix these before resubmitting:</p><ul><li><strong>delete-from-empty:</strong> check for null head first, the autograder always tests it</li><li><strong>off-by-one on delete:</strong> walk to the node <em>before</em> the target, not the target</li><li><strong>renamed methods:</strong> the tests import insert, delete, reverse exactly, keep the starter names</li></ul><p>Resubmits are unlimited and unpenalized. Go green by {{dsa_hw4_due}}.</p>",
+    "tags": ["homework", "tip"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 2
+  },
+  {
+    "id": "f221befb-b4d2-52dd-965e-f76be8d7cd04",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "question",
+    "authorId": "usr_student_003",
+    "title": "Why does quicksort usually win?",
+    "content": "<p>Moved from the poll so the answer lives somewhere findable. If worst case is O(n^2), why does everyone say quicksort beats mergesort in practice?</p>",
+    "tags": ["sorting", "review"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 2,
+    "question": { "mode": "short_answer" }
+  },
+  {
+    "id": "9e6e7f4d-5503-52f8-8731-6c2f9dd11d75",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "question",
+    "authorId": "usr_student_006",
+    "title": "O(n log n) vs O(n^2), how do you tell?",
+    "content": "<p>Also moved from the poll. I can trace recursion fine, but every Big-O question feels like a coin flip. How do you look at code and tell n log n from n squared?</p>",
+    "tags": ["big-o", "review"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 2,
+    "question": { "mode": "short_answer" }
+  },
+  {
+    "id": "b34a10bd-0471-5a87-9f9a-8d29c3b7e560",
+    "classroomId": "fdacc947-32ff-44a2-8fe2-b2aacbec7193",
+    "type": "question",
+    "authorId": "usr_student_005",
+    "title": "Midterm study group Saturday?",
+    "content": "<p>Library 2nd floor, Saturday 10 AM, midterm prep. Bring your cheat sheet draft, we compare and steal the best parts. I will bring past-paper Big-O questions.</p>",
+    "tags": ["study-group", "midterm"],
+    "isPinned": false,
+    "commentsEnabled": true,
+    "daysAgoCreated": 1,
+    "question": { "mode": "short_answer" }
+  }
+]

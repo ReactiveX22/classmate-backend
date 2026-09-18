@@ -1,0 +1,37 @@
+[
+  {
+    "postId": "020233a2-84fe-5f4b-9a59-684c3b40b5c6",
+    "attachmentId": "da6cf40c-2d7f-5c97-abfa-56843a211352",
+    "filename": "cse481-proposal-rubric.pdf",
+    "title": "CSE 481 Project Proposal Rubric (Classroom Edition)",
+    "source": "proposal-rubric-classroom.md"
+  },
+  {
+    "postId": "5175c104-792f-5c0d-9fc8-93edb37079c0",
+    "attachmentId": "c8b06518-f35b-5e48-8755-5f103c436ad0",
+    "filename": "rag-lab-handout.pdf",
+    "title": "Lab 3: Retrieval-Augmented Generation Handout",
+    "source": "rag-lab-handout.md"
+  },
+  {
+    "postId": "5175c104-792f-5c0d-9fc8-93edb37079c0",
+    "attachmentId": "4b501903-9e49-5e73-a653-1ad41c15a259",
+    "filename": "transformer-slides-lectures-4-5.pdf",
+    "title": "Transformer Slides Companion (Lectures 4-5)",
+    "source": "transformer-slides.md"
+  },
+  {
+    "postId": "51b8484e-658c-5787-88b0-0b8a2dd87898",
+    "attachmentId": "9815f1fa-f35a-5104-a2e4-48a7e2b80d2d",
+    "filename": "lecture5-attention-fixed.pdf",
+    "title": "Lecture 5: Attention (Fixed Re-upload)",
+    "source": "lecture5-attention-fixed.md"
+  },
+  {
+    "postId": "6a58d42e-5ad6-5559-be8a-aa7083d32f50",
+    "attachmentId": "63f7ef3d-b11b-53b2-a25c-06e2ccffe569",
+    "filename": "cse201-recursion-bigo-study-guide.pdf",
+    "title": "CSE 201 Recursion and Big-O Study Guide",
+    "source": "recursion-bigo-study-guide.md"
+  }
+]
