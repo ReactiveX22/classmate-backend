@@ -100,8 +100,6 @@ export class MainAgentService {
     for await (const chunk of stream) {
       const [mode, data] = chunk as ['messages' | 'tools', unknown];
 
-      this.logger.debug(`[MainAgent] Stream chunk: mode=${mode}, type=${typeof data}, constructor=${data?.constructor?.name}`);
-
       if (mode === 'tools') {
         const toolEvent = data as
           | {
@@ -111,8 +109,6 @@ export class MainAgentService {
               output?: unknown;
             }
           | undefined;
-
-        this.logger.debug(`[MainAgent] Tool event: event=${toolEvent?.event}, name=${toolEvent?.name}, toolCallId=${toolEvent?.toolCallId}, hasOutput=${toolEvent?.output !== undefined}`);
 
         if (toolEvent?.event === 'on_tool_start') {
           const name = this.resolveToolName(
@@ -128,7 +124,6 @@ export class MainAgentService {
         }
 
         if (toolEvent?.event === 'on_tool_end') {
-          this.logger.debug(`[MainAgent] Tool end output type: ${typeof toolEvent.output}, constructor: ${(toolEvent.output as any)?.constructor?.name}`);
           const name =
             this.extractToolNameFromResult(toolEvent.output) ??
             this.resolveToolName(
@@ -161,7 +156,6 @@ export class MainAgentService {
         Array.isArray(message.tool_calls) &&
         message.tool_calls.length
       ) {
-        this.logger.debug(`[MainAgent] Found tool_calls: ${JSON.stringify(message.tool_calls.map((tc: any) => ({ id: tc.id, name: tc.name })))}`);
         for (const tc of message.tool_calls) {
           if (tc.id && tc.name) {
             toolCallNames.set(tc.id, tc.name);
@@ -222,14 +216,6 @@ export class MainAgentService {
           ? allTools
           : allTools.filter((t) => t.name !== 'web_search');
 
-        this.logger.log(
-          `[MainAgent] Model node called. Messages in state: ${state.messages.length}`,
-        );
-        const lastMsg = state.messages.at(-1);
-        this.logger.log(
-          `[MainAgent] Last message type: ${lastMsg?.constructor.name}, content: ${JSON.stringify(lastMsg?.content).substring(0, 300)}`,
-        );
-
         const { result, provider } =
           await this.aiProviderService.invokeWithFailover(async (model) => {
             if (!model.bindTools) {
@@ -253,7 +239,18 @@ export class MainAgentService {
 
         return { messages: [result] };
       })
-      .addNode('tools', new ToolNode(allTools))
+      .addNode('tools', async (state, config?: RunnableConfig) => {
+        const { webSearch } = (config?.configurable ?? {}) as {
+          webSearch?: boolean;
+        };
+
+        const permittedTools = webSearch
+          ? allTools
+          : allTools.filter((t) => t.name !== 'web_search');
+
+        const toolNode = new ToolNode(permittedTools);
+        return toolNode.invoke(state, config);
+      })
       .addEdge(START, 'model')
       .addConditionalEdges('model', toolsCondition)
       .addEdge('tools', 'model')
