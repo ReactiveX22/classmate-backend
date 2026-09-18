@@ -3,7 +3,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -254,12 +254,10 @@ export async function seedClassroomPostAttachments(
   classrooms: Array<{ id: string }>,
   opts: { reupload?: boolean } = {},
 ): Promise<{ uploaded: number; skipped: number }> {
-  const classroomId = classrooms[0]?.id ?? LLM_CLASSROOM_ID;
   const raw = await fs.readFile(MANIFEST_PATH, 'utf8');
   const manifest = JSON.parse(raw) as AttachmentManifestEntry[];
   const placeholders = buildPostPlaceholders();
   const kind = getStorageKind();
-  const folder = `classroom-attachments/${classroomId}`;
   const s3 =
     kind === 's3' &&
     process.env.STORAGE_ENDPOINT &&
@@ -273,28 +271,27 @@ export async function seedClassroomPostAttachments(
 
   for (const entry of manifest) {
     const fileName = `${entry.attachmentId}.pdf`;
-    const key = `${folder}/${fileName}`;
-    const url = `/api/v1/uploads/${key}`;
 
     try {
       const [existing] = await db
         .select({
           id: postSchema.classroomPost.id,
+          classroomId: postSchema.classroomPost.classroomId,
           attachments: postSchema.classroomPost.attachments,
         })
         .from(postSchema.classroomPost)
-        .where(
-          and(
-            eq(postSchema.classroomPost.id, entry.postId),
-            eq(postSchema.classroomPost.classroomId, classroomId),
-          ),
-        );
+        .where(eq(postSchema.classroomPost.id, entry.postId));
 
       if (!existing) {
         console.log(`  [post-attachments] post missing, skip ${entry.source}`);
         skipped++;
         continue;
       }
+
+      // Storage folder follows the post's own classroom (LLM, DSA, ...).
+      const folder = `classroom-attachments/${existing.classroomId}`;
+      const key = `${folder}/${fileName}`;
+      const url = `/api/v1/uploads/${key}`;
 
       const current = existing.attachments ?? [];
       const alreadyLinked = current.some(

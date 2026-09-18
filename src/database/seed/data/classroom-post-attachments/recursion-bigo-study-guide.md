@@ -15,7 +15,7 @@ Three checks before you submit any recursive function: does the input shrink on 
 
 ## 2. Big-O: count the growth, not the seconds
 
-Big-O describes how work grows when the input grows. It ignores your laptop, the language, and constant factors.
+Big-O describes how work grows when the input grows, ignoring hardware and constant factors.
 
 Rules for reading code:
 
@@ -26,11 +26,11 @@ Rules for reading code:
 
 Growth table for n = 1,000,000: O(1) is 1 step, O(log n) is about 20, O(n) is 1,000,000, O(n log n) is about 20,000,000, O(n^2) is 1,000,000,000,000. That last number is why sorting choice matters.
 
-The Olivia rule: count the levels, multiply by the work per level.
+Count the levels, multiply by the work per level.
 
 ## 3. Sorting: average vs worst case
 
-- **Mergesort:** always O(n log n), but allocates and copies. Steady, not the fastest in practice.
+- **Mergesort:** always O(n log n). It allocates and copies as it goes, which costs time in practice.
 - **Quicksort:** O(n log n) on average with small constants (in place, cache friendly), O(n^2) worst case. Worst case needs already-sorted input plus a naive first-element pivot. Random or median-of-three pivots make it vanishingly rare, which is why quicksort usually wins in practice.
 - Quiz 2 scope is tracing plus Big-O only. Sorting analysis is midterm-only.
 
@@ -40,6 +40,6 @@ The Olivia rule: count the levels, multiply by the work per level.
 2. Binary search on 1,000,000 sorted items: worst-case comparisons?
 3. This loop halves `n` each pass and does 3 operations per pass. Give the Big-O.
 
-## 5. Cheat sheet allowance
+## 5. Cheat sheet rules
 
 Midterm: closed book, one handwritten sheet, both sides, no printouts. Suggested layout: one side recursion traces (factorial, binary search), other side the growth table plus the Olivia rule.
