@@ -21,6 +21,7 @@ import { NoticeToolsService } from './tools/notice-tools.service';
 import { RagToolsService } from './tools/rag-tools.service';
 import { TodoAgentToolService } from './tools/todo-agent-tool.service';
 import { TodoToolsService } from './tools/todo-tools.service';
+import { WebSearchToolsService } from './tools/web-search-tools.service';
 import { AiProviderService } from './services/ai-provider.service';
 
 export const AI_PG_POOL = 'AI_PG_POOL';
@@ -68,6 +69,7 @@ export const AI_PG_POOL = 'AI_PG_POOL';
     NoticeToolsService,
     TodoToolsService,
     TodoAgentToolService,
+    WebSearchToolsService,
     MainToolsRegistry,
   ],
 })

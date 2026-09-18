@@ -44,6 +44,8 @@ export const envSchema = z
     GROQ_API_KEY: z.string().optional(),
     GROQ_MODEL: z.string().min(1).default('llama-3.3-70b-versatile'),
 
+    TAVILY_API_KEY: z.string().optional(),
+
     AI_EMBEDDING_ENABLED: z.coerce.boolean().default(false),
     AI_EMBEDDING_PROVIDER: z.enum(['google']).default('google'),
     AI_EMBEDDING_MODEL: z.string().min(1).default('gemini-embedding-2'),

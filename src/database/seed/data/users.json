@@ -5,7 +5,8 @@
     "email": "admin@starlight.edu",
     "role": "admin",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": "/avatars/usr_admin_001.png"
   },
   {
     "id": "usr_teacher_001",
@@ -13,7 +14,8 @@
     "email": "sarah.jenkins@starlight.edu",
     "role": "instructor",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": "/avatars/usr_teacher_001.png"
   },
   {
     "id": "usr_teacher_002",
@@ -21,7 +23,8 @@
     "email": "robert.williams@starlight.edu",
     "role": "instructor",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_teacher_003",
@@ -29,7 +32,8 @@
     "email": "lisa.chang@starlight.edu",
     "role": "instructor",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_teacher_004",
@@ -37,7 +41,8 @@
     "email": "michael.torres@starlight.edu",
     "role": "instructor",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_teacher_005",
@@ -45,7 +50,8 @@
     "email": "james.anderson@starlight.edu",
     "role": "instructor",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_teacher_006",
@@ -53,7 +59,8 @@
     "email": "jennifer.park@starlight.edu",
     "role": "instructor",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_teacher_007",
@@ -61,7 +68,8 @@
     "email": "diana.flores@starlight.edu",
     "role": "instructor",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_student_001",
@@ -69,7 +77,8 @@
     "email": "marcus.cole@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": "/avatars/usr_student_001.png"
   },
   {
     "id": "usr_student_002",
@@ -77,7 +86,8 @@
     "email": "emily.watson@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_student_003",
@@ -85,7 +95,8 @@
     "email": "david.kim@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": "/avatars/usr_student_003.png"
   },
   {
     "id": "usr_student_004",
@@ -93,7 +104,8 @@
     "email": "sophia.martinez@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": "/avatars/usr_student_004.png"
   },
   {
     "id": "usr_student_005",
@@ -101,7 +113,8 @@
     "email": "ethan.brown@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": "/avatars/usr_student_005.png"
   },
   {
     "id": "usr_student_006",
@@ -109,7 +122,8 @@
     "email": "olivia.taylor@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_student_007",
@@ -117,7 +131,8 @@
     "email": "daniel.lee@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": "/avatars/usr_student_007.png"
   },
   {
     "id": "usr_student_008",
@@ -125,7 +140,8 @@
     "email": "ava.robinson@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_student_009",
@@ -133,7 +149,8 @@
     "email": "chris.nguyen@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": "/avatars/usr_student_009.png"
   },
   {
     "id": "usr_student_010",
@@ -141,7 +158,8 @@
     "email": "isabella.garcia@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_student_011",
@@ -149,7 +167,8 @@
     "email": "andrew.patel@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": "/avatars/usr_student_011.png"
   },
   {
     "id": "usr_student_012",
@@ -157,7 +176,8 @@
     "email": "mia.johnson@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_student_013",
@@ -165,7 +185,8 @@
     "email": "ryan.cooper@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": "/avatars/usr_student_013.png"
   },
   {
     "id": "usr_student_014",
@@ -173,7 +194,8 @@
     "email": "haruki.tanaka@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_student_015",
@@ -181,7 +203,8 @@
     "email": "grace.mitchell@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   },
   {
     "id": "usr_student_016",
@@ -189,6 +212,7 @@
     "email": "yuki.nakamura@starlight.edu",
     "role": "student",
     "status": "active",
-    "emailVerified": true
+    "emailVerified": true,
+    "image": null
   }
 ]
