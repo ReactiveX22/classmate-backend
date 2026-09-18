@@ -17,6 +17,8 @@ import {
   seedClassroomPosts,
   seedClassroomPostAttachments,
 } from './seeders/classroom-post.seeder';
+import { seedSubmissions } from './seeders/submission.seeder';
+import { seedAttendance } from './seeders/attendance.seeder';
 
 export interface OrganizationSeed {
   id: string;
@@ -107,6 +109,12 @@ async function main() {
       console.log(`  No new post attachments (${postSkipped} skipped).`);
     }
 
+    console.log('\n--- Seeding assignment submissions (PDF + text) ---');
+    const { inserted: submissionCount } = await seedSubmissions(db);
+
+    console.log('\n--- Seeding attendance (LLM + DSA) ---');
+    const { inserted: attendanceCount } = await seedAttendance(db, classrooms);
+
     console.log('\n--- Seeding notices and notifications ---');
     const noticeCount = await seedNotices(db, org.id);
 
@@ -128,6 +136,8 @@ async function main() {
     console.log(`  Courses: ${courses.length}`);
     console.log(`  Classrooms: ${classrooms.length}`);
     console.log(`  Classroom posts: ${postCount} (+ attachments: ${postUploaded} uploaded)`);
+    console.log(`  Submissions: ${submissionCount}`);
+    console.log(`  Attendance: ${attendanceCount}`);
     console.log(`  Notices: ${noticeCount}`);
     console.log(`  Password for all accounts: "password123"`);
   } catch (err) {

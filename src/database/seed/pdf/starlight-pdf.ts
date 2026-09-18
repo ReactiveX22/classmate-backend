@@ -16,6 +16,13 @@ const virtualfs = virtualFsModule.default ?? virtualFsModule;
 
 export interface StarlightPdfMeta {
   title: string;
+  /**
+   * 'university' (default) renders official Starlight branding: header,
+   * footer, and navy headings. Use for teacher materials.
+   * 'plain' renders an unbranded document: no header, page numbers only.
+   * Use for student submissions — real student uploads carry no letterhead.
+   */
+  branding?: 'university' | 'plain';
 }
 
 const NAVY = '#0A1931';
@@ -203,6 +210,8 @@ export async function renderStarlightPdf(
   meta: StarlightPdfMeta,
 ): Promise<Buffer> {
   const tokens = lexer(markdown) as any[];
+  const branded = meta.branding !== 'plain';
+  const headingColor = branded ? NAVY : BODY;
 
   const content: any[] = [
     { text: meta.title, style: 'docTitle', margin: [0, 0, 0, 6] },
@@ -227,48 +236,61 @@ export async function renderStarlightPdf(
   }
 
   const docDefinition: any = {
-    info: { title: meta.title, author: 'Starlight University' },
+    info: branded
+      ? { title: meta.title, author: 'Starlight University' }
+      : { title: meta.title },
     pageSize: 'A4',
-    pageMargins: [48, 76, 48, 60],
-    header: (_currentPage: number, _pageCount: number, pageSize: any) => ({
-      margin: [48, 28, 48, 0],
-      stack: [
-        { text: 'STARLIGHT UNIVERSITY', style: 'topBar' },
-        {
-          canvas: [
-            {
-              type: 'line',
-              x1: 0,
-              y1: 6,
-              x2: pageSize.width - 96,
-              y2: 6,
-              lineWidth: 1.5,
-              lineColor: NAVY,
-            },
-          ],
-        },
-      ],
-    }),
-    footer: (currentPage: number, pageCount: number) => ({
-      margin: [48, 0, 48, 0],
-      columns: [
-        { text: 'Starlight University', style: 'foot' },
-        {
-          text: `Page ${currentPage} of ${pageCount}`,
-          style: 'foot',
-          alignment: 'right',
-        },
-      ],
-    }),
+    pageMargins: branded ? [48, 76, 48, 60] : [56, 56, 56, 56],
+    ...(branded
+      ? {
+          header: (_currentPage: number, _pageCount: number, pageSize: any) => ({
+            margin: [48, 28, 48, 0],
+            stack: [
+              { text: 'STARLIGHT UNIVERSITY', style: 'topBar' },
+              {
+                canvas: [
+                  {
+                    type: 'line',
+                    x1: 0,
+                    y1: 6,
+                    x2: pageSize.width - 96,
+                    y2: 6,
+                    lineWidth: 1.5,
+                    lineColor: NAVY,
+                  },
+                ],
+              },
+            ],
+          }),
+          footer: (currentPage: number, pageCount: number) => ({
+            margin: [48, 0, 48, 0],
+            columns: [
+              { text: 'Starlight University', style: 'foot' },
+              {
+                text: `Page ${currentPage} of ${pageCount}`,
+                style: 'foot',
+                alignment: 'right',
+              },
+            ],
+          }),
+        }
+      : {
+          footer: (currentPage: number, pageCount: number) => ({
+            margin: [56, 0, 56, 0],
+            text: `Page ${currentPage} of ${pageCount}`,
+            style: 'foot',
+            alignment: 'center',
+          }),
+        }),
     defaultStyle: { font: 'Roboto', fontSize: 10.5, color: BODY },
     styles: {
-      docTitle: { fontSize: 20, bold: true, color: NAVY },
+      docTitle: { fontSize: 20, bold: true, color: headingColor },
       topBar: { fontSize: 9, bold: true, color: NAVY },
       foot: { fontSize: 8, color: GRAY },
-      h1: { fontSize: 15, bold: true, color: NAVY },
-      h2: { fontSize: 12.5, bold: true, color: NAVY },
-      h3: { fontSize: 11, bold: true, color: NAVY },
-      tableHeader: { bold: true, color: NAVY, fontSize: 10 },
+      h1: { fontSize: 15, bold: true, color: headingColor },
+      h2: { fontSize: 12.5, bold: true, color: headingColor },
+      h3: { fontSize: 11, bold: true, color: headingColor },
+      tableHeader: { bold: true, color: headingColor, fontSize: 10 },
     },
     content,
   };

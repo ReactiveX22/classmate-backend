@@ -1,0 +1,413 @@
+[
+  {
+    "postId": "eea889e2-d71d-52f4-a5af-c3db227a8011",
+    "studentId": "usr_student_007",
+    "status": "turned_in",
+    "content": "Team 1 report attached. Config 512/50/5, EM 0.52. Lost our first index to a Colab timeout so the 1024 numbers are from a rerun. — Daniel",
+    "submittedDaysAgo": 2,
+    "attachment": {
+      "filename": "lab3-report-team1.pdf",
+      "title": "Lab 3 Report — Team 1",
+      "source": "lab3-report-weak.md"
+    }
+  },
+  {
+    "postId": "eea889e2-d71d-52f4-a5af-c3db227a8011",
+    "studentId": "usr_student_014",
+    "status": "graded",
+    "content": "Team 2 report attached. Config 512/50/5, EM 0.65, three error cases with distances. Attention figure is our own bonus-cell run. — Haruki",
+    "submittedDaysAgo": 3,
+    "grade": 46,
+    "feedback": "Clean boundary analysis — the 1.41 to 0.79 re-chunk case is exactly what the handout asks for. Missing: one sentence on why 1024's citation precision drops. See handout p.3.",
+    "attachment": {
+      "filename": "lab3-report-team2.pdf",
+      "title": "Lab 3 Report — Team 2",
+      "source": "lab3-report-strong.md"
+    }
+  },
+  {
+    "postId": "eea889e2-d71d-52f4-a5af-c3db227a8011",
+    "studentId": "usr_student_009",
+    "status": "turned_in",
+    "content": "Team 3 report attached. Baseline 512/50/5, EM 0.60. Error analysis covers the cut-boundary case and the temperature rerun. — Chris",
+    "submittedDaysAgo": 1,
+    "attachment": {
+      "filename": "lab3-report-team3.pdf",
+      "title": "Lab 3 Report — Team 3",
+      "source": "lab3-report-average.md"
+    }
+  },
+  {
+    "postId": "eea889e2-d71d-52f4-a5af-c3db227a8011",
+    "studentId": "usr_student_003",
+    "status": "graded",
+    "content": "Team 4 report attached. Config 512/50/5 with text-embedding-3-small, EM 0.60. Bonus-cell screenshot from our 1024 run included. — David",
+    "submittedDaysAgo": 3,
+    "grade": 44,
+    "feedback": "Good 512/50/5 baseline and an honest temperature note. Your 1024 comparison lacks FAISS distances for the rerun — log them the way you did for Q6.",
+    "attachment": {
+      "filename": "lab3-report-team4.pdf",
+      "title": "Lab 3 Report — Team 4",
+      "source": "lab3-report-average.md"
+    }
+  },
+  {
+    "postId": "eea889e2-d71d-52f4-a5af-c3db227a8011",
+    "studentId": "usr_student_011",
+    "status": "turned_in",
+    "content": "Team 5 report attached. Still need a fourth member — eval section is thin without the faithfulness ratings. — Andrew",
+    "submittedDaysAgo": 0,
+    "attachment": {
+      "filename": "lab3-report-team5.pdf",
+      "title": "Lab 3 Report — Team 5",
+      "source": "lab3-report-weak.md"
+    }
+  },
+  {
+    "postId": "0ff1ae54-f3ac-57a5-be76-848111120034",
+    "studentId": "usr_student_004",
+    "status": "turned_in",
+    "content": "Team 1 proposal attached: reranked lecture QA. Two pages plus references. — Sophia",
+    "submittedDaysAgo": 1,
+    "attachment": {
+      "filename": "cse481-proposal-team1.pdf",
+      "title": "CSE 481 Project Proposal — Team 1",
+      "source": "proposal-team1-reranker.md"
+    }
+  },
+  {
+    "postId": "0ff1ae54-f3ac-57a5-be76-848111120034",
+    "studentId": "usr_student_015",
+    "status": "turned_in",
+    "content": "Team 2 proposal attached: RAG over discharge notes for triage nurses. MIMIC access forms are ready on my side. — Grace",
+    "submittedDaysAgo": 1,
+    "attachment": {
+      "filename": "cse481-proposal-team2.pdf",
+      "title": "CSE 481 Project Proposal — Team 2",
+      "source": "proposal-team2-triage.md"
+    }
+  },
+  {
+    "postId": "0ff1ae54-f3ac-57a5-be76-848111120034",
+    "studentId": "usr_student_008",
+    "status": "turned_in",
+    "content": "Team 3 proposal attached: distractor generation for DSA quizzes. — Ava",
+    "submittedDaysAgo": 2,
+    "attachment": {
+      "filename": "cse481-proposal-team3.pdf",
+      "title": "CSE 481 Project Proposal — Team 3",
+      "source": "proposal-team3-distractors.md"
+    }
+  },
+  {
+    "postId": "0ff1ae54-f3ac-57a5-be76-848111120034",
+    "studentId": "usr_student_002",
+    "status": "graded",
+    "content": "Team 4 proposal attached: chunking ablation for lecture QA, 256 vs 512 vs 1024. Baseline is 512/50/5. — Emily",
+    "submittedDaysAgo": 2,
+    "grade": 82,
+    "feedback": "Scope 36/40: well-bounded eval, but the boundary-cut metric needs a precise definition — what counts as split mid-definition? Method 26/30: adaptive chunking is a real improvement over fixed 512, GPU math checks out. Eval 14/20, schedule 6/10: the week-12 milestone has no owner. Strong proposal overall.",
+    "attachment": {
+      "filename": "cse481-proposal-team4.pdf",
+      "title": "CSE 481 Project Proposal — Team 4",
+      "source": "proposal-team4-chunking.md"
+    }
+  },
+  {
+    "postId": "0ff1ae54-f3ac-57a5-be76-848111120034",
+    "studentId": "usr_student_012",
+    "status": "turned_in",
+    "content": "Team 5 proposal attached: faithfulness eval with NLI pipeline. Still looking for a fourth member for the annotation round. — Mia",
+    "submittedDaysAgo": 0,
+    "attachment": {
+      "filename": "cse481-proposal-team5.pdf",
+      "title": "CSE 481 Project Proposal — Team 5",
+      "source": "proposal-team5-faithfulness.md"
+    }
+  },
+  {
+    "postId": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "studentId": "usr_student_002",
+    "status": "turned_in",
+    "content": "Attention: softmax(QK^T/sqrt(d_k))V. Baseline 512/50/5, EM 0.65. Temperature 0.3 sharpens the output distribution so the model picks the likeliest token — keeps grounded answers faithful (slides 9-10).",
+    "submittedDaysAgo": 1
+  },
+  {
+    "postId": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "studentId": "usr_student_004",
+    "status": "turned_in",
+    "content": "Attention formula: softmax(QK^T/sqrt(dk))V. Baseline 512/50/5. Lower temperature (0.3) is less random than 0.7, better for factual answers.",
+    "submittedDaysAgo": 2
+  },
+  {
+    "postId": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "studentId": "usr_student_005",
+    "status": "turned_in",
+    "content": "Attention: softmax(QK^T/sqrt(dk))V, per-head 128x64 for a 128-token sequence. Baseline 512/50/5. 0.3 beats 0.7 because the output distribution is sharper.",
+    "submittedDaysAgo": 1
+  },
+  {
+    "postId": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "studentId": "usr_student_007",
+    "status": "turned_in",
+    "content": "Attention is Q times K times V with softmax. Baseline 512 overlap 50 top 5. Temperature 0.3 vs 0.7 — 0.3 is better, less creative.",
+    "submittedDaysAgo": 0
+  },
+  {
+    "postId": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "studentId": "usr_student_009",
+    "status": "turned_in",
+    "content": "softmax(QK^T/sqrt(d_k))V. Baseline 512/50/5, EM 0.65 for our team. Temperature 0.3 favors the likeliest token, which keeps grounded answers faithful.",
+    "submittedDaysAgo": 2
+  },
+  {
+    "postId": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "studentId": "usr_student_011",
+    "status": "turned_in",
+    "content": "Attention formula from memory: softmax(QK^T/sqrt(dk))V. Baseline numbers 512/50/5. Not fully sure on the W_O ablation — bringing that to the study group.",
+    "submittedDaysAgo": 1
+  },
+  {
+    "postId": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "studentId": "usr_student_013",
+    "status": "turned_in",
+    "content": "Attention: QK^T scaled by sqrt(dk), softmax, times V. 512/50/5 baseline. Lower temp = sharper distribution = fewer invented details.",
+    "submittedDaysAgo": 0
+  },
+  {
+    "postId": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "studentId": "usr_student_003",
+    "status": "graded",
+    "content": "Attention: softmax(QK^T/sqrt(d_k))V. Baseline 512/50/5, EM 0.60. Temperature 0.3 is less random than 0.7 so factual answers stay on track.",
+    "submittedDaysAgo": 2,
+    "grade": 18,
+    "feedback": "Formula and numbers right. Temperature sentence is vague — say why likeliest-token helps grounded answers (slides 9-10)."
+  },
+  {
+    "postId": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "studentId": "usr_student_015",
+    "status": "graded",
+    "content": "Attention: softmax(QK^T/sqrt(d_k))V, W_Q/W_K/W_V/W_O each 512x512, per head 128x64. Baseline 512/50/5, EM 0.65. Temperature 0.3 sharpens the output distribution so the model picks the likeliest token instead of sampling far down the list — for grounded answers that means fewer fluent but invented details.",
+    "submittedDaysAgo": 3,
+    "grade": 20,
+    "feedback": "Exact. Bring this precision to Friday's quiz."
+  },
+  {
+    "postId": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "studentId": "usr_student_006",
+    "status": "graded",
+    "content": "Attention is softmax(QK^T)V. Baseline 512/50/5. Temperature 0.7 is more creative, 0.3 is safer for facts.",
+    "submittedDaysAgo": 2,
+    "grade": 14,
+    "feedback": "Formula missing the scale term 1/sqrt(d_k), and the W_O ablation is absent. Rework from the fixed slides pp.14-16."
+  },
+  {
+    "postId": "656f341e-d09a-525c-a802-15ca858fe8c1",
+    "studentId": "usr_student_010",
+    "status": "graded",
+    "content": "This comprehensive checklist response addresses all three preparation items. The scaled dot-product attention mechanism computes compatibility between queries and keys, normalized by the square root of the key dimensionality, yielding attention weights that aggregate the value vectors. The baseline configuration (512/50/5) achieves optimal results. Temperature 0.3 is preferable for factual correctness.",
+    "submittedDaysAgo": 1,
+    "grade": 0,
+    "feedback": "Undisclosed AI-generated checklist. Per the Starlight AI Tools Policy, quiz answers must be your own runs with disclosure where asked. Zero — see me in office hours Thursday."
+  },
+  {
+    "postId": "72562cd4-665b-5623-bb61-383a03b04c4a",
+    "studentId": "usr_student_002",
+    "status": "turned_in",
+    "content": "Homework 4 attached. All autograder tests green including delete-from-empty. Paragraph covers prev/cur/nxt. — Emily",
+    "submittedDaysAgo": 2,
+    "attachment": {
+      "filename": "homework4-emily-watson.pdf",
+      "title": "Homework 4: Linked Lists — Emily Watson",
+      "source": "hw4-clean.md"
+    }
+  },
+  {
+    "postId": "72562cd4-665b-5623-bb61-383a03b04c4a",
+    "studentId": "usr_student_004",
+    "status": "turned_in",
+    "content": "Homework 4 attached. Most tests pass, delete-from-empty still crashes — debugging tonight. — Sophia",
+    "submittedDaysAgo": 1,
+    "attachment": {
+      "filename": "homework4-sophia-martinez.pdf",
+      "title": "Homework 4: Linked Lists — Sophia Martinez",
+      "source": "hw4-nullbug.md"
+    }
+  },
+  {
+    "postId": "72562cd4-665b-5623-bb61-383a03b04c4a",
+    "studentId": "usr_student_005",
+    "status": "graded",
+    "content": "Homework 4 attached. Insert and reverse pass, delete is off by one somewhere. — Ethan",
+    "submittedDaysAgo": 1,
+    "grade": 45,
+    "feedback": "Autograder 35/80: delete walks to the target instead of the node before it — every delete lands off by one (bug #2 from the tips post). Paragraph 10/20: one pass is right, but name prev/cur/nxt and their jobs. Resubmit until green.",
+    "attachment": {
+      "filename": "homework4-ethan-brown.pdf",
+      "title": "Homework 4: Linked Lists — Ethan Brown",
+      "source": "hw4-offbyone.md"
+    }
+  },
+  {
+    "postId": "72562cd4-665b-5623-bb61-383a03b04c4a",
+    "studentId": "usr_student_007",
+    "status": "turned_in",
+    "content": "Homework 4 attached. Green across the board, ran the visualizer five times before reverse clicked. — Daniel",
+    "submittedDaysAgo": 0,
+    "attachment": {
+      "filename": "homework4-daniel-lee.pdf",
+      "title": "Homework 4: Linked Lists — Daniel Lee",
+      "source": "hw4-clean.md"
+    }
+  },
+  {
+    "postId": "72562cd4-665b-5623-bb61-383a03b04c4a",
+    "studentId": "usr_student_008",
+    "status": "turned_in",
+    "content": "Homework 4 attached. Delete-from-empty crashes for me too. — Ava",
+    "submittedDaysAgo": 2,
+    "attachment": {
+      "filename": "homework4-ava-robinson.pdf",
+      "title": "Homework 4: Linked Lists — Ava Robinson",
+      "source": "hw4-nullbug.md"
+    }
+  },
+  {
+    "postId": "72562cd4-665b-5623-bb61-383a03b04c4a",
+    "studentId": "usr_student_010",
+    "status": "turned_in",
+    "content": "Homework 4 attached. Walked to the target instead of before it on delete, fixing now. — Isabella",
+    "submittedDaysAgo": 1,
+    "attachment": {
+      "filename": "homework4-isabella-garcia.pdf",
+      "title": "Homework 4: Linked Lists — Isabella Garcia",
+      "source": "hw4-offbyone.md"
+    }
+  },
+  {
+    "postId": "72562cd4-665b-5623-bb61-383a03b04c4a",
+    "studentId": "usr_student_003",
+    "status": "graded",
+    "content": "Homework 4 attached. Delete-from-empty crashes — I know, fixing with a null check tonight. — David",
+    "submittedDaysAgo": 3,
+    "grade": 78,
+    "feedback": "Autograder 70/80: delete-from-empty crashes — null-check the head first, the tests always probe it. Paragraph 8/20: you describe what the pointers do, not why three are needed (prev/cur/nxt so the list stays linked mid-swap). Fix and resubmit — unlimited tries.",
+    "attachment": {
+      "filename": "homework4-david-kim.pdf",
+      "title": "Homework 4: Linked Lists — David Kim",
+      "source": "hw4-nullbug.md"
+    }
+  },
+  {
+    "postId": "72562cd4-665b-5623-bb61-383a03b04c4a",
+    "studentId": "usr_student_006",
+    "status": "graded",
+    "content": "Homework 4 attached. All green, paragraph names the O(n) single-pass cost. — Olivia",
+    "submittedDaysAgo": 3,
+    "grade": 92,
+    "feedback": "All green on the autograder. Paragraph is clear on prev/cur/nxt. Minor: name the O(n) single-pass cost of reverse explicitly — done well here.",
+    "attachment": {
+      "filename": "homework4-olivia-taylor.pdf",
+      "title": "Homework 4: Linked Lists — Olivia Taylor",
+      "source": "hw4-clean.md"
+    }
+  },
+  {
+    "postId": "8d5f0697-a75f-540e-8d6c-41476b308289",
+    "studentId": "usr_student_002",
+    "status": "turned_in",
+    "content": "factorial(4): calls 4->3->2->1->0, unwinds 1, 2, 6, 24. Stack depth 5 with the base case. Binary search halves each pass: log n levels. Mergesort: n work per level times log n levels = O(n log n). Nested full scans = O(n^2).",
+    "submittedDaysAgo": 1
+  },
+  {
+    "postId": "8d5f0697-a75f-540e-8d6c-41476b308289",
+    "studentId": "usr_student_004",
+    "status": "turned_in",
+    "content": "factorial(4) = 24 via 4*3*2*1, recursion depth 4 plus base. Big-O: single loop O(n), nested loops O(n^2), binary search O(log n).",
+    "submittedDaysAgo": 2
+  },
+  {
+    "postId": "8d5f0697-a75f-540e-8d6c-41476b308289",
+    "studentId": "usr_student_005",
+    "status": "graded",
+    "content": "factorial(4) = 24. Big-O counts loops: one loop O(n), two loops O(n^2). n log n is for sorting.",
+    "submittedDaysAgo": 0,
+    "grade": 12,
+    "feedback": "Trace has no call stack — show the 4->3->2->1->0 calls and the unwind, like Friday's review. O(n log n) is asserted, not derived: write the levels-times-work line. Bring a re-trace to Thursday office hours."
+  },
+  {
+    "postId": "8d5f0697-a75f-540e-8d6c-41476b308289",
+    "studentId": "usr_student_007",
+    "status": "turned_in",
+    "content": "factorial(4): 4->3->2->1->0 then 1,2,6,24 back up. Big-O: single pass O(n) like HW4 reverse, nested loops O(n^2), halving loop O(log n).",
+    "submittedDaysAgo": 1
+  },
+  {
+    "postId": "8d5f0697-a75f-540e-8d6c-41476b308289",
+    "studentId": "usr_student_008",
+    "status": "turned_in",
+    "content": "factorial(4) = 24, stack: factorial(4), factorial(3), factorial(2), factorial(1), factorial(0). Big-O: nested loops over all n each is n times n = O(n^2); halving passes give O(log n).",
+    "submittedDaysAgo": 2
+  },
+  {
+    "postId": "8d5f0697-a75f-540e-8d6c-41476b308289",
+    "studentId": "usr_student_003",
+    "status": "graded",
+    "content": "factorial(4): calls down to 0, returns 1, 2, 6, 24. Stack depth 5. Mergesort is O(n log n), nested loops O(n^2), binary search O(log n).",
+    "submittedDaysAgo": 2,
+    "grade": 26,
+    "feedback": "Trace right, call stack shown. Big-O: you label mergesort O(n log n) but don't show levels-times-work-per-level. Add that line."
+  },
+  {
+    "postId": "8d5f0697-a75f-540e-8d6c-41476b308289",
+    "studentId": "usr_student_006",
+    "status": "graded",
+    "content": "factorial(4): 4->3->2->1->0, unwind 24. Depth 5. Levels times work per level: mergesort n per level times log n levels = O(n log n); nested full scans = O(n^2); binary search = O(log n).",
+    "submittedDaysAgo": 2,
+    "grade": 28,
+    "feedback": "Clean traces. Full marks on the stack diagram; -2 for the missing log-base note."
+  },
+  {
+    "postId": "c7f2b8a1-4e6d-5c3a-9f1e-8a2b3c4d5e6f",
+    "studentId": "usr_student_001",
+    "status": "graded",
+    "content": "What broke: my Lab 2 index mixed normalized and raw vectors, so distances were meaningless until I rebuilt from the saved index. Fix took an evening. Habit for Lab 3: log every FAISS distance with the exact index path, same as the handout demands.",
+    "submittedDaysAgo": 6,
+    "grade": 17,
+    "feedback": "Honest failure analysis — the normalized-vs-raw mixup is exactly the bug that bites in Lab 3. Missing: one line on what you would log differently next time."
+  },
+  {
+    "postId": "c7f2b8a1-4e6d-5c3a-9f1e-8a2b3c4d5e6f",
+    "studentId": "usr_student_002",
+    "status": "graded",
+    "content": "What broke: Colab idle timeout wiped my runtime mid-sweep, and I had no saved index. Fix: mount Drive first, rerun setup cell every session. Habit for Lab 3: an error taxonomy per run — boundary, temperature, fragment — so patterns show up fast.",
+    "submittedDaysAgo": 6,
+    "grade": 19,
+    "feedback": "Best error taxonomy of the set. Keep this diligence for the Lab 3 report."
+  },
+  {
+    "postId": "c7f2b8a1-4e6d-5c3a-9f1e-8a2b3c4d5e6f",
+    "studentId": "usr_student_003",
+    "status": "graded",
+    "content": "What broke: 256-chunk EM came out far below 512 and I assumed smaller is always faster-better. Fix: reran all three sizes and saw precision collapse on fragments. Habit: always run the ablation before concluding.",
+    "submittedDaysAgo": 5,
+    "grade": 15,
+    "feedback": "Good recap of the 256-vs-512 surprise. Thin on the fix — what did you change, exactly?"
+  },
+  {
+    "postId": "c7f2b8a1-4e6d-5c3a-9f1e-8a2b3c4d5e6f",
+    "studentId": "usr_student_015",
+    "status": "graded",
+    "content": "What broke: my first Lab 2 writeup had no distances at all, just vibes. Fix: re-logged everything from the Drive-saved index the night before the deadline — hence the late stamp. Habit for Lab 3: never trust a run I cannot re-open from disk.",
+    "submittedDaysAgo": 4,
+    "grade": 14,
+    "feedback": "Content worth 16. Late one day (-10%): 16 goes to 14. The Drive-index discipline note is good — apply it to Lab 3."
+  },
+  {
+    "postId": "c7f2b8a1-4e6d-5c3a-9f1e-8a2b3c4d5e6f",
+    "studentId": "usr_student_013",
+    "status": "turned_in",
+    "content": "What broke: pip environment — faiss module missing twice. Fix: install faiss-cpu==1.8.0 in the setup cell first thing. Habit: screenshot the working setup.",
+    "submittedDaysAgo": 4
+  }
+]

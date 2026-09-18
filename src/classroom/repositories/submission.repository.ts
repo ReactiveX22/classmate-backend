@@ -165,6 +165,10 @@ export class SubmissionRepository {
         studentId: assignmentSubmission.studentId,
         status: assignmentSubmission.status,
         submittedAt: assignmentSubmission.submittedAt,
+        content: assignmentSubmission.content,
+        grade: assignmentSubmission.grade,
+        feedback: assignmentSubmission.feedback,
+        attachments: assignmentSubmission.attachments,
         studentName: user.name,
       })
       .from(assignmentSubmission)
@@ -172,9 +176,14 @@ export class SubmissionRepository {
       .where(eq(assignmentSubmission.postId, postId));
 
     return results.map((r) => ({
+      studentId: r.studentId,
       studentName: r.studentName,
       status: r.status,
       submittedAt: r.submittedAt?.toISOString() ?? null,
+      content: r.content,
+      grade: r.grade,
+      feedback: r.feedback,
+      attachments: r.attachments ?? [],
     }));
   }
 }

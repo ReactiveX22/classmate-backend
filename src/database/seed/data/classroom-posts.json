@@ -317,5 +317,16 @@
     "commentsEnabled": true,
     "daysAgoCreated": 1,
     "question": { "mode": "short_answer" }
+  },
+  {
+    "id": "c7f2b8a1-4e6d-5c3a-9f1e-8a2b3c4d5e6f",
+    "type": "assignment",
+    "title": "Lab 2 Reflection",
+    "content": "<p>Short individual reflection on Lab 2 (300 words or fewer, text entry). Two prompts:</p><ul><li>what broke in your pipeline and what fixed it</li><li>one logging habit you will carry into Lab 3</li></ul><p>Late entries fall under the house rule (one day late -10%, portal closes after two days). This feeds directly into your Lab 3 error analysis, so take it seriously.</p>",
+    "tags": ["lab2", "reflection", "deadline"],
+    "isPinned": false,
+    "commentsEnabled": false,
+    "daysAgoCreated": 12,
+    "assignment": { "dueInDays": -5, "points": 20, "allowLateSubmission": true, "submissionType": "text" }
   }
 ]

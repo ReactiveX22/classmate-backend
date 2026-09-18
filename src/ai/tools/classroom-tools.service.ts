@@ -246,13 +246,24 @@ export class ClassroomToolsService {
     );
   }
 
+  private static readonly MAX_SUBMISSION_CONTENT_CHARS = 1200;
+  private static readonly MAX_SUBMISSION_FEEDBACK_CHARS = 600;
+
+  private static truncateText(value: string | null | undefined, max: number): string | null {
+    if (value == null) return null;
+    const trimmed = value.trim();
+    if (trimmed.length <= max) return trimmed;
+    return `${trimmed.slice(0, max)}… [truncated]`;
+  }
+
   private buildGetSubmissionsTool() {
     const submissionRepository = this.submissionRepository;
     const classroomRepository = this.classroomRepository;
+    const postRepository = this.postRepository;
 
     return tool(
       async (
-        { postId, classroomId: argClassroomId },
+        { postId, classroomId: argClassroomId, limit, includeContent },
         config: ToolRunnableConfig,
       ) => {
         const { user, classroomId: configClassroomId } = (config.configurable ??
@@ -272,6 +283,14 @@ export class ClassroomToolsService {
           }
         }
 
+        const post = await postRepository.fetchOne(postId, user?.id);
+        if (!post) {
+          return 'Post not found.';
+        }
+        if (post.classroomId !== classroomId) {
+          return 'Post does not belong to the specified classroom.';
+        }
+
         const userRole = user?.role ?? '';
         const isTeacher = userRole === 'instructor' || userRole === 'admin';
 
@@ -283,13 +302,48 @@ export class ClassroomToolsService {
             return 'No submissions found for this assignment.';
           }
 
-          const formatted = submissions.map((sub) => ({
+          const needsGrading = submissions.filter(
+            (s) => s.status === 'turned_in',
+          ).length;
+          const graded = submissions.filter(
+            (s) => s.status === 'graded',
+          ).length;
+
+          const formatted = submissions.slice(0, limit).map((sub) => ({
             studentName: sub.studentName,
             status: sub.status,
             submittedAt: sub.submittedAt,
+            grade: sub.grade,
+            feedback: ClassroomToolsService.truncateText(
+              sub.feedback,
+              ClassroomToolsService.MAX_SUBMISSION_FEEDBACK_CHARS,
+            ),
+            ...(includeContent
+              ? {
+                  content: ClassroomToolsService.truncateText(
+                    sub.content,
+                    ClassroomToolsService.MAX_SUBMISSION_CONTENT_CHARS,
+                  ),
+                }
+              : {}),
+            attachments: (sub.attachments ?? []).map((a) => ({
+              name: a.name,
+              type: a.type,
+            })),
           }));
 
-          return JSON.stringify(formatted, null, 2);
+          return JSON.stringify(
+            {
+              summary: {
+                total: submissions.length,
+                needsGrading,
+                graded,
+              },
+              submissions: formatted,
+            },
+            null,
+            2,
+          );
         }
 
         const submission = await submissionRepository.fetchOneByUser(
@@ -306,6 +360,14 @@ export class ClassroomToolsService {
           submittedAt: submission.submittedAt?.toISOString() ?? null,
           grade: submission.grade,
           feedback: submission.feedback,
+          ...(includeContent
+            ? {
+                content: ClassroomToolsService.truncateText(
+                  submission.content,
+                  ClassroomToolsService.MAX_SUBMISSION_CONTENT_CHARS,
+                ),
+              }
+            : {}),
         };
 
         return JSON.stringify(formatted, null, 2);
@@ -313,7 +375,7 @@ export class ClassroomToolsService {
       {
         name: 'get_assignment_submissions',
         description:
-          "Get submission information for an assignment. For teachers: shows all students' submission status. For students: shows their own submission status, grade, and feedback.",
+          "Get submission information for an assignment. For teachers: shows all students' submission status with grade, feedback, and text content excerpts (attachments as names only) plus a needs-grading summary. Use to triage the grading queue and draft feedback; you cannot submit grades, suggest next steps instead. For students: shows only their own submission status, grade, and feedback.",
         schema: z.object({
           postId: z.string().describe('The assignment post ID'),
           classroomId: z
@@ -322,6 +384,21 @@ export class ClassroomToolsService {
             .optional()
             .describe(
               'The ID of the classroom. While not strictly needed for this tool if postId is known, it helps with consistency.',
+            ),
+          limit: z.coerce
+            .number()
+            .int()
+            .min(1)
+            .max(20)
+            .default(10)
+            .describe(
+              'Max submissions to return for teachers (1–20, default 10). Summary counts always cover all submissions.',
+            ),
+          includeContent: z.coerce
+            .boolean()
+            .default(true)
+            .describe(
+              'Whether to include truncated submission text content. Set false for a status-only overview.',
             ),
         }),
       },
