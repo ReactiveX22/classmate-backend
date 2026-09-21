@@ -41,7 +41,7 @@ export class CourseController {
   }
 
   @Post()
-  @InvalidateCache('courses')
+  @InvalidateCache(['courses', 'classrooms'])
   @Roles([AppRole.Admin])
   async create(
     @Body() createCourseDto: CreateCourseDto,
@@ -61,7 +61,7 @@ export class CourseController {
   }
 
   @Patch(':id')
-  @InvalidateCache('courses')
+  @InvalidateCache(['courses', 'classrooms'])
   @HttpCode(HttpStatus.OK)
   @Roles([AppRole.Admin])
   async update(
@@ -73,7 +73,7 @@ export class CourseController {
   }
 
   @Delete(':id')
-  @InvalidateCache('courses')
+  @InvalidateCache(['courses', 'classrooms'])
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles([AppRole.Admin])
   async remove(

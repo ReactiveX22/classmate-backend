@@ -90,7 +90,7 @@ export class TeacherController {
   }
 
   @Delete(':id')
-  @InvalidateCache('teachers')
+  @InvalidateCache(['teachers', 'courses', 'classrooms'])
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles([AppRole.Admin])
   async remove(@Param('id') id: string, @OrganizationId() orgId: string) {
@@ -98,7 +98,7 @@ export class TeacherController {
   }
 
   @Patch(':id')
-  @InvalidateCache('teachers')
+  @InvalidateCache(['teachers', 'courses', 'classrooms'])
   @HttpCode(HttpStatus.OK)
   @Roles([AppRole.Admin])
   async update(
