@@ -13,6 +13,10 @@ describe('AiProviderService', () => {
       if (key === 'AI_ENABLED') return true;
       if (key === 'GOOGLE_API_KEY') return 'google-key';
       if (key === 'GROQ_API_KEY') return 'groq-key';
+      if (key === 'OLLAMA_API_KEY') return 'ollama-key';
+      if (key === 'OLLAMA_BASE_URL') return 'https://ollama.com';
+      if (key === 'OLLAMA_MODEL') return 'gpt-oss:120b-cloud';
+      if (key === 'AI_PROVIDER') return 'google';
       if (key === 'AI_DEFAULT_PROVIDER') return 'google';
       return undefined;
     });
@@ -60,6 +64,11 @@ describe('AiProviderService', () => {
     it('returns a ChatGroq instance for groq provider', () => {
       const model = service.getModel('groq');
       expect(model.constructor.name).toContain('ChatGroq');
+    });
+
+    it('returns a ChatOllama instance for ollama provider', () => {
+      const model = service.getModel('ollama');
+      expect(model.constructor.name).toContain('ChatOllama');
     });
   });
 

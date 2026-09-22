@@ -43,6 +43,9 @@ importers:
       '@langchain/langgraph-checkpoint-postgres':
         specifier: ^1.0.1
         version: 1.0.1(@langchain/core@1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1))(@langchain/langgraph-checkpoint@1.0.2(@langchain/core@1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1)))
+      '@langchain/ollama':
+        specifier: ^1.3.0
+        version: 1.3.0(@langchain/core@1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1))
       '@langchain/tavily':
         specifier: ^1.2.0
         version: 1.2.0(@langchain/core@1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1))
@@ -1954,6 +1957,12 @@ packages:
     peerDependenciesMeta:
       zod-to-json-schema:
         optional: true
+
+  '@langchain/ollama@1.3.0':
+    resolution: {integrity: sha512-uzLkZVTXN0SI5zAoJbJzL4y/QN7gbmJ1txBgFfqJ5M0Qf+Yu2Zu8q98L3jIrfM+akWMaNmRU4R4APhcfQmeIsw==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@langchain/core': ^1.0.0
 
   '@langchain/openai@1.4.5':
     resolution: {integrity: sha512-bQ2WMIZfSh02trJLYSAtiIcD3j6EBCiAm9nw0dZWQsVaUxmWc3JJqs8uUte6AkMazmLHzcUIw+14UkXO5fRJvQ==}
@@ -5757,6 +5766,9 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
+  ollama@0.6.3:
+    resolution: {integrity: sha512-KEWEhIqE5wtfzEIZbDCLH51VFZ6Z3ZSa6sIOg/E/tBV8S51flyqBOXi+bRxlOYKDf8i327zG9eSTb8IJxvm3Zg==}
+
   on-finished@2.4.1:
     resolution: {integrity: sha512-oVlzkg3ENAhCk2zdv7IJwd/QUD4z2RxRwpkcGY8psCVcCYZNq4wYnVWALHM+brtuJjePWiYF/ClmuDr8Ch5+kg==}
     engines: {node: '>= 0.8'}
@@ -6928,6 +6940,9 @@ packages:
     peerDependenciesMeta:
       webpack-cli:
         optional: true
+
+  whatwg-fetch@3.6.20:
+    resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
 
   whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
@@ -8536,6 +8551,11 @@ snapshots:
       - svelte
       - vue
       - ws
+
+  '@langchain/ollama@1.3.0(@langchain/core@1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1))':
+    dependencies:
+      '@langchain/core': 1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1)
+      ollama: 0.6.3
 
   '@langchain/openai@1.4.5(@langchain/core@1.1.46(patch_hash=d366f30c45aa516fd7431990ead8ae669ef788ecdef41215148296b2db6b4d1b)(openai@6.38.0(ws@8.20.1)(zod@4.4.3))(ws@8.20.1))(ws@8.20.1)':
     dependencies:
@@ -12360,6 +12380,10 @@ snapshots:
       - encoding
       - supports-color
 
+  ollama@0.6.3:
+    dependencies:
+      whatwg-fetch: 3.6.20
+
   on-finished@2.4.1:
     dependencies:
       ee-first: 1.1.1
@@ -13569,6 +13593,8 @@ snapshots:
       - lightningcss
       - postcss
       - uglify-js
+
+  whatwg-fetch@3.6.20: {}
 
   whatwg-url@5.0.0:
     dependencies:

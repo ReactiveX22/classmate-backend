@@ -34,7 +34,7 @@ export const envSchema = z
     CACHE_REDIS_URL: z.string().url().optional(),
 
     AI_ENABLED: z.coerce.boolean().default(false),
-    AI_PROVIDER: z.enum(['google', 'groq']).default('google'),
+    AI_PROVIDER: z.enum(['google', 'groq', 'ollama']).default('google'),
     AI_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.2),
     AI_MAX_OUTPUT_TOKENS: z.coerce.number().positive().default(2048),
 
@@ -43,6 +43,10 @@ export const envSchema = z
 
     GROQ_API_KEY: z.string().optional(),
     GROQ_MODEL: z.string().min(1).default('llama-3.3-70b-versatile'),
+
+    OLLAMA_API_KEY: z.string().optional(),
+    OLLAMA_MODEL: z.string().min(1).default('gpt-oss:120b-cloud'),
+    OLLAMA_BASE_URL: z.string().url().default('https://ollama.com'),
 
     TAVILY_API_KEY: z.string().optional(),
 
@@ -121,6 +125,18 @@ export const envSchema = z
     {
       message: "GOOGLE_API_KEY is required when AI_ENABLED is 'true'",
       path: ['GOOGLE_API_KEY'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (data.AI_ENABLED && data.AI_PROVIDER === 'ollama') {
+        return !!data.OLLAMA_API_KEY;
+      }
+      return true;
+    },
+    {
+      message: "OLLAMA_API_KEY is required when AI_ENABLED is 'true'",
+      path: ['OLLAMA_API_KEY'],
     },
   )
   .refine(

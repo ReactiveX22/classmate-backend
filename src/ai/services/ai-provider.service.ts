@@ -1,6 +1,7 @@
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { ChatGoogle } from '@langchain/google/node';
 import { ChatGroq } from '@langchain/groq';
+import { ChatOllama } from '@langchain/ollama';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { classifyAiProviderError } from '../errors/ai-provider-error.util';
@@ -88,6 +89,22 @@ export class AiProviderService {
           reasoningEffort: overrides?.reasoningEffort ?? 'low',
         });
 
+      case 'ollama':
+        return new ChatOllama({
+          model:
+            overrides?.model ??
+            this.configService.get('OLLAMA_MODEL') ??
+            'gpt-oss:120b-cloud',
+          baseUrl:
+            this.configService.get('OLLAMA_BASE_URL') ?? 'https://ollama.com',
+          headers: { Authorization: `Bearer ${apiKey}` },
+          // Cloud-hosted: never try to pull models locally.
+          checkOrPullModel: false,
+          temperature: options.temperature,
+          numPredict: Math.min(options.maxOutputTokens, 2048),
+          maxRetries: options.maxRetries,
+        });
+
       default:
         throw new AiProviderException(
           'AI_PROVIDER_UNKNOWN',
@@ -103,7 +120,7 @@ export class AiProviderService {
   async invokeWithFailover<T>(
     invokeFn: (model: BaseChatModel) => Promise<T>,
     preferred?: AiProvider,
-    fallbacks: AiProvider[] = ['google', 'groq'],
+    fallbacks: AiProvider[] = ['google', 'groq', 'ollama'],
   ): Promise<{ result: T; provider: AiProvider }> {
     const candidates = preferred
       ? [preferred, ...fallbacks.filter((p) => p !== preferred)]
@@ -141,7 +158,9 @@ export class AiProviderService {
 
   getDefaultProvider(): AiProvider {
     return (
-      this.configService.get<AiProvider>('AI_DEFAULT_PROVIDER') ?? 'google'
+      this.configService.get<AiProvider>('AI_PROVIDER') ??
+      this.configService.get<AiProvider>('AI_DEFAULT_PROVIDER') ??
+      'google'
     );
   }
 
@@ -155,6 +174,8 @@ export class AiProviderService {
         return this.configService.get<string>('GOOGLE_API_KEY');
       case 'groq':
         return this.configService.get<string>('GROQ_API_KEY');
+      case 'ollama':
+        return this.configService.get<string>('OLLAMA_API_KEY');
     }
   }
 }

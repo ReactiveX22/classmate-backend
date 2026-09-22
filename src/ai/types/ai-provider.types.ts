@@ -1,1 +1,1 @@
-export type AiProvider = 'google' | 'groq';
+export type AiProvider = 'google' | 'groq' | 'ollama';
