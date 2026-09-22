@@ -274,6 +274,7 @@ export class ClassroomPostRepository {
         id: classroomPost.id,
         title: classroomPost.title,
         type: classroomPost.type,
+        attachments: classroomPost.attachments,
         createdAt: classroomPost.createdAt,
         authorName: user.name,
       })

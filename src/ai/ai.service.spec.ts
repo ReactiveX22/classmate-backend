@@ -69,6 +69,7 @@ describe('AiService.streamChat', () => {
     touchConversation: ReturnType<typeof vi.fn>;
     updateConversationTitle: ReturnType<typeof vi.fn>;
     findConversationForUser: ReturnType<typeof vi.fn>;
+    findLastUserMessage: ReturnType<typeof vi.fn>;
   };
   let llmService: {
     streamChat: ReturnType<typeof vi.fn>;
@@ -87,6 +88,7 @@ describe('AiService.streamChat', () => {
       touchConversation: vi.fn().mockResolvedValue(undefined),
       updateConversationTitle: vi.fn().mockResolvedValue(conversation),
       findConversationForUser: vi.fn().mockResolvedValue(conversation),
+      findLastUserMessage: vi.fn().mockResolvedValue(userMessage),
     };
     llmService = {
       streamChat: vi.fn(),
@@ -237,6 +239,195 @@ describe('AiService.streamChat', () => {
         payload: { message: 'The AI provider returned an invalid response.' },
       },
     });
+  });
+
+  it('generates and attaches a title when the conversation has none', async () => {
+    repository.findConversationForUser.mockResolvedValue({
+      ...conversation,
+      title: null,
+    });
+    llmService.generateTitle.mockResolvedValue('Hello Title');
+    repository.updateConversationTitle.mockResolvedValue({
+      ...conversation,
+      title: 'Hello Title',
+    });
+    llmService.streamChat.mockImplementation(
+      streamEvents([
+        { type: 'content', payload: { delta: 'Hello' } },
+        {
+          type: '_internal_final_llm',
+          payload: {
+            content: 'Hello there',
+            provider: 'google',
+            model: 'gemini-2.5-flash',
+            tokenUsage: { input_tokens: 1, output_tokens: 2, total_tokens: 3 },
+          },
+        },
+      ]),
+    );
+
+    const events = await collectEvents(
+      service.streamChat(
+        {
+          message: 'How do I reset my password?',
+          conversationId: 'conversation-1',
+        },
+        user as never,
+      ),
+    );
+
+    expect(llmService.generateTitle).toHaveBeenCalledWith(
+      'How do I reset my password?',
+    );
+    expect(repository.updateConversationTitle).toHaveBeenCalledWith(
+      'conversation-1',
+      'Hello Title',
+    );
+    const finalEvent = events.find((event) => event.data.type === 'final');
+    expect(finalEvent?.data).toMatchObject({
+      type: 'final',
+      payload: {
+        conversation: expect.objectContaining({ title: 'Hello Title' }),
+      },
+    });
+  });
+
+  it('falls back to a truncated message when title generation fails', async () => {
+    repository.findConversationForUser.mockResolvedValue({
+      ...conversation,
+      title: null,
+    });
+    llmService.generateTitle.mockResolvedValue(undefined);
+    repository.updateConversationTitle.mockResolvedValue({
+      ...conversation,
+      title: 'How do I reset my password?',
+    });
+    llmService.streamChat.mockImplementation(
+      streamEvents([{ type: 'content', payload: { delta: 'Hello' } }]),
+    );
+
+    await collectEvents(
+      service.streamChat(
+        {
+          message: 'How do I reset my password?',
+          conversationId: 'conversation-1',
+        },
+        user as never,
+      ),
+    );
+
+    expect(repository.updateConversationTitle).toHaveBeenCalledWith(
+      'conversation-1',
+      'How do I reset my password?',
+    );
+  });
+
+  it('does not regenerate a title when one already exists', async () => {
+    llmService.streamChat.mockImplementation(
+      streamEvents([{ type: 'content', payload: { delta: 'Hello' } }]),
+    );
+
+    await collectEvents(
+      service.streamChat(
+        { message: 'Hello', conversationId: 'conversation-1' },
+        user as never,
+      ),
+    );
+
+    expect(llmService.generateTitle).not.toHaveBeenCalled();
+    expect(repository.updateConversationTitle).not.toHaveBeenCalled();
+  });
+});
+
+describe('AiService.retryStreamChat', () => {
+  let repository: {
+    createMessage: ReturnType<typeof vi.fn>;
+    updateConversationTitle: ReturnType<typeof vi.fn>;
+    findConversationForUser: ReturnType<typeof vi.fn>;
+    findLastUserMessage: ReturnType<typeof vi.fn>;
+  };
+  let llmService: {
+    streamChat: ReturnType<typeof vi.fn>;
+    generateTitle: ReturnType<typeof vi.fn>;
+  };
+  let service: AiService;
+
+  beforeEach(() => {
+    repository = {
+      createMessage: vi.fn().mockResolvedValue(assistantMessage),
+      updateConversationTitle: vi.fn().mockResolvedValue({
+        ...conversation,
+        title: 'Retried Title',
+      }),
+      findConversationForUser: vi.fn().mockResolvedValue({
+        ...conversation,
+        title: null,
+      }),
+      findLastUserMessage: vi.fn().mockResolvedValue(userMessage),
+    };
+    llmService = {
+      streamChat: vi.fn(),
+      generateTitle: vi.fn().mockResolvedValue('Retried Title'),
+    };
+    service = new AiService(
+      repository as unknown as AiConversationRepository,
+      llmService as unknown as LlmService,
+      {} as never,
+      {} as never,
+    );
+  });
+
+  it('backfills a missing title and attaches it to the final event', async () => {
+    llmService.streamChat.mockImplementation(
+      streamEvents([
+        { type: 'content', payload: { delta: 'Hello' } },
+        {
+          type: '_internal_final_llm',
+          payload: {
+            content: 'Hello there',
+            provider: 'google',
+            model: 'gemini-2.5-flash',
+            tokenUsage: { input_tokens: 1, output_tokens: 2, total_tokens: 3 },
+          },
+        },
+      ]),
+    );
+
+    const events = await collectEvents(
+      service.retryStreamChat(
+        { conversationId: 'conversation-1' },
+        user as never,
+      ),
+    );
+
+    expect(llmService.generateTitle).toHaveBeenCalledWith('Hello');
+    expect(repository.updateConversationTitle).toHaveBeenCalledWith(
+      'conversation-1',
+      'Retried Title',
+    );
+    const finalEvent = events.find((event) => event.data.type === 'final');
+    expect(finalEvent?.data).toMatchObject({
+      type: 'final',
+      payload: {
+        conversation: expect.objectContaining({ title: 'Retried Title' }),
+      },
+    });
+  });
+
+  it('does not regenerate a title when one already exists', async () => {
+    repository.findConversationForUser.mockResolvedValue(conversation);
+    llmService.streamChat.mockImplementation(
+      streamEvents([{ type: 'content', payload: { delta: 'Hello' } }]),
+    );
+
+    await collectEvents(
+      service.retryStreamChat(
+        { conversationId: 'conversation-1' },
+        user as never,
+      ),
+    );
+
+    expect(llmService.generateTitle).not.toHaveBeenCalled();
   });
 });
 

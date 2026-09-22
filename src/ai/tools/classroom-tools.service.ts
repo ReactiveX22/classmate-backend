@@ -104,6 +104,11 @@ export class ClassroomToolsService {
           id: post.id,
           title: post.title,
           type: post.type,
+          attachments: (post.attachments ?? []).map((attachment) => ({
+            id: attachment.id,
+            name: attachment.name,
+            type: attachment.type,
+          })),
           createdAt: post.createdAt,
           authorName: post.authorName,
         }));
@@ -114,6 +119,7 @@ export class ClassroomToolsService {
         name: 'get_classroom_posts',
         description:
           'List recent posts, announcements, assignments, and materials in the classroom. ' +
+          'Includes attachment metadata; use search_classroom_documents for attachment content. ' +
           'Use when the user asks what was posted, assigned, or announced. ' +
           'Optionally filter by post type.',
         schema: z.object({
@@ -229,9 +235,9 @@ export class ClassroomToolsService {
         name: 'get_classroom_post_by_id',
         description:
           'Get detailed information about a specific classroom post by its ID. ' +
-          'Includes full content, assignment details (due date, points), question options, attachments, ' +
+          'Includes full post content, assignment details (due date, points), question options, and attachment metadata, ' +
           "and the student's own submission status if applicable. " +
-          'Use when the user asks for details about a specific post or assignment.',
+          'Use when the user asks for details about a specific post or assignment; use search_classroom_documents for attachment content.',
         schema: z.object({
           postId: z.string().describe('The ID of the post to fetch'),
           classroomId: z

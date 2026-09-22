@@ -218,12 +218,11 @@ export class AiService {
               },
             });
 
-          let conversationTitle: ConversationResponseSource | null = null;
-          try {
-            conversationTitle = await titlePromise;
-          } catch {
-            // Title generation failed — chat still works, just no title update
-          }
+          const conversationTitle = await this.awaitTitleGeneration(
+            titlePromise,
+            conversation.id,
+            'stream',
+          );
 
           const finalPayload: MessagePayload & {
             conversation?: ConversationPayload;
@@ -298,6 +297,13 @@ export class AiService {
             { name: string; status: 'start' | 'end' }
           >();
 
+          const titlePromise = !conversation.title
+            ? this.generateAndSaveTitle(
+                conversation.id,
+                lastUserMessage.content,
+              )
+            : Promise.resolve(null);
+
           for await (const event of this.llmService.streamChat(
             threadId,
             lastUserMessage.content,
@@ -349,9 +355,19 @@ export class AiService {
               },
             });
 
+          const conversationTitle = await this.awaitTitleGeneration(
+            titlePromise,
+            conversation.id,
+            'retry',
+          );
+
           const finalPayload: MessagePayload & {
             conversation?: ConversationPayload;
           } = this.toMessageResponse(assistantMessage);
+          if (conversationTitle) {
+            finalPayload.conversation =
+              this.toConversationResponse(conversationTitle);
+          }
 
           emit({
             type: 'final',
@@ -430,10 +446,25 @@ export class AiService {
     }
   }
 
+  private async awaitTitleGeneration(
+    titlePromise: Promise<ConversationResponseSource | null>,
+    conversationId: string,
+    context: 'stream' | 'retry',
+  ): Promise<ConversationResponseSource | null> {
+    try {
+      return await titlePromise;
+    } catch (err) {
+      this.logger.warn(
+        `Title generation failed on ${context} for conversation ${conversationId}: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      return null;
+    }
+  }
+
   /**
-   * Fires title generation in the background — the LLM call and DB write happen
-   * after the chat response is already returned to the client. Falls back to a
-   * truncated version of the first message if the LLM call fails.
+   * Generates a title for a conversation that does not have one yet, then
+   * persists it. Runs alongside the chat stream (not after it). Falls back to
+   * a truncated version of the first message if the LLM call fails.
    */
   private async generateAndSaveTitle(
     conversationId: string,
@@ -447,7 +478,10 @@ export class AiService {
         conversationId,
         title,
       );
-    } catch {
+    } catch (err) {
+      this.logger.warn(
+        `Title generation/save failed for conversation ${conversationId}; using fallback: ${err instanceof Error ? err.message : String(err)}`,
+      );
       const title = this.fallbackTitle(message);
       return this.aiConversationRepository.updateConversationTitle(
         conversationId,
@@ -457,7 +491,13 @@ export class AiService {
   }
 
   private fallbackTitle(message: string): string {
-    return message.trim().replace(/\s+/g, ' ').slice(0, 80) || 'New AI chat';
+    const normalized = message.trim().replace(/\s+/g, ' ');
+    if (!normalized) return 'New AI chat';
+    if (normalized.length <= 80) return normalized;
+
+    const cut = normalized.slice(0, 80);
+    const lastSpace = cut.lastIndexOf(' ');
+    return (lastSpace > 20 ? cut.slice(0, lastSpace) : cut).trim();
   }
 
   private toConversationSummaryResponse(

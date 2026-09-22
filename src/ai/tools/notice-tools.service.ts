@@ -42,6 +42,11 @@ export class NoticeToolsService {
           id: n.id,
           title: n.title,
           content: n.content,
+          attachments: (n.attachments ?? []).map((attachment) => ({
+            id: attachment.id,
+            name: attachment.name,
+            type: attachment.type,
+          })),
           createdAt: n.createdAt,
           authorName: n.authorName,
         }));
@@ -51,8 +56,8 @@ export class NoticeToolsService {
       {
         name: 'get_organization_notices',
         description:
-          'List recent notices and announcements in the organization. ' +
-          'Use when the user asks about official notices, announcements, or organizational updates.',
+          'List recent organization notices and announcements. ' +
+          'Use for general updates; use search_notice_documents for attached-document details.',
         schema: z.object({
           limit: z.coerce
             .number()

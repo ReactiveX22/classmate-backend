@@ -71,6 +71,7 @@ export class NoticeRepository {
         id: notice.id,
         title: notice.title,
         content: notice.content,
+        attachments: notice.attachments,
         createdAt: notice.createdAt,
         authorName: user.name,
       })

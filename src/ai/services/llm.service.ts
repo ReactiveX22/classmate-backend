@@ -1,10 +1,10 @@
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ChatGoogle } from '@langchain/google/node';
+import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { MainAgentService } from '../agents/main/main-agent.service';
 import { AiProviderService } from './ai-provider.service';
+
+const MAX_TITLE_INPUT_CHARS = 2_000;
 
 @Injectable()
 export class LlmService {
@@ -12,10 +12,11 @@ export class LlmService {
     title: z.string().min(1).max(80),
   });
 
+  private readonly logger = new Logger(LlmService.name);
+
   constructor(
     private readonly mainAgentService: MainAgentService,
     private readonly aiProviderService: AiProviderService,
-    private readonly configService: ConfigService,
   ) {}
 
   streamChat(
@@ -27,29 +28,38 @@ export class LlmService {
   async generateTitle(userMessage: string): Promise<string | undefined> {
     if (!this.aiProviderService.isEnabled()) return undefined;
 
+    const trimmedMessage = userMessage.trim().slice(0, MAX_TITLE_INPUT_CHARS);
+    if (!trimmedMessage) return undefined;
+
     try {
-      const titleModel = new ChatGoogle({
-        model: 'gemma-4-31b-it',
-        apiKey: this.configService.get<string>('GOOGLE_API_KEY'),
-        temperature: 0.2,
-        maxOutputTokens: 64,
-        maxRetries: 0,
-      }).withStructuredOutput(LlmService.titleSchema);
+      const { result } = await this.aiProviderService.invokeWithFailover(
+        async (model) =>
+          model
+            .withStructuredOutput(LlmService.titleSchema)
+            .invoke([
+              new SystemMessage(
+                [
+                  'Generate a concise, sentence-case title (3-7 words) that captures the main topic or goal of this conversation.',
+                  'The title should be clear enough that the user recognizes the chat in a list.',
+                  'Rules: no quotes, no emojis, no ending punctuation, max 80 characters.',
+                  'Good: "Fix login button on mobile"',
+                  'Bad (too vague): "Code changes"',
+                  'Bad (too long): "Investigate and fix the issue where the login button does not respond"',
+                ].join('\n'),
+              ),
+              new HumanMessage(`User message: ${trimmedMessage}`),
+            ]),
+      );
 
-      const response = await titleModel.invoke([
-        new SystemMessage(
-          [
-            'You will receive a user message from a conversation.',
-            'Generate a concise title (3-6 words, title case) that summarizes the topic.',
-            'Rules: No quotes, no ending punctuation, keep it short, output JSON only through the schema.',
-            'Example: Input: "How do I reset my password?" → Output: Password Reset Help',
-          ].join('\n'),
-        ),
-        new HumanMessage(`User message: ${userMessage}`),
-      ]);
-
-      return this.sanitizeTitle(response.title);
-    } catch {
+      const title = this.sanitizeTitle(result.title);
+      if (!title) {
+        this.logger.warn('Title generation returned an empty title');
+      }
+      return title;
+    } catch (err) {
+      this.logger.warn(
+        `Title generation failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
       return undefined;
     }
   }
