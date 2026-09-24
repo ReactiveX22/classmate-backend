@@ -11,7 +11,6 @@
  */
 
 import { check, group, sleep } from 'k6';
-import { open } from 'k6/fs';
 import { currentConfig } from '../config/env.js';
 import { buildOptions } from '../config/options.js';
 import { AuthHelper } from '../lib/auth.js';

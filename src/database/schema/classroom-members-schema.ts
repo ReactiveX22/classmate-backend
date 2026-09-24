@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm';
 import {
+  index,
   pgTable,
   primaryKey,
   text,
@@ -24,7 +25,10 @@ export const classroomMembers = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (t) => [primaryKey({ columns: [t.classroomId, t.studentId] })],
+  (t) => [
+    primaryKey({ columns: [t.classroomId, t.studentId] }),
+    index('classroom_members_student_idx').on(t.studentId, t.classroomId),
+  ],
 );
 
 export const classroomMembersRelations = relations(

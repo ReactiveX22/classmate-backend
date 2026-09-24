@@ -37,7 +37,7 @@ export class ClassroomController {
 
   @Roles([AppRole.Instructor, AppRole.Student])
   @Get()
-  @CacheResource('classrooms')
+  @CacheResource('classrooms', { scope: 'user' })
   async findAll(
     @Query() query: PaginationQueryDto,
     @OrganizationId() orgId: string,
@@ -74,7 +74,7 @@ export class ClassroomController {
 
   @Roles([AppRole.Instructor, AppRole.Student])
   @Get(':id/upcoming-posts')
-  @CacheResource('classrooms')
+  @CacheResource('classrooms', { scope: 'user' })
   async getUpcomingPosts(
     @Param('id', ParseUUIDPipe) id: string,
     @OrganizationId() orgId: string,
@@ -206,7 +206,7 @@ export class ClassroomController {
   }
 
   @Get(':id/posts/:postId')
-  @CacheResource('classrooms')
+  @CacheResource('classrooms', { scope: 'user' })
   async findPost(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('postId', ParseUUIDPipe) postId: string,

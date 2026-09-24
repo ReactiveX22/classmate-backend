@@ -34,6 +34,7 @@
     "db:introspect": "drizzle-kit introspect",
     "db:seed": "dotenv -e .env -- ts-node -r tsconfig-paths/register src/database/seed/seed.ts",
     "db:seed:fresh": "dotenv -e .env -- ts-node -r tsconfig-paths/register src/database/seed/seed.ts --fresh",
+    "db:truncate": "dotenv -e .env -- ts-node -r tsconfig-paths/register src/database/seed/truncate-only.ts",
     "db:test:push": "dotenv -e .env.test -- drizzle-kit push --config=drizzle.test.config.ts",
     "auth:generate": "pnpx @better-auth/cli generate --config ./src/auth/auth-schema-gen.ts",
     "perf:onboarding": "k6 run perf/perf.js --env SCENARIO=onboarding",

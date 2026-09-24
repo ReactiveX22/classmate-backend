@@ -29,6 +29,8 @@ export function smokeTest() {
   const auth = new AuthHelper(currentConfig.baseUrl);
   const client = auth.getClient();
   const uniqueData = generateUniqueData('smoke', __VU, __ITER);
+  const testEmail = uniqueData.email;
+  const testPassword = 'SmokeTest123!';
 
   // 1. Health Check / Base endpoint
   group('Health Check', () => {
@@ -47,8 +49,8 @@ export function smokeTest() {
   group('Signup Flow', () => {
     const signupRes = auth.signupAdmin({
       name: `Smoke Test ${uniqueData.id}`,
-      email: uniqueData.email,
-      password: 'SmokeTest123!',
+      email: testEmail,
+      password: testPassword,
       organizationName: `Smoke Org ${uniqueData.id}`,
     });
 
@@ -85,7 +87,11 @@ export function smokeTest() {
     sleep(0.5);
   });
 
-  // 4. Test API endpoints (if authenticated)
+  group('Refresh Session', () => {
+    const signinRes = auth.signin(testEmail, testPassword);
+    sleep(0.3);
+  });
+
   if (auth.isAuthenticated()) {
     group('API Endpoints', () => {
       // List teachers (admin only)

@@ -14,9 +14,11 @@ import {
   CACHE_INVALIDATE_EVENT,
   CACHE_INVALIDATE_METADATA,
   CACHE_RESOURCE_METADATA,
+  CACHE_SCOPE_METADATA,
   CACHE_TTL_METADATA,
   CacheInvalidatePayload,
 } from '../cache.constants';
+import { CacheScope } from '../decorators/cache-resource.decorator';
 import { CacheService } from '../cache.service';
 
 @Injectable()
@@ -66,7 +68,23 @@ export class TenantCacheInterceptor<T = unknown> implements NestInterceptor<
 
     // 2. Handle GET (Caching)
     if (method === 'GET' && resource) {
-      const cacheKey = this.buildCacheKey(orgId, resource, request);
+      const scope =
+        this.reflector.getAllAndOverride<CacheScope>(CACHE_SCOPE_METADATA, [
+          context.getHandler(),
+          context.getClass(),
+        ]) ?? 'organization';
+
+      const userId = request.session?.user?.id;
+      if (scope === 'user' && !userId) {
+        return next.handle();
+      }
+
+      const cacheKey = this.buildCacheKey(
+        orgId,
+        resource,
+        request,
+        scope === 'user' ? userId : undefined,
+      );
       const cachedData = await this.cacheService.get<T>(cacheKey);
 
       if (cachedData) {
@@ -120,14 +138,11 @@ export class TenantCacheInterceptor<T = unknown> implements NestInterceptor<
     return next.handle();
   }
 
-  /**
-   * Builds a deterministic cache key
-   * Format: cache:{orgId}:{resource}:{serializedParams}:{serializedQuery}
-   */
   private buildCacheKey(
     orgId: string,
     resource: string,
     request: AuthenticatedRequest,
+    userId?: string,
   ): string {
     const query = request.query || {};
     const params = request.params || {};
@@ -146,6 +161,8 @@ export class TenantCacheInterceptor<T = unknown> implements NestInterceptor<
       .join('&');
 
     const parts = [`cache:${orgId}:${resource}`, request.path];
+
+    if (userId) parts.splice(1, 0, `user:${userId}`);
 
     if (sortedParamsString) parts.push(sortedParamsString);
     if (sortedQueryString) parts.push(sortedQueryString);

@@ -1,5 +1,12 @@
 import { relations } from 'drizzle-orm';
-import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  index,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { user } from './auth-schema';
 import { classroomMembers } from './classroom-members-schema';
 import { course } from './course-schema';
@@ -10,27 +17,34 @@ export const classroomStatus = pgEnum('classroom_status', [
   'inactive',
 ]);
 
-export const classroom = pgTable('classroom', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  courseId: uuid('course_id')
-    .references(() => course.id, { onDelete: 'cascade' })
-    .notNull(),
-  teacherId: text('teacher_id')
-    .references(() => user.id, { onDelete: 'cascade' })
-    .notNull(),
-  name: text('name').notNull(),
-  section: text('section'),
-  classCode: text('class_code').unique(),
-  description: text('description'),
-  status: classroomStatus('status').default('active').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .defaultNow()
-    .$onUpdate(() => /* @__PURE__ */ new Date())
-    .notNull(),
-});
+export const classroom = pgTable(
+  'classroom',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    courseId: uuid('course_id')
+      .references(() => course.id, { onDelete: 'cascade' })
+      .notNull(),
+    teacherId: text('teacher_id')
+      .references(() => user.id, { onDelete: 'cascade' })
+      .notNull(),
+    name: text('name').notNull(),
+    section: text('section'),
+    classCode: text('class_code').unique(),
+    description: text('description'),
+    status: classroomStatus('status').default('active').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    index('classroom_course_idx').on(table.courseId),
+    index('classroom_teacher_idx').on(table.teacherId),
+  ],
+);
 
 export const classroomRelations = relations(classroom, ({ one, many }) => ({
   course: one(course, {

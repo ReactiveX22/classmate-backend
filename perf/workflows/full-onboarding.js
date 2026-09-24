@@ -106,7 +106,6 @@ export function fullOnboardingWorkflow() {
 
     const stepSuccess = check(signupRes, {
       'signup returned success': (r) => r.status >= 200 && r.status < 300,
-      'user has admin role': () => auth.getRole() === 'admin',
       'session cookie set': () => client.hasSessionCookie(),
     });
 
@@ -116,6 +115,16 @@ export function fullOnboardingWorkflow() {
     }
 
     sleep(0.5);
+  });
+
+  group('Phase 1b: Refresh Session', () => {
+    const signinRes = auth.signin(adminData.email, adminData.password);
+    check(signinRes, {
+      'signin successful': (r) => r.status === 200,
+      'session cookie set': () => client.hasSessionCookie(),
+      'user has admin role': () => auth.getRole() === 'admin',
+    });
+    sleep(0.3);
   });
 
   if (!success || !auth.isAuthenticated()) {
@@ -211,7 +220,7 @@ export function fullOnboardingWorkflow() {
         if (res.status === 504 || res.status === 408) break;
       }
 
-      sleep(0.1);
+      sleep(1);
     }
 
     stepTeacherDuration.add(Date.now() - stepStart);
@@ -268,7 +277,7 @@ export function fullOnboardingWorkflow() {
         }
       }
 
-      sleep(0.1);
+      sleep(1);
     }
 
     stepStudentDuration.add(Date.now() - stepStart);
@@ -297,12 +306,11 @@ export function fullOnboardingWorkflow() {
           : undefined;
 
       const coursePayload = {
-        code: `${courseData.code}-${iterIndex}-${i}`, // Unique code per iteration
+        code: `${courseData.code}-${iterIndex}-${i}`,
         title: courseData.title,
         description:
           courseData.description || `Course created during onboarding`,
         credits: parseInt(courseData.credits) || 3,
-        semester: courseData.semester || 'Fall 2025',
         maxStudents: parseInt(courseData.maxStudents) || 50,
       };
 
@@ -323,10 +331,11 @@ export function fullOnboardingWorkflow() {
         try {
           const body = JSON.parse(courseRes.body);
           if (body.id) {
-            // Capture course ID AND the assigned teacher index for future login
+            // Capture course ID AND the assigned teacher CSV index for future login
             createdCourseIds.push({
               id: body.id,
-              teacherIndex: i % createdTeacherIds.length,
+              teacherIndex:
+                iterIndex * teachersPerAdmin + (i % createdTeacherIds.length),
             });
           }
         } catch (e) {

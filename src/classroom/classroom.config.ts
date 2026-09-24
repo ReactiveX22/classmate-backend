@@ -1,15 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { type SelectedFields } from 'drizzle-orm/pg-core';
 import { DB } from 'src/database/db.provider';
-import {
-  and,
-  count,
-  countDistinct,
-  eq,
-  getTableColumns,
-  sql,
-  SQL,
-} from 'drizzle-orm';
+import { and, count, eq, getTableColumns, sql, SQL } from 'drizzle-orm';
 import {
   assignmentSubmission,
   classroom,
@@ -40,15 +32,6 @@ export class ClassroomPaginationConfig extends PaginationConfig<
   defaultSortField = 'createdAt';
 
   getBaseQuery(db: DB) {
-    const studentCountSq = db
-      .select({
-        classroomId: classroomMembers.classroomId,
-        count: count(classroomMembers.studentId).as('student_count'),
-      })
-      .from(classroomMembers)
-      .groupBy(classroomMembers.classroomId)
-      .as('sq');
-
     return db
       .select({
         classroom: classroom,
@@ -58,26 +41,23 @@ export class ClassroomPaginationConfig extends PaginationConfig<
           name: user.name,
           image: user.image,
         },
-        studentCount: sql<number>`COALESCE(${studentCountSq.count}, 0)`.mapWith(
-          Number,
-        ),
+        studentCount: sql<number>`(
+          SELECT COUNT(*)
+          FROM ${classroomMembers}
+          WHERE ${classroomMembers.classroomId} = ${classroom.id}
+        )`.mapWith(Number),
       })
       .from(classroom)
       .innerJoin(course, eq(classroom.courseId, course.id))
       .innerJoin(user, eq(classroom.teacherId, user.id))
-      .leftJoin(studentCountSq, eq(classroom.id, studentCountSq.classroomId))
       .$dynamic();
   }
 
   async getCountQuery(db: DB, filters: SQL[]) {
     const [result] = await db
-      .select({ total: countDistinct(classroom.id) })
+      .select({ total: count() })
       .from(classroom)
       .innerJoin(course, eq(classroom.courseId, course.id))
-      .leftJoin(
-        classroomMembers,
-        eq(classroom.id, classroomMembers.classroomId),
-      )
       .where(and(...filters));
 
     return result?.total ?? 0;

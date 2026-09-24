@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm';
 import {
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -57,6 +58,7 @@ export const course = pgTable(
       table.code,
       table.organizationId,
     ),
+    index('course_organization_idx').on(table.organizationId),
   ],
 );
 
