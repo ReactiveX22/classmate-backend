@@ -17,8 +17,9 @@ import { trackError } from '../lib/util.js';
 export const options = buildOptions({
   scenario: 'smoke',
   extraThresholds: {
-    http_req_duration: ['p(95)<5000'],
-    http_req_failed: ['rate<0.20'],
+    http_req_duration: ['p(95)<550'],
+    'http_req_duration{endpoint:signin}': ['p(95)<250'],
+    http_req_failed: ['rate<0.05'],
   },
 });
 

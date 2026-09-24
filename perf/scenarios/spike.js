@@ -22,8 +22,10 @@ import { allTasks } from '../tasks/index.js';
 export const options = buildOptions({
   scenario: 'spike',
   extraThresholds: {
-    http_req_duration: ['p(95)<8000'],
-    http_req_failed: ['rate<0.25'],
+    http_req_duration: ['p(95)<2500'],
+    'http_req_duration{endpoint:classrooms_list}': ['p(95)<2000'],
+    'http_req_duration{endpoint:signin}': ['p(95)<3000'],
+    http_req_failed: ['rate<0.10'],
   },
 });
 

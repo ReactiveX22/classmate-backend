@@ -12,12 +12,12 @@ export const thresholds = {
     },
     // Common defaults for standard scenarios (smoke, load, etc.)
     common: {
-      http_req_duration: ['p(95)<3000', 'p(99)<5000'],
+      http_req_duration: ['p(95)<300', 'p(99)<800'],
       'http_req_duration{endpoint:signup}': ['p(95)<8000'],
-      'http_req_duration{endpoint:signin}': ['p(95)<5000'],
+      'http_req_duration{endpoint:signin}': ['p(95)<850'],
       'http_req_duration{endpoint:session}': ['p(95)<500'],
       'http_req_duration{endpoint:grade_stats}': ['p(95)<5000'],
-      'http_req_duration{endpoint:classrooms_list}': ['p(95)<2000'],
+      'http_req_duration{endpoint:classrooms_list}': ['p(95)<150'],
       'http_req_duration{endpoint:upcoming_posts}': ['p(95)<3000'],
       'http_req_duration{endpoint:crud}': ['p(95)<1500'],
       iteration_duration: ['p(95)<30000'],
