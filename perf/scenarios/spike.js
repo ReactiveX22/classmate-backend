@@ -24,7 +24,7 @@ export const options = buildOptions({
   extraThresholds: {
     http_req_duration: ['p(95)<2500'],
     'http_req_duration{endpoint:classrooms_list}': ['p(95)<2000'],
-    'http_req_duration{endpoint:signin}': ['p(95)<3000'],
+    'http_req_duration{endpoint:signin}': ['p(95)<2700'],
     http_req_failed: ['rate<0.10'],
   },
 });
