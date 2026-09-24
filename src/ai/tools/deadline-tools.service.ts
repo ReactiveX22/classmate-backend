@@ -45,11 +45,12 @@ export class DeadlineToolsService {
           if (!joined.some((c) => c.id === classroomId)) {
             return 'Access denied to the specified classroom.';
           }
-          const posts = await classroomRepository.findUpcomingPosts(
-            classroomId,
-            user.id,
-            isStudent,
-          );
+          const posts =
+            await classroomRepository.findUpcomingPostsForClassrooms(
+              [classroomId],
+              user.id,
+              isStudent,
+            );
 
           if (!posts.length) {
             return 'No upcoming deadlines found in this classroom.';
@@ -78,19 +79,19 @@ export class DeadlineToolsService {
           dueAt: string;
         }[] = [];
 
-        for (const classroom of classrooms) {
-          const posts = await classroomRepository.findUpcomingPosts(
-            classroom.id,
+        const posts =
+          await classroomRepository.findUpcomingPostsForClassrooms(
+            classrooms.map((c) => c.id),
             user.id,
             isStudent,
           );
-          for (const post of posts) {
-            allDeadlines.push({
-              classroomName: classroom.name,
-              title: post.title,
-              dueAt: post.dueAt,
-            });
-          }
+        const names = new Map(classrooms.map((c) => [c.id, c.name] as const));
+        for (const post of posts) {
+          allDeadlines.push({
+            classroomName: names.get(post.classroomId) ?? '',
+            title: post.title,
+            dueAt: post.dueAt,
+          });
         }
 
         if (!allDeadlines.length) {

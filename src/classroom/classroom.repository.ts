@@ -293,13 +293,15 @@ export class ClassroomRepository {
     };
   }
 
-  async findUpcomingPosts(
-    classroomId: string,
+  async findUpcomingPostsForClassrooms(
+    classroomIds: string[],
     userId: string,
     isStudent: boolean,
   ) {
+    if (classroomIds.length === 0) return [];
+
     const filters = [
-      eq(classroomPost.classroomId, classroomId),
+      inArray(classroomPost.classroomId, classroomIds),
       eq(classroomPost.type, 'assignment'),
       gte(
         sql<string>`(${classroomPost.assignmentData}->>'dueDate')::timestamp with time zone`,
@@ -326,6 +328,7 @@ export class ClassroomRepository {
 
     const posts = await this.db
       .select({
+        classroomId: classroomPost.classroomId,
         id: classroomPost.id,
         title: classroomPost.title,
         type: classroomPost.type,

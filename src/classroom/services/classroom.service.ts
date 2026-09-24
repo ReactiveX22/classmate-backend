@@ -66,19 +66,22 @@ export class ClassroomService {
     const rows = result.data as unknown as Array<{
       classroom: { id: string };
     }>;
-    const dataWithUpcoming = await Promise.all(
-      rows.map(async (item) => {
-        const upcoming = await this.classroomRepository.findUpcomingPosts(
-          item.classroom.id,
-          userId,
-          role === AppRole.Student,
-        );
-        return {
-          ...item,
-          upcoming,
-        };
-      }),
-    );
+    const upcomingPosts =
+      await this.classroomRepository.findUpcomingPostsForClassrooms(
+        rows.map((item) => item.classroom.id),
+        userId,
+        role === AppRole.Student,
+      );
+    const upcomingByClassroom = new Map<string, typeof upcomingPosts>();
+    for (const post of upcomingPosts) {
+      const list = upcomingByClassroom.get(post.classroomId);
+      if (list) list.push(post);
+      else upcomingByClassroom.set(post.classroomId, [post]);
+    }
+    const dataWithUpcoming = rows.map((item) => ({
+      ...item,
+      upcoming: upcomingByClassroom.get(item.classroom.id) ?? [],
+    }));
 
     return {
       ...result,
@@ -623,8 +626,8 @@ export class ClassroomService {
     role: AppRole,
   ) {
     await this.findOne(id, orgId);
-    return await this.classroomRepository.findUpcomingPosts(
-      id,
+    return await this.classroomRepository.findUpcomingPostsForClassrooms(
+      [id],
       userId,
       role === AppRole.Student,
     );
