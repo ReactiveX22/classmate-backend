@@ -1,4 +1,4 @@
-# CSE 481 Project Proposal Rubric (Classroom Edition)
+# CSE 481 Project Proposal Rubric
 
 Course: CSE 481 Natural Language Processing and LLMs. Instructor: Professor Sarah Jenkins (jenkins@starlight.edu). Original deadline was {{proposal_original}}. Extended deadline is {{proposal_deadline}} at 11:59 PM. One upload per team to the classroom portal under Assignments, CSE 481 Proposal.
 

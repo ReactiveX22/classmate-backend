@@ -1,6 +1,6 @@
-# Lecture 5: Attention (Fixed Re-upload)
+# Lecture 5: Attention (corrected slides)
 
-Course: CSE 481, Lecture 5. Fixed re-upload replaces the version with swapped shapes on slide 14. Quiz on {{quiz_date}} follows this fixed version.
+Course: CSE 481, Lecture 5. This replaces the version with swapped shapes on slide 14. Quiz on {{quiz_date}} follows this fixed version.
 
 ## Corrected shapes (d_model = 512, heads = 8, d_k = 64)
 

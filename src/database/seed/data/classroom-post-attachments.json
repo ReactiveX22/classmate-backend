@@ -1,30 +1,30 @@
 [
   {
-    "postId": "020233a2-84fe-5f4b-9a59-684c3b40b5c6",
+    "postId": "0ff1ae54-f3ac-57a5-be76-848111120034",
     "attachmentId": "da6cf40c-2d7f-5c97-abfa-56843a211352",
     "filename": "cse481-proposal-rubric.pdf",
-    "title": "CSE 481 Project Proposal Rubric (Classroom Edition)",
+    "title": "CSE 481 Project Proposal Rubric",
     "source": "proposal-rubric-classroom.md"
   },
   {
     "postId": "5175c104-792f-5c0d-9fc8-93edb37079c0",
     "attachmentId": "c8b06518-f35b-5e48-8755-5f103c436ad0",
     "filename": "rag-lab-handout.pdf",
-    "title": "Lab 3: Retrieval-Augmented Generation Handout",
+    "title": "Lab 3 Handout: Retrieval-Augmented Generation",
     "source": "rag-lab-handout.md"
   },
   {
     "postId": "5175c104-792f-5c0d-9fc8-93edb37079c0",
     "attachmentId": "4b501903-9e49-5e73-a653-1ad41c15a259",
-    "filename": "transformer-slides-lectures-4-5.pdf",
-    "title": "Transformer Slides Companion (Lectures 4-5)",
+    "filename": "lectures-4-5-transformer-slides.pdf",
+    "title": "Transformer Slides (Lectures 4-5)",
     "source": "transformer-slides.md"
   },
   {
     "postId": "51b8484e-658c-5787-88b0-0b8a2dd87898",
     "attachmentId": "9815f1fa-f35a-5104-a2e4-48a7e2b80d2d",
     "filename": "lecture5-attention-fixed.pdf",
-    "title": "Lecture 5: Attention (Fixed Re-upload)",
+    "title": "Lecture 5: Attention (corrected slides)",
     "source": "lecture5-attention-fixed.md"
   },
   {

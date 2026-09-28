@@ -1,4 +1,4 @@
-# Transformer Slides Companion (Lectures 4-5)
+# Transformer Slides (Lectures 4-5)
 
 Course: CSE 481. Covers the exact material quizzed on {{quiz_date}}. Pair with the RAG Lab Handout due {{rag_lab_due}}.
 

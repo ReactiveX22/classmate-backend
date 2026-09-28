@@ -1,4 +1,4 @@
-# Lab 3: Retrieval-Augmented Generation Handout
+# Lab 3 Handout: Retrieval-Augmented Generation
 
 Course: CSE 481, Lab 3. Due: {{rag_lab_due}} at 11:59 PM. Quiz on this handout plus the Transformer slides on {{quiz_date}} (20 minutes, closed book, in class).
 
