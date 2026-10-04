@@ -31,7 +31,6 @@ const SOURCE_DIR = path.join(
 
 // LLM classroom (CSE 481) + DSA classroom (CSE 201). Others stay empty.
 const LLM_CLASSROOM_ID = '7374ec6b-7b43-4509-beb9-18ee46099b88';
-const DSA_CLASSROOM_ID = 'fdacc947-32ff-44a2-8fe2-b2aacbec7193';
 const TEACHER_ID = 'usr_teacher_001';
 
 interface PostData {
@@ -126,60 +125,61 @@ export async function seedClassroomPosts(
 ): Promise<number> {
   // Resolve classroom ids from seeded rows (index 0 = LLM, 1 = DSA).
   const llmClassroomId = classrooms[0]?.id ?? LLM_CLASSROOM_ID;
-  const dsaClassroomId = classrooms[1]?.id ?? DSA_CLASSROOM_ID;
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const postsData = require(POSTS_PATH) as PostData[];
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const commentsData = require(COMMENTS_PATH) as CommentData[];
   const placeholders = buildPostPlaceholders();
 
-  const postInserts = postsData.map((p) => {
-    const created = daysAgo(p.daysAgoCreated);
+  const postInserts: postSchema.InsertClassroomPost[] = postsData.map(
+    (p): postSchema.InsertClassroomPost => {
+      const created = daysAgo(p.daysAgoCreated);
 
-    const row: any = {
-      id: p.id,
-      classroomId: p.classroomId ?? llmClassroomId,
-      authorId: p.authorId ?? TEACHER_ID,
-      type: p.type,
-      title: p.title ? replacePlaceholders(p.title, placeholders) : null,
-      content: replacePlaceholders(p.content, placeholders),
-      attachments: [],
-      isPinned: p.isPinned ?? false,
-      commentsEnabled: p.commentsEnabled ?? true,
-      tags: p.tags ?? [],
-      createdAt: created,
-      updatedAt: created,
-    };
-    if (p.type === 'assignment' && p.assignment) {
-      const due = daysFromNow(p.assignment.dueInDays);
-      // 9:00 AM for quiz prep (dueInDays 4), 23:59 otherwise.
-      if (p.assignment.dueInDays === 4) due.setHours(9, 0, 0, 0);
-      else due.setHours(23, 59, 0, 0);
-      row.assignmentData = {
-        dueDate: due.toISOString(),
-        points: p.assignment.points,
-        allowLateSubmission: p.assignment.allowLateSubmission,
-        submissionType: p.assignment.submissionType,
+      const row: postSchema.InsertClassroomPost = {
+        id: p.id,
+        classroomId: p.classroomId ?? llmClassroomId,
+        authorId: p.authorId ?? TEACHER_ID,
+        type: p.type,
+        title: p.title ? replacePlaceholders(p.title, placeholders) : null,
+        content: replacePlaceholders(p.content, placeholders),
+        attachments: [],
+        isPinned: p.isPinned ?? false,
+        commentsEnabled: p.commentsEnabled ?? true,
+        tags: p.tags ?? [],
+        createdAt: created,
+        updatedAt: created,
       };
-    }
-    if (p.type === 'question' && p.question) {
-      if (p.question.mode === 'short_answer') {
-        row.questionData = { mode: 'short_answer' };
-      } else {
-        row.questionData = {
-          mode: 'poll',
-          selectionMode: p.question.selectionMode ?? 'single',
-          options: p.question.options ?? [],
-          votes: (p.question.votes ?? []).map((v) => ({
-            userId: v.userId,
-            optionIds: v.optionIds,
-            votedAt: daysAgo(v.votedDaysAgo).toISOString(),
-          })),
+      if (p.type === 'assignment' && p.assignment) {
+        const due = daysFromNow(p.assignment.dueInDays);
+        // 9:00 AM for quiz prep (dueInDays 4), 23:59 otherwise.
+        if (p.assignment.dueInDays === 4) due.setHours(9, 0, 0, 0);
+        else due.setHours(23, 59, 0, 0);
+        row.assignmentData = {
+          dueDate: due.toISOString(),
+          points: p.assignment.points,
+          allowLateSubmission: p.assignment.allowLateSubmission,
+          submissionType: p.assignment.submissionType,
         };
       }
-    }
-    return row;
-  });
+      if (p.type === 'question' && p.question) {
+        if (p.question.mode === 'short_answer') {
+          row.questionData = { mode: 'short_answer' };
+        } else {
+          row.questionData = {
+            mode: 'poll',
+            selectionMode: p.question.selectionMode ?? 'single',
+            options: p.question.options ?? [],
+            votes: (p.question.votes ?? []).map((v) => ({
+              userId: v.userId,
+              optionIds: v.optionIds,
+              votedAt: daysAgo(v.votedDaysAgo).toISOString(),
+            })),
+          };
+        }
+      }
+      return row;
+    },
+  );
 
   await db
     .insert(postSchema.classroomPost)

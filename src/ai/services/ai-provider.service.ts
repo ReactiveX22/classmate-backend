@@ -67,7 +67,7 @@ export class AiProviderService {
         return new ChatGoogle({
           model:
             overrides?.model ??
-            this.configService.get('GOOGLE_MODEL') ??
+            this.configService.get<string>('GOOGLE_MODEL') ??
             'gemini-2.5-flash',
           apiKey,
           temperature: options.temperature,
@@ -80,7 +80,7 @@ export class AiProviderService {
         return new ChatGroq({
           model:
             overrides?.model ??
-            this.configService.get('GROQ_MODEL') ??
+            this.configService.get<string>('GROQ_MODEL') ??
             'llama-3.3-70b-versatile',
           apiKey,
           temperature: options.temperature,
@@ -93,10 +93,11 @@ export class AiProviderService {
         return new ChatOllama({
           model:
             overrides?.model ??
-            this.configService.get('OLLAMA_MODEL') ??
+            this.configService.get<string>('OLLAMA_MODEL') ??
             'gpt-oss:120b-cloud',
           baseUrl:
-            this.configService.get('OLLAMA_BASE_URL') ?? 'https://ollama.com',
+            this.configService.get<string>('OLLAMA_BASE_URL') ??
+            'https://ollama.com',
           headers: { Authorization: `Bearer ${apiKey}` },
           // Cloud-hosted: never try to pull models locally.
           checkOrPullModel: false,

@@ -79,12 +79,11 @@ export class DeadlineToolsService {
           dueAt: string;
         }[] = [];
 
-        const posts =
-          await classroomRepository.findUpcomingPostsForClassrooms(
-            classrooms.map((c) => c.id),
-            user.id,
-            isStudent,
-          );
+        const posts = await classroomRepository.findUpcomingPostsForClassrooms(
+          classrooms.map((c) => c.id),
+          user.id,
+          isStudent,
+        );
         const names = new Map(classrooms.map((c) => [c.id, c.name] as const));
         for (const post of posts) {
           allDeadlines.push({

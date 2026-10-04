@@ -68,8 +68,6 @@ import { AppThrottlerGuard } from './common/guards';
     TodoModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService /*, { provide: APP_GUARD, useClass: AppThrottlerGuard } */,
-  ],
+  providers: [AppService, { provide: APP_GUARD, useClass: AppThrottlerGuard }],
 })
 export class AppModule {}

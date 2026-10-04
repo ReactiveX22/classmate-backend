@@ -249,7 +249,11 @@ export class MainAgentService {
           : allTools.filter((t) => t.name !== 'web_search');
 
         const toolNode = new ToolNode(permittedTools);
-        return toolNode.invoke(state, config);
+        // ToolNode.invoke is untyped (Promise<any>); cast through unknown.
+        const result = (await toolNode.invoke(state, config)) as unknown as {
+          messages: typeof state.messages;
+        };
+        return result;
       })
       .addEdge(START, 'model')
       .addConditionalEdges('model', toolsCondition)

@@ -1,6 +1,9 @@
 import { lexer } from 'marked';
 import * as path from 'path';
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
+// Seed-only PDF rendering over untyped pdfmake + marked tokens.
+
 // pdfmake 0.3.x keeps the server-side printer at a build subpath, not on
 // the package root. Its constructor also needs a URL resolver and the
 // virtual fs, mirroring what pdfmake's own base.js does.
@@ -300,7 +303,7 @@ export async function renderStarlightPdf(
   };
 
   return new Promise<Buffer>((resolve, reject) => {
-    (async () => {
+    void (async () => {
       try {
         // 0.3.x: document creation is async (URL resolution step).
         const pdfDoc = await getPrinter().createPdfKitDocument(docDefinition);
@@ -310,7 +313,7 @@ export async function renderStarlightPdf(
         pdfDoc.on('error', reject);
         pdfDoc.end();
       } catch (err) {
-        reject(err);
+        reject(err instanceof Error ? err : new Error(String(err)));
       }
     })();
   });

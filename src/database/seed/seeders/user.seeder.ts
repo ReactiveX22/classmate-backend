@@ -1,6 +1,5 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { eq } from 'drizzle-orm';
 import { hash } from '@node-rs/argon2';
 import * as fs from 'fs/promises';
 import * as path from 'path';
